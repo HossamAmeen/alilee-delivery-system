@@ -6,6 +6,7 @@ from .models import Trader
 from .serializers import TraderSerializer
 
 
+#TODO: test and authenticate
 class TraderViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     queryset = Trader.objects.all()

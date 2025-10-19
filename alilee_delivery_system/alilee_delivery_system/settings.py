@@ -110,6 +110,7 @@ WSGI_APPLICATION = 'alilee_delivery_system.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+#TODO: read from env
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

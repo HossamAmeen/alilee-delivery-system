@@ -6,6 +6,7 @@ from .models import Manager
 from .serializers import ManagerSerializer
 
 
+#TODO: test and authenticate
 class ManagerViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     queryset = Manager.objects.all()
