@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Trader
+
+from users.models import Trader
 
 
 class TraderSerializer(serializers.ModelSerializer):
