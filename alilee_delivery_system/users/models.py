@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from django_softdelete.models import SoftDeleteModel
@@ -10,17 +10,32 @@ class UserRole(models.TextChoices):
     ADMIN = 'admin', 'admin'
     TRADER = 'trader', 'trader'
 
-class UserAccount(SoftDeleteModel, TimeStampedModel):
-    email = models.TextField('Email', unique=True)
-    full_name = models.TextField('Full Name', null=True)
-    phone_number = models.CharField(max_length=11)
+class UserAccountManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+class UserAccount(AbstractBaseUser, PermissionsMixin, SoftDeleteModel, TimeStampedModel):
+    email = models.EmailField('Email', unique=True)
+    full_name = models.CharField('Full Name', max_length=255)
+    phone_number = models.CharField(max_length=11, null=True)
     role = models.CharField(
         max_length=10,
         choices=UserRole.choices,
         default=UserRole.ADMIN
     )
-    user = models.OneToOneField(User, on_delete=models.SET_NULL,
-                                related_name="account_user", null=True)
+    objects = UserAccountManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    def __str__(self):
+        return self.email
 
 
 class TraderStatus(models.TextChoices):

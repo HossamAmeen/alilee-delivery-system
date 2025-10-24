@@ -1,23 +1,28 @@
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from users.models import UserAccount
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def validate_password(self, password):
-        """Hash the password correctly."""
-        return make_password(password)
-
-
 class UserAccountSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False)
+    
     class Meta:
         model = UserAccount
-        fields = '__all__'
-        read_only_fields = ('id', 'created', 'modified', 'deleted_at')
+        fields = ['id', 'email', 'password', 'full_name', 'phone_number', 'role', 'created', 'modified']
+        read_only_fields = ('id', 'created', 'modified')
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().create(validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user

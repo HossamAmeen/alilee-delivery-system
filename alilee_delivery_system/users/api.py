@@ -1,16 +1,16 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from users.models import UserAccount, Trader
 from users.serializers.traders_serializers import TraderSerializer
-from users.serializers.user_account_serializers import UserAccountSerializer, UserSerializer
+from users.serializers.user_account_serializers import UserAccountSerializer
 
 
-#TODO: get and update account
 class UserAccountViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = UserAccount.objects.all()
@@ -21,18 +21,19 @@ class UserAccountViewSet(ModelViewSet):
     ordering_fields = ['email', 'full_name', 'phone_number', 'role']
     ordering = ['-created']
 
-    def create(self, request, *args, **kwargs):
-        request.data['is_superuser'] = True
-        user_serializer = UserSerializer(data=request.data)
-        user_serializer.is_valid(raise_exception=True)
-        user_serializer.save()
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Return the current authenticated user"""
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
 
-        request.data['user'] = user_serializer.data['id']
-        user_account_serializer = self.serializer_class(data=request.data)
-        user_account_serializer.is_valid(raise_exception=True)
-        user_account_serializer.save()
-        return Response(user_account_serializer.data,
-                        status=status.HTTP_201_CREATED)
+    @action(detail=False, methods=['patch'], permission_classes=[IsAuthenticated])
+    def update_me(self, request):
+        """Update the current authenticated user"""
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 class TraderViewSet(ModelViewSet):
     permission_classes = [AllowAny]

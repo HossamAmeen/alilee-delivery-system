@@ -1,10 +1,14 @@
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
-from users.models import Trader
+from users.models import Trader, UserRole
 
 
-class TraderSerializer(serializers.ModelSerializer):
+class TraderSerializer(ModelSerializer):
     class Meta:
         model = Trader
-        fields = '__all__'
         read_only_fields = ('id', 'created', 'modified', 'deleted_at')
+        exclude = ['password']
+
+    def create(self, validated_data):
+        validated_data['role'] = UserRole.TRADER
+        return super().create(validated_data)
