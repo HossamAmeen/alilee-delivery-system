@@ -1,11 +1,10 @@
 from django.db import models
-from django_extensions.db.models import TimeStampedModel
-from django_softdelete.models import SoftDeleteModel
 
 from users.models import UserAccount
+from utilities.models.abstract_base_model import AbstractBaseModel
 
 
-class UserAccountTransaction(SoftDeleteModel, TimeStampedModel):
+class UserAccountTransaction(AbstractBaseModel):
     class Meta:
         abstract = True
 

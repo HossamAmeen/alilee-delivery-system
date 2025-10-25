@@ -54,6 +54,7 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "drf_yasg",  # Swagger
     "corsheaders",  # CORS
+    "django_extensions",
     "django_softdelete",
 ]
 
@@ -170,4 +171,17 @@ SIMPLE_JWT = {
         days=env.int("REFRESH_TOKEN_LIFETIME", default=1)
     ),
     "ROTATE_REFRESH_TOKENS": True,
+}
+
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+        }
+    },
+    "USE_SESSION_AUTH": False,
 }
