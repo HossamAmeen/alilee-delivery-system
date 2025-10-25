@@ -28,4 +28,4 @@ repos:
     rev: 'v0.5.2'  # Replace with latest tag on GitHub
     hooks:
     -   id: remove-print-statements
-        args: ['--verbose', '--ignore', 'config/settings.py']   # Show all the print statements to be removed
+        args: ['--verbose', '--ignore', 'alilee_delivery_system/alilee_delivery_system/settings.py']   # Show all the print statements to be removed
