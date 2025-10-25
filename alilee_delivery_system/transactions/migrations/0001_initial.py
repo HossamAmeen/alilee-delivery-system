@@ -8,24 +8,50 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='TraderTransaction',
+            name="TraderTransaction",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deleted_at', models.DateTimeField(blank=True, null=True)),
-                ('restored_at', models.DateTimeField(blank=True, null=True)),
-                ('transaction_id', models.UUIDField(blank=True, null=True)),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('amount', models.DecimalField(decimal_places=2, default=0.0, max_digits=10)),
-                ('transaction_type', models.CharField(choices=[('withdraw', 'withdraw'), ('deposit', 'deposit')], max_length=10)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deleted_at", models.DateTimeField(blank=True, null=True)),
+                ("restored_at", models.DateTimeField(blank=True, null=True)),
+                ("transaction_id", models.UUIDField(blank=True, null=True)),
+                (
+                    "created",
+                    django_extensions.db.fields.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    django_extensions.db.fields.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(decimal_places=2, default=0.0, max_digits=10),
+                ),
+                (
+                    "transaction_type",
+                    models.CharField(
+                        choices=[("withdraw", "withdraw"), ("deposit", "deposit")],
+                        max_length=10,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]
