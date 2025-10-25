@@ -1,5 +1,4 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -19,7 +18,7 @@ class UserAccountViewSet(ModelViewSet):
     filterset_fields = ['email', 'full_name', 'phone_number', 'role']
     search_fields = ['email', 'full_name', 'phone_number']
     ordering_fields = ['email', 'full_name', 'phone_number', 'role']
-    ordering = ['-created']
+    ordering = ['-id']
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def me(self, request):
