@@ -10,16 +10,15 @@ class UserAccountTransaction(SoftDeleteModel, TimeStampedModel):
         abstract = True
 
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    user_account = models.ForeignKey(UserAccount, on_delete=models.SET_NULL,
-                                        related_name="user_account", null=True)
+    user_account = models.ForeignKey(
+        UserAccount, on_delete=models.SET_NULL, related_name="user_account", null=True
+    )
 
 
 class TransactionType(models.TextChoices):
-    WITHDRAW = 'withdraw', 'withdraw'
-    DEPOSIT = 'deposit', 'deposit'
+    WITHDRAW = "withdraw", "withdraw"
+    DEPOSIT = "deposit", "deposit"
+
 
 class TraderTransaction(UserAccountTransaction):
-    transaction_type = models.CharField(
-        max_length=10,
-        choices=TransactionType.choices
-    )
+    transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
