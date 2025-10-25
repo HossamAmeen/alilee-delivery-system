@@ -6,8 +6,16 @@ from users.models import Trader, UserRole
 class TraderSerializer(ModelSerializer):
     class Meta:
         model = Trader
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "phone_number",
+            "balance",
+            "created",
+            "modified",
+        ]
         read_only_fields = ("id", "created", "modified", "deleted_at")
-        exclude = ["password"]
 
     def create(self, validated_data):
         validated_data["role"] = UserRole.TRADER

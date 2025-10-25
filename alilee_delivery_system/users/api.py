@@ -20,12 +20,10 @@ class UserAccountViewSet(BaseViewSet):
     ordering_fields = ["email", "full_name", "phone_number", "role"]
     ordering = ["-id"]
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def profile(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['patch'], permission_classes=[IsAuthenticated])
     def patch(self, request):
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

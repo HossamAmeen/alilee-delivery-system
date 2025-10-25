@@ -7,6 +7,11 @@ from users.api import TraderViewSet, UserAccountViewSet
 urlpatterns = [
     path("users/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("users/login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path(
+        "users/profile/",
+        UserAccountViewSet.as_view({"get": "profile", "patch": "patch"}),
+        name="user-profile",
+    ),
 ]
 
 

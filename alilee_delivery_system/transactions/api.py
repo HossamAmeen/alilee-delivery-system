@@ -12,5 +12,5 @@ class TraderTransactionViewSet(BaseViewSet):
     queryset = TraderTransaction.objects.all()
     serializer_class = TraderTransactionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ["transaction_type"]
+    filterset_fields = ["transaction_type", "user_account"]
     ordering = ["-created"]
