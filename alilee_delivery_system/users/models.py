@@ -1,37 +1,49 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.db import models
-from django_extensions.db.models import TimeStampedModel
-from django_softdelete.models import SoftDeleteModel
+from django_softdelete.managers import SoftDeleteManager
+
+from utilities.models.abstract_base_model import AbstractBaseModel
 
 
 class UserRole(models.TextChoices):
-    OWNER = 'owner', 'owner'
-    MANAGER = 'manager', 'manager'
-    ADMIN = 'admin', 'admin'
-    TRADER = 'trader', 'trader'
+    OWNER = "owner", "owner"
+    MANAGER = "manager", "manager"
+    ADMIN = "admin", "admin"
+    TRADER = "trader", "trader"
 
-class UserAccountManager(BaseUserManager):
+
+class UserAccountManager(BaseUserManager, SoftDeleteManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('The Email field must be set')
+            raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-class UserAccount(AbstractBaseUser, PermissionsMixin, SoftDeleteModel, TimeStampedModel):
-    email = models.EmailField('Email', unique=True)
-    full_name = models.CharField('Full Name', max_length=255)
+
+class UserAccount(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
+    email = models.EmailField("Email", unique=True)
+    full_name = models.CharField("Full Name", max_length=255)
     phone_number = models.CharField(max_length=11, null=True)
     role = models.CharField(
-        max_length=10,
-        choices=UserRole.choices,
-        default=UserRole.ADMIN
+        max_length=10, choices=UserRole.choices, default=UserRole.ADMIN
+    )
+    created_by = models.ForeignKey(
+        "users.UserAccount",
+        on_delete=models.CASCADE,
+        related_name="created_user_accounts",
+        null=True,
+        blank=True,
     )
     objects = UserAccountManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     def __str__(self):
@@ -39,14 +51,13 @@ class UserAccount(AbstractBaseUser, PermissionsMixin, SoftDeleteModel, TimeStamp
 
 
 class TraderStatus(models.TextChoices):
-    ACTIVE = 'active', 'Active'
-    INACTIVE = 'inactive', 'Inactive'
-    SUSPENDED = 'suspended', 'Suspended'
+    ACTIVE = "active", "Active"
+    INACTIVE = "inactive", "Inactive"
+    SUSPENDED = "suspended", "Suspended"
+
 
 class Trader(UserAccount):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(
-        max_length=10,
-        choices=TraderStatus.choices,
-        default=TraderStatus.ACTIVE
+        max_length=10, choices=TraderStatus.choices, default=TraderStatus.ACTIVE
     )
