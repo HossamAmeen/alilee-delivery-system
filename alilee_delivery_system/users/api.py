@@ -22,14 +22,12 @@ class UserAccountViewSet(ModelViewSet):
     ordering = ['-created']
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def me(self, request):
-        """Return the current authenticated user"""
+    def profile(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
     @action(detail=False, methods=['patch'], permission_classes=[IsAuthenticated])
-    def update_me(self, request):
-        """Update the current authenticated user"""
+    def patch(self, request):
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
