@@ -1,7 +1,7 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
-from django_extensions.db.models import TimeStampedModel
 from django_softdelete.models import SoftDeleteModel
+from utils.abstract_base_model import AbstractBaseModel
 
 
 class UserRole(models.TextChoices):
@@ -9,6 +9,7 @@ class UserRole(models.TextChoices):
     MANAGER = 'manager', 'manager'
     ADMIN = 'admin', 'admin'
     TRADER = 'trader', 'trader'
+
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -20,15 +21,19 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class UserAccount(AbstractBaseUser, PermissionsMixin, SoftDeleteModel, TimeStampedModel):
+
+class UserAccount(AbstractUser, SoftDeleteModel, AbstractBaseModel):
     email = models.EmailField('Email', unique=True)
-    full_name = models.CharField('Full Name', max_length=255)
+    full_name = models.CharField('Full Name', max_length=100)
     phone_number = models.CharField(max_length=11, null=True)
     role = models.CharField(
         max_length=10,
         choices=UserRole.choices,
         default=UserRole.ADMIN
     )
+    created_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="created_%(class)ss", null=True, blank=True)
+    updated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="updated_%(class)ss", null=True, blank=True)
+
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'
