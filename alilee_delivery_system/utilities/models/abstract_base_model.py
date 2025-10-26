@@ -1,17 +1,18 @@
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
-from django_softdelete.models import SoftDeleteModel
 
 
-class AbstractBaseModel(TimeStampedModel, SoftDeleteModel):
+class AbstractBaseModel(TimeStampedModel):
     created_by = models.ForeignKey(
         "users.UserAccount",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="created_%(class)ss",
+        null=True,
+        blank=True,
     )
     updated_by = models.ForeignKey(
         "users.UserAccount",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="updated_%(class)ss",
         null=True,
         blank=True,

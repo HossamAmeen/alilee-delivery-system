@@ -15,7 +15,7 @@ class TraderSerializer(ModelSerializer):
             "created",
             "modified",
         ]
-        read_only_fields = ("id", "created", "modified", "deleted_at")
+        read_only_fields = ("id", "created", "modified")
 
     def create(self, validated_data):
         validated_data["role"] = UserRole.TRADER

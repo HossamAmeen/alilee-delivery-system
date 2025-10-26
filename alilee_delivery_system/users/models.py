@@ -4,7 +4,9 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django_extensions.db.models import TimeStampedModel
 from django_softdelete.managers import SoftDeleteManager
+from django_softdelete.models import SoftDeleteModel
 
 from utilities.models.abstract_base_model import AbstractBaseModel
 
@@ -16,7 +18,7 @@ class UserRole(models.TextChoices):
     TRADER = "trader", "trader"
 
 
-class UserAccountManager(BaseUserManager, SoftDeleteManager):
+class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
@@ -33,13 +35,6 @@ class UserAccount(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
     phone_number = models.CharField(max_length=11, null=True)
     role = models.CharField(
         max_length=10, choices=UserRole.choices, default=UserRole.ADMIN
-    )
-    created_by = models.ForeignKey(
-        "users.UserAccount",
-        on_delete=models.CASCADE,
-        related_name="created_user_accounts",
-        null=True,
-        blank=True,
     )
     objects = UserAccountManager()
 
