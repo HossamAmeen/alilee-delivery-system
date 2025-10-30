@@ -10,7 +10,7 @@ class CitySerializer(serializers.ModelSerializer):
 
 
 class DeliveryZoneSerializer(serializers.ModelSerializer):
-    city = CitySerializer()
+    city = CitySerializer(read_only=True)
 
     class Meta:
         model = DeliveryZone
