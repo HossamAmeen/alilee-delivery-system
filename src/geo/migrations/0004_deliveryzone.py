@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("geo", "0003_remove_city_deleted_at_remove_city_restored_at_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

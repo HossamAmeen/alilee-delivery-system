@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("geo", "0002_alter_city_created_by_alter_city_updated_by"),
     ]

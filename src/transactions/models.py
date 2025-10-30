@@ -10,7 +10,10 @@ class UserAccountTransaction(AbstractBaseModel):
 
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     user_account = models.ForeignKey(
-        UserAccount, on_delete=models.SET_NULL, related_name="user_account", null=True
+        UserAccount,
+        on_delete=models.SET_NULL,
+        related_name="user_account",
+        null=True,
     )
 
 

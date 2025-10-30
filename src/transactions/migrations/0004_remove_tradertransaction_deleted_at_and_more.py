@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("transactions", "0003_alter_tradertransaction_created_by_and_more"),
     ]

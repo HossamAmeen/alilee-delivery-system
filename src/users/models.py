@@ -4,9 +4,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
-from django_extensions.db.models import TimeStampedModel
-from django_softdelete.managers import SoftDeleteManager
-from django_softdelete.models import SoftDeleteModel
 
 from utilities.models.abstract_base_model import AbstractBaseModel
 
@@ -54,5 +51,7 @@ class TraderStatus(models.TextChoices):
 class Trader(UserAccount):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(
-        max_length=10, choices=TraderStatus.choices, default=TraderStatus.ACTIVE
+        max_length=10,
+        choices=TraderStatus.choices,
+        default=TraderStatus.ACTIVE,
     )
