@@ -24,6 +24,7 @@ class UserAccountViewSet(BaseViewSet):
         return Response(serializer.data)
 
     def patch(self, request):
+        request.data.pop("role", None)
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
