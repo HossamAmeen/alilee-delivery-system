@@ -24,3 +24,9 @@ class TransactionType(models.TextChoices):
 
 class TraderTransaction(UserAccountTransaction):
     transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
+
+
+class Expense(AbstractBaseModel):
+    description = models.CharField(max_length=255, blank=True)
+    date = models.DateField()
+    cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
