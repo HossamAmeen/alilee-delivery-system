@@ -2,7 +2,7 @@ from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from rest_framework.serializers import ModelSerializer
 
-from transactions.models import TraderTransaction, TransactionType
+from transactions.models import Expense, TraderTransaction, TransactionType
 from users.models import Trader
 
 
@@ -38,3 +38,17 @@ class TraderTransactionSerializer(ModelSerializer):
 
         trader.save()
         return trader_transaction
+
+
+class ExpenseSerializer(ModelSerializer):
+    class Meta:
+        model = Expense
+        fields = [
+            "id",
+            "date",
+            "cost",
+            "description",
+            "created",
+            "modified",
+        ]
+        read_only_fields = ("id", "created", "modified")
