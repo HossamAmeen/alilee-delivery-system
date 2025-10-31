@@ -38,6 +38,7 @@ urlpatterns = [
     path("api/", include("users.urls")),
     path("api/transactions/", include("transactions.urls")),
     path("api/geo/", include("geo.urls")),
+    path("api/pricing/", include("trader_pricing.urls")),
     # Swagger URLs
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",
