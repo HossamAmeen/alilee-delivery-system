@@ -13,7 +13,7 @@ class TraderTransactionViewSet(BaseViewSet):
     serializer_class = TraderTransactionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["transaction_type", "user_account"]
-    ordering = ["-created"]
+    ordering = ["-id"]
 
 
 class ExpenseViewSet(BaseViewSet):
@@ -21,5 +21,5 @@ class ExpenseViewSet(BaseViewSet):
     queryset = Expense.objects.order_by("-id")
     serializer_class = ExpenseSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["category", "user_account", "expense_date"]
+    filterset_fields = ["date"]
     search_fields = ["description"]

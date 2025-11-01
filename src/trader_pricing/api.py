@@ -1,6 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
-from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated
 
 from trader_pricing.models import TraderDeliveryZone
@@ -14,4 +13,4 @@ class TraderDeliveryZoneViewSet(BaseViewSet):
     serializer_class = TraderDeliveryZoneSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["trader", "delivery_zone"]
-    ordering = ["-created"]
+    ordering = ["-id"]
