@@ -29,61 +29,59 @@ class ExpenseViewSet(BaseViewSet):
     filterset_fields = ["date"]
     search_fields = ["description"]
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
 
-        # Stats
-        yearly_data = (
-            Expense.objects.annotate(year=ExtractYear("date"))
-            .values("year")
-            .annotate(total=Sum("cost"))
-            .order_by("year")
-        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            # Stats
+            yearly_data = (
+                Expense.objects.annotate(year=ExtractYear("date"))
+                .values("year")
+                .annotate(total=Sum("cost"))
+                .order_by("year")
+            )
 
-        monthly_data = (
-            Expense.objects.filter(date__year=date.today().year)
-            .annotate(month=ExtractMonth("date"))
-            .values("month")
-            .annotate(total=Sum("cost"))
-            .order_by("month")
-        )
+            monthly_data = (
+                Expense.objects.filter(date__year=date.today().year)
+                .annotate(month=ExtractMonth("date"))
+                .values("month")
+                .annotate(total=Sum("cost"))
+                .order_by("month")
+            )
 
-        converted_monthly = {
-            1: "يناير",
-            2: "فبراير",
-            3: "مارس",
-            4: "ابريل",
-            5: "مايو",
-            6: "يونيو",
-            7: "يوليو",
-            8: "اغسطس",
-            9: "سبتمبر",
-            10: "اكتوبر",
-            11: "نوفمبر",
-            12: "ديسمبر",
-        }
-
-        response_data = {
-            "total_expenses": Expense.objects.aggregate(total=Sum("cost"))["total"]
-            or 0.00,
-            "expense_count": Expense.objects.count(),
-            "yearly": [
-                {"year": item["year"], "total": float(item["total"])}
-                for item in yearly_data[:6]
-            ],
-            "monthly": [
-                {
-                    "month": converted_monthly[item["month"]],
-                    "total": float(item["total"]),
-                }
-                for item in monthly_data
-            ],
-        }
-
-        return Response(
-            {
-                "expense": serializer.data,
-                "dashboard": response_data,
+            converted_monthly = {
+                1: "يناير",
+                2: "فبراير",
+                3: "مارس",
+                4: "ابريل",
+                5: "مايو",
+                6: "يونيو",
+                7: "يوليو",
+                8: "اغسطس",
+                9: "سبتمبر",
+                10: "اكتوبر",
+                11: "نوفمبر",
+                12: "ديسمبر",
             }
-        )
+
+            statistics_data = {
+                "total_expenses": Expense.objects.aggregate(total=Sum("cost"))["total"]
+                or 0.00,
+                "yearly": [
+                    {"year": item["year"], "total": float(item["total"])}
+                    for item in yearly_data[:6]
+                ],
+                "monthly": [
+                    {
+                        "month": converted_monthly[item["month"]],
+                        "total": float(item["total"]),
+                    }
+                    for item in monthly_data
+                ],
+            }
+
+            response_data = {"expenses": serializer.data, "statistics": statistics_data}
+            return self.get_paginated_response(response_data)
+        return Response(serializer.data)
