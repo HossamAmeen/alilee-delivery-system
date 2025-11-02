@@ -187,6 +187,7 @@ SWAGGER_SETTINGS = {
         }
     },
     "USE_SESSION_AUTH": False,
+    "PERSIST_AUTH": True,
 }
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
