@@ -2,10 +2,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum, Q, Value, DecimalField
+from django.db.models import Sum, Value, DecimalField, Q, Prefetch
 from django.db.models.functions import Coalesce
 
-from transactions.models import TransactionType
+from trader_pricing.models import TraderDeliveryZone
+from transactions.models import TransactionType, UserAccountTransaction
 from users.models import Trader, UserAccount
 from users.serializers.traders_serializers import TraderSerializer, TraderListSerializer
 from users.serializers.user_account_serializers import UserAccountSerializer
@@ -70,3 +71,22 @@ class TraderViewSet(BaseViewSet):
         if self.action == "list":
             return TraderListSerializer
         return self.serializer_class
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action == "retrieve":
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    "trader_delivery_zones_trader",
+                    queryset=TraderDeliveryZone.objects.select_related("delivery_zone").order_by("-id")[:5],
+                    to_attr="prefetched_prices",
+                ),
+                Prefetch(
+                    "transactions",
+                    queryset=UserAccountTransaction.objects.order_by("-id")[:5],
+                    to_attr="prefetched_transactions",
+                ),
+            )
+
+        return queryset
