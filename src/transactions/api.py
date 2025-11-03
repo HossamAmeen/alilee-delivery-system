@@ -6,15 +6,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 
-from transactions.models import Expense, TraderTransaction
-from transactions.serializers import ExpenseSerializer, TraderTransactionSerializer
+from transactions.models import Expense, UserAccountTransaction
+from transactions.serializers import ExpenseSerializer, UserAccountTransactionSerializer
 from utilities.api import BaseViewSet
 
 
-class TraderTransactionViewSet(BaseViewSet):
+class UserAccountTransactionViewSet(BaseViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = TraderTransaction.objects.all()
-    serializer_class = TraderTransactionSerializer
+    queryset = UserAccountTransaction.objects.all()
+    serializer_class = UserAccountTransactionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["transaction_type", "user_account"]
     ordering = ["-id"]

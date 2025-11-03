@@ -2,13 +2,13 @@ from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from rest_framework.serializers import ModelSerializer
 
-from transactions.models import Expense, TraderTransaction, TransactionType
+from transactions.models import Expense, UserAccountTransaction, TransactionType
 from users.models import Trader
 
 
-class TraderTransactionSerializer(ModelSerializer):
+class UserAccountTransactionSerializer(ModelSerializer):
     class Meta:
-        model = TraderTransaction
+        model = UserAccountTransaction
         fields = [
             "id",
             "user_account",

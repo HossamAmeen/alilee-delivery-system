@@ -2,9 +2,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db.models import Sum, Q, Value, DecimalField
+from django.db.models.functions import Coalesce
 
+from transactions.models import TransactionType
 from users.models import Trader, UserAccount
-from users.serializers.traders_serializers import TraderSerializer
+from users.serializers.traders_serializers import TraderSerializer, TraderListSerializer
 from users.serializers.user_account_serializers import UserAccountSerializer
 from utilities.api import BaseViewSet
 
@@ -33,7 +36,15 @@ class UserAccountViewSet(BaseViewSet):
 
 class TraderViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Trader.objects.all()
+    queryset = Trader.objects.annotate(
+        sales=Coalesce(
+            Sum(
+                "transactions__amount",
+                filter=Q(transactions__transaction_type=TransactionType.WITHDRAW),
+            ),
+            Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
+        )
+    )
     serializer_class = TraderSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = [
@@ -54,3 +65,8 @@ class TraderViewSet(BaseViewSet):
         "status",
     ]
     ordering = ["-id"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TraderListSerializer
+        return self.serializer_class
