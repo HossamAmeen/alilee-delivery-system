@@ -17,6 +17,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "role",
+            "is_active",
             "created",
             "modified",
         ]

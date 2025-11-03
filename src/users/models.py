@@ -1,5 +1,5 @@
 from django.contrib.auth.models import (
-    AbstractBaseUser,
+    AbstractUser,
     BaseUserManager,
     PermissionsMixin,
 )
@@ -26,13 +26,14 @@ class UserAccountManager(BaseUserManager):
         return user
 
 
-class UserAccount(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
+class UserAccount(AbstractUser, PermissionsMixin, AbstractBaseModel):
     email = models.EmailField("Email", unique=True)
     full_name = models.CharField("Full Name", max_length=255)
     phone_number = models.CharField(max_length=11, null=True)
     role = models.CharField(
         max_length=10, choices=UserRole.choices, default=UserRole.ADMIN
     )
+    username = None
     objects = UserAccountManager()
 
     USERNAME_FIELD = "email"
