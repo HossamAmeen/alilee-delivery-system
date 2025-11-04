@@ -1,8 +1,4 @@
-from django.contrib.auth.models import (
-    AbstractUser,
-    BaseUserManager,
-    PermissionsMixin,
-)
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 from utilities.models.abstract_base_model import AbstractBaseModel
@@ -26,14 +22,15 @@ class UserAccountManager(BaseUserManager):
         return user
 
 
-class UserAccount(AbstractUser, PermissionsMixin, AbstractBaseModel):
+class UserAccount(AbstractUser, AbstractBaseModel):
+    username = first_name = last_name = date_joined = None
     email = models.EmailField("Email", unique=True)
     full_name = models.CharField("Full Name", max_length=255)
     phone_number = models.CharField(max_length=11, null=True)
     role = models.CharField(
         max_length=10, choices=UserRole.choices, default=UserRole.ADMIN
     )
-    username = None
+
     objects = UserAccountManager()
 
     USERNAME_FIELD = "email"
