@@ -9,6 +9,7 @@ class UserRole(models.TextChoices):
     MANAGER = "manager", "manager"
     ADMIN = "admin", "admin"
     TRADER = "trader", "trader"
+    DRIVER = "driver", "driver"
 
 
 class UserAccountManager(BaseUserManager):
@@ -53,3 +54,13 @@ class Trader(UserAccount):
         choices=TraderStatus.choices,
         default=TraderStatus.ACTIVE,
     )
+
+
+class Driver(UserAccount):
+    vehicle_number = models.CharField(max_length=20, null=True)
+    license_number = models.CharField(max_length=20, null=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def save(self, **kwargs):
+        self.role = UserRole.DRIVER
+        return super().save(**kwargs)
