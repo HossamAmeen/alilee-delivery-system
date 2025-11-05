@@ -77,6 +77,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "utilities.custom_pagination_class.CustomPageNumberPagination",
     "PAGE_SIZE": 10,
+    "EXCEPTION_HANDLER": "utilities.exceptions.custom_exception_handler",
 }
 
 MIDDLEWARE = [

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
+from utilities.exceptions import CustomValidationError
 from utilities.models.abstract_base_model import AbstractBaseModel
 
 
@@ -15,7 +16,7 @@ class UserRole(models.TextChoices):
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("The Email field must be set")
+            raise CustomValidationError("The Email field must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)

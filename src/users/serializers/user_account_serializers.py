@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
 from users.models import UserAccount
+from utilities.exceptions import CustomValidationError
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, min_length=8)
-    confirm_password = serializers.CharField(write_only=True, required=True, min_length=8)
+    confirm_password = serializers.CharField(
+        write_only=True, required=True, min_length=8
+    )
 
     class Meta:
         model = UserAccount
@@ -29,7 +32,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
         confirm_password = data.get("confirm_password")
 
         if password != confirm_password:
-            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+            raise CustomValidationError({"confirm_password": "Passwords do not match."})
 
         return data
 

@@ -2,8 +2,9 @@ from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from rest_framework.serializers import ModelSerializer
 
-from transactions.models import Expense, UserAccountTransaction, TransactionType
+from transactions.models import Expense, TransactionType, UserAccountTransaction
 from users.models import Trader
+from utilities.exceptions import CustomValidationError
 
 
 class UserAccountTransactionSerializer(ModelSerializer):
@@ -26,9 +27,7 @@ class UserAccountTransactionSerializer(ModelSerializer):
             validated_data["transaction_type"] == TransactionType.WITHDRAW
             and validated_data["amount"] > trader.balance
         ):
-            from rest_framework import serializers
-
-            raise serializers.ValidationError("Trader's balance is not enough.")
+            raise CustomValidationError("Trader's balance is not enough.")
 
         trader_transaction = super().create(validated_data)
         if validated_data["transaction_type"] == TransactionType.WITHDRAW:

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from transactions.serializers import UserAccountTransactionSerializer
 from users.models import Driver
 
 
@@ -58,6 +59,11 @@ class CreateUpdateDriverSerializer(serializers.ModelSerializer):
 
 
 class DriverDetailSerializer(serializers.ModelSerializer):
+    sales = serializers.DecimalField(max_digits=10, decimal_places=2)
+    order_count = serializers.IntegerField()
+    orders = serializers.SerializerMethodField()
+    transactions = serializers.SerializerMethodField()
+
     class Meta:
         model = Driver
         fields = [
@@ -65,8 +71,20 @@ class DriverDetailSerializer(serializers.ModelSerializer):
             "email",
             "full_name",
             "phone_number",
+            "balance",
             "vehicle_number",
             "license_number",
             "is_active",
             "date_joined",
+            "sales",
+            "order_count",
+            "orders",
+            "transactions",
         ]
+
+    def get_orders(self, obj):
+        return []  # Placeholder for actual order data
+
+    def get_transactions(self, obj):
+        qs = obj.transactions.order_by("-id")[:5]
+        return UserAccountTransactionSerializer(qs, many=True).data
