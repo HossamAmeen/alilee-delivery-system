@@ -48,6 +48,7 @@ LOCAL_APPS = [
     "transactions",
     "geo",
     "trader_pricing",
+    "orders",
 ]
 
 THIRD_PARTY_APPS = [
