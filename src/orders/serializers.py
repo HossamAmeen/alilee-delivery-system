@@ -1,6 +1,7 @@
 from django.db.transaction import atomic
 from rest_framework import serializers
 
+from geo.serializers import DeliveryZoneSerializer
 from users.serializers.driver_serializer import RetrieveDriverSerializer
 from users.serializers.traders_serializers import TraderListSerializer
 from .models import Order, Customer
@@ -33,8 +34,14 @@ class OrderSerializer(serializers.ModelSerializer):
             "created",
             "modified",
             "customer",
+            "delivery_zone"
         ]
         read_only_fields = ("id", "tracking_number", "created", "modified")
+        extra_kwargs = {
+            'delivery_zone': {'required': True},
+            'customer': {'required': True},
+            'trader': {'required': True},
+        }
 
     @atomic
     def create(self, validated_data):
@@ -49,6 +56,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
     driver = RetrieveDriverSerializer(read_only=True)
     trader = TraderListSerializer(read_only=True)
     customer = CustomerSerializer(read_only=True)
+    delivery_zone = DeliveryZoneSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -63,6 +71,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "status",
             "driver",
             "trader",
+            "delivery_zone",
             "payment_method",
             "customer",
             "note",
@@ -75,6 +84,7 @@ class OrderListSerializer(serializers.ModelSerializer):
     driver_name = serializers.CharField(source="driver.full_name", read_only=True)
     trader_name = serializers.CharField(source="trader.full_name", read_only=True)
     customer_name = serializers.CharField(source="customer.name", read_only=True)
+    delivery_zone = serializers.CharField(source="delivery_zone.name", read_only=True)
 
     class Meta:
         model = Order
@@ -87,5 +97,6 @@ class OrderListSerializer(serializers.ModelSerializer):
             "driver_name",
             "trader_name",
             "customer_name",
+            "delivery_zone",
             "created",
         ]

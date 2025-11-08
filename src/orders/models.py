@@ -73,6 +73,12 @@ class Order(AbstractBaseModel):
         on_delete=models.SET_NULL,
         related_name="orders",
     )
+    delivery_zone = models.ForeignKey(
+        "geo.DeliveryZone",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="orders",
+    )
 
     def save(self, *args, **kwargs):
         if not self.tracking_number:
