@@ -57,6 +57,7 @@ class Order(AbstractBaseModel):
         choices=PaymentMethod.choices,
         default=PaymentMethod.COD,
     )
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     note = models.TextField(null=True, blank=True)
 
     # Relations
@@ -89,6 +90,7 @@ class Order(AbstractBaseModel):
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = str(uuid.uuid4().int)[:12]
+        self.total_cost = self.product_cost + self.delivery_cost + self.extra_delivery_cost
         super().save(*args, **kwargs)
 
     def __str__(self):
