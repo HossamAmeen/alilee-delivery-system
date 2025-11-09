@@ -128,3 +128,20 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "created",
             "modified",
         ]
+
+
+class OrderTraderSerializer(serializers.ModelSerializer):
+    customer = SingleCustomerSerializer(read_only=True)
+    driver = SingleDriverSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "tracking_number",
+            "product_cost",
+            "status",
+            "driver",
+            "customer",
+            "created",
+        ]

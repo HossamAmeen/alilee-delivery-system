@@ -9,6 +9,7 @@ from users.models import Trader, UserRole
 class TraderSerializer(ModelSerializer):
     prices = serializers.SerializerMethodField()
     transactions = serializers.SerializerMethodField()
+    orders = serializers.SerializerMethodField()
     sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
@@ -24,6 +25,7 @@ class TraderSerializer(ModelSerializer):
             "prices",
             "sales",
             "transactions",
+            "orders",
         ]
         read_only_fields = ("id", "created", "modified")
 
@@ -38,6 +40,12 @@ class TraderSerializer(ModelSerializer):
     def get_transactions(self, obj):
         qs = obj.transactions.order_by("-id")[:5]
         return UserAccountTransactionSerializer(qs, many=True).data
+
+    def get_orders(self, obj):
+        from orders.serializers import OrderTraderSerializer
+
+        qs = obj.orders.order_by("-id")[:5]
+        return OrderTraderSerializer(qs, many=True).data
 
 
 class TraderListSerializer(serializers.ModelSerializer):
