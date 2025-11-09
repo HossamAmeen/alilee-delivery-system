@@ -1,4 +1,6 @@
 from django.db.models import Q
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -50,6 +52,7 @@ class OrderViewSet(BaseViewSet):
     ]
     ordering = ["-id"]
 
+    
     def get_serializer_class(self):
         if self.action == "retrieve":
             return OrderRetrieveSerializer
@@ -57,7 +60,59 @@ class OrderViewSet(BaseViewSet):
             return OrderListSerializer
         return self.serializer_class
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'driver',
+                openapi.IN_QUERY,
+                description='Filter by driver ID',
+                type=openapi.TYPE_INTEGER
+            ),
+            openapi.Parameter(
+                'trader',
+                openapi.IN_QUERY,
+                description='Filter by trader ID',
+                type=openapi.TYPE_INTEGER
+            ),
+            openapi.Parameter(
+                'customer',
+                openapi.IN_QUERY,
+                description='Filter by customer ID',
+                type=openapi.TYPE_INTEGER
+            ),
+            openapi.Parameter(
+                'delivery_zone',
+                openapi.IN_QUERY,
+                description='Filter by delivery zone ID',
+                type=openapi.TYPE_INTEGER
+            ),
+            openapi.Parameter(
+                'status',
+                openapi.IN_QUERY,
+                description='Filter by order status',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description='Search in tracking number, reference code, or user details',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                'ordering',
+                openapi.IN_QUERY,
+                description='Which field to use when ordering the results. Prefix with - for descending order.',
+                type=openapi.TYPE_STRING,
+                enum=['tracking_number', '-tracking_number', 'reference_code', '-reference_code', 'created', '-created', 'modified', '-modified']
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Order.objects.none()
         user = self.request.user
 
         self.queryset = Order.objects.all().select_related(
