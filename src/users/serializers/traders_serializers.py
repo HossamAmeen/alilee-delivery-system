@@ -67,3 +67,16 @@ class SingleTraderSerializer(serializers.ModelSerializer):
             "balance",
             "status",
         ]
+
+
+class RetrieveTraderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trader
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "phone_number",
+            "balance",
+            "status",
+        ]
