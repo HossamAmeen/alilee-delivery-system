@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.shortcuts import get_object_or_404
 
-from users.models import UserRole
+from users.models import UserRole, Trader
 from utilities.api import BaseViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -108,6 +109,14 @@ class OrderViewSet(BaseViewSet):
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        trader_account = get_object_or_404(
+            Trader, id=request._auth.payload["user_id"],
+            is_active=True)
+        request.data['trader'] = trader_account.pk
+
+        return super().create(request)
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
