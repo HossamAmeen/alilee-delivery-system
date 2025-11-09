@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from orders.serializers import SingleOrderSerializer
 from transactions.serializers import UserAccountTransactionSerializer
 from users.models import Driver
 
@@ -111,6 +110,8 @@ class DriverDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_orders(self, obj):
+        from orders.serializers import SingleOrderSerializer
+
         return SingleOrderSerializer(obj.orders.order_by("-id")[:5], many=True).data
 
     def get_transactions(self, obj):
