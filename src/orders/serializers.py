@@ -103,3 +103,28 @@ class OrderListSerializer(serializers.ModelSerializer):
             "delivery_zone",
             "created",
         ]
+
+
+class SingleOrderSerializer(serializers.ModelSerializer):
+    trader = SingleTraderSerializer(read_only=True)
+    customer = SingleCustomerSerializer(read_only=True)
+    delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "tracking_number",
+            "reference_code",
+            "product_cost",
+            "extra_delivery_cost",
+            "status",
+            "driver",
+            "trader",
+            "delivery_zone",
+            "payment_method",
+            "customer",
+            "note",
+            "created",
+            "modified",
+        ]

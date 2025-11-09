@@ -20,7 +20,6 @@ from .serializers import (
 
 class OrderViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = OrderSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = [
         "driver",
@@ -58,7 +57,7 @@ class OrderViewSet(BaseViewSet):
             return OrderRetrieveSerializer
         elif self.action == "list":
             return OrderListSerializer
-        return self.serializer_class
+        return OrderSerializer
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -113,6 +112,7 @@ class OrderViewSet(BaseViewSet):
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Order.objects.none()
+
         user = self.request.user
 
         self.queryset = Order.objects.all().select_related(
