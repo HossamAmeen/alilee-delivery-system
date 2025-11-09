@@ -1,6 +1,7 @@
 import uuid
-from django.db import models
+
 from django.core.validators import RegexValidator
+from django.db import models
 
 from utilities.models.abstract_base_model import AbstractBaseModel
 
@@ -31,10 +32,12 @@ class Order(AbstractBaseModel):
     tracking_number = models.CharField(
         max_length=20,
         unique=True,
-        validators=[RegexValidator(r"^\d+$", "Tracking number must contain only digits.")],
+        validators=[
+            RegexValidator(r"^\d+$", "Tracking number must contain only digits.")
+        ],
         editable=False,
     )
-    code = models.CharField(max_length=4)
+    reference_code = models.CharField(max_length=15, unique=True)
     status = models.CharField(
         max_length=20,
         choices=OrderStatus.choices,
@@ -42,10 +45,13 @@ class Order(AbstractBaseModel):
     )
 
     # Cost
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)  # total before shipping
-    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    product_cost = models.DecimalField(
+        max_digits=10, decimal_places=2
+    )  # total before shipping
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2)
-    extra_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    extra_delivery_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00
+    )
     payment_method = models.CharField(
         max_length=20,
         choices=PaymentMethod.choices,

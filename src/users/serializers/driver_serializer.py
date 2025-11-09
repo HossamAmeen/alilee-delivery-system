@@ -24,6 +24,18 @@ class ListDriverSerializer(serializers.ModelSerializer):
         ]
 
 
+class SingleDriverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Driver
+        fields = [
+            "id",
+            "username",
+            "email",
+            "full_name",
+            "is_active",
+        ]
+
+
 class RetrieveDriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver

@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class TraderPricingConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'trader_pricing'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "trader_pricing"

@@ -1,15 +1,16 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Q
 
 from users.models import UserRole
 from utilities.api import BaseViewSet
+
 from .models import Order
 from .serializers import (
-    OrderSerializer,
-    OrderRetrieveSerializer,
     OrderListSerializer,
+    OrderRetrieveSerializer,
+    OrderSerializer,
 )
 
 
@@ -27,9 +28,8 @@ class OrderViewSet(BaseViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        self.queryset = (
-            Order.objects.all()
-            .select_related("driver", "trader", "customer")
+        self.queryset = Order.objects.all().select_related(
+            "driver", "trader", "customer", "delivery_zone"
         )
 
         if user.role == UserRole.DRIVER:

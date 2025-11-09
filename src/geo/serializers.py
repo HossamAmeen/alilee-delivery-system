@@ -15,3 +15,9 @@ class DeliveryZoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryZone
         fields = ["id", "name", "cost", "city"]
+
+
+class SingleDeliveryZoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryZone
+        fields = ["id", "name", "cost", "city"]

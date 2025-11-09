@@ -1,5 +1,5 @@
-from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
 from trader_pricing.serializers import TraderDeliveryZoneNestedSerializer
 from transactions.serializers import UserAccountTransactionSerializer
@@ -54,3 +54,16 @@ class TraderListSerializer(serializers.ModelSerializer):
             "modified",
         ]
         read_only_fields = ("id", "created", "modified")
+
+
+class SingleTraderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trader
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "phone_number",
+            "balance",
+            "status",
+        ]
