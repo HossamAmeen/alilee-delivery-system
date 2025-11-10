@@ -11,13 +11,13 @@ from .models import Customer, Order
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ["id", "name", "address", "location", "phone", "created", "modified"]
+        fields = ["id", "name", "address", "location", "phone", "created", "modified", "longitude", "latitude"]
 
 
 class SingleCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ["id", "name", "phone", "address", "location"]
+        fields = ["id", "name", "phone", "address", "location", "longitude", "latitude"]
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -33,7 +33,10 @@ class OrderSerializer(serializers.ModelSerializer):
             "extra_delivery_cost",
             "status",
             "payment_method",
+            "product_payment_status",
             "note",
+            "longitude",
+            "latitude",
             "driver",
             "trader",
             "created",
@@ -79,6 +82,9 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "trader",
             "delivery_zone",
             "payment_method",
+            "product_payment_status",
+            "longitude",
+            "latitude",
             "customer",
             "note",
             "created",
@@ -105,6 +111,8 @@ class OrderListSerializer(serializers.ModelSerializer):
             "customer",
             "delivery_zone",
             "created",
+            "longitude",
+            "latitude",
         ]
 
 
@@ -128,8 +136,11 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "trader",
             "delivery_zone",
             "payment_method",
+            "product_payment_status",
             "customer",
             "note",
+            "longitude",
+            "latitude",
             "created",
             "modified",
         ]
@@ -149,4 +160,6 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "driver",
             "customer",
             "created",
+            "longitude",
+            "latitude",
         ]
