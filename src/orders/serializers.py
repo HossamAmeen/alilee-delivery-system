@@ -11,13 +11,13 @@ from .models import Customer, Order
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ["id", "name", "address", "location", "phone", "created", "modified", "longitude", "latitude"]
+        fields = ["id", "name", "address", "location", "phone", "created", "modified"]
 
 
 class SingleCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ["id", "name", "phone", "address", "location", "longitude", "latitude"]
+        fields = ["id", "name", "phone", "address", "location"]
 
 
 class OrderSerializer(serializers.ModelSerializer):
