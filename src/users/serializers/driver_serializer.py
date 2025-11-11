@@ -112,8 +112,8 @@ class DriverDetailSerializer(serializers.ModelSerializer):
     def get_orders(self, obj):
         from orders.serializers import SingleOrderSerializer
 
-        return SingleOrderSerializer(obj.orders.order_by("-id")[:5], many=True).data
+        return SingleOrderSerializer(obj.orders.order_by("-id")[:3], many=True).data
 
     def get_transactions(self, obj):
-        qs = obj.transactions.order_by("-id")[:5]
+        qs = obj.transactions.order_by("-id")[:3]
         return UserAccountTransactionSerializer(qs, many=True).data
