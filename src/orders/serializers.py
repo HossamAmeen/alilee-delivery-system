@@ -70,7 +70,9 @@ class OrderSerializer(serializers.ModelSerializer):
         if validated_data.get("customer"):
             if not validated_data["customer"].get("id"):
                 raise CustomValidationError("Customer ID is required")
-            customer_serializer = CustomerSerializer(instance.customer, data=validated_data["customer"], partial=True)
+            customer_serializer = CustomerSerializer(
+                instance.customer, data=validated_data["customer"], partial=True
+            )
             customer_serializer.is_valid(raise_exception=True)
             customer = customer_serializer.save()
             validated_data["customer"] = customer

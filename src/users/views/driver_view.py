@@ -1,6 +1,8 @@
-from django.db.models import DecimalField, Q, Sum, Value, Count, IntegerField
+from django.db.models import Count, DecimalField, IntegerField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 
@@ -11,9 +13,6 @@ from users.serializers.driver_serializer import (
     DriverDetailSerializer,
     ListDriverSerializer,
 )
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-
 from users.serializers.user_account_serializers import UserAccountSerializer
 from utilities.api import BaseViewSet
 
@@ -55,7 +54,6 @@ class DriverViewSet(BaseViewSet):
                 Value(0, output_field=IntegerField()),
             ),
         )
-
 
         return qs
 

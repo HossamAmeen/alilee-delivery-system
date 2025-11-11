@@ -62,8 +62,9 @@ class SingleTraderSerializer(serializers.ModelSerializer):
             "status",
         ]
 
+
 class RetrieveTraderSerializer(serializers.ModelSerializer):
-    prices  = serializers.SerializerMethodField()
+    prices = serializers.SerializerMethodField()
     transactions = serializers.SerializerMethodField()
     orders = serializers.SerializerMethodField()
     orders_count = serializers.SerializerMethodField()
@@ -82,8 +83,6 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
             "orders",
             "orders_count",
         ]
-
-
 
     def get_prices(self, obj):
         qs = obj.trader_delivery_zones_trader.order_by("-id")

@@ -1,15 +1,13 @@
-from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django.shortcuts import get_object_or_404
 
-from users.models import UserRole, Trader
+from users.models import UserRole
 from utilities.api import BaseViewSet
-from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Order
 from .serializers import (
@@ -52,7 +50,6 @@ class OrderViewSet(BaseViewSet):
     ]
     ordering = ["-id"]
 
-    
     def get_serializer_class(self):
         if self.action == "retrieve":
             return OrderRetrieveSerializer
@@ -63,47 +60,56 @@ class OrderViewSet(BaseViewSet):
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                'driver',
+                "driver",
                 openapi.IN_QUERY,
-                description='Filter by driver ID',
-                type=openapi.TYPE_INTEGER
+                description="Filter by driver ID",
+                type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
-                'trader',
+                "trader",
                 openapi.IN_QUERY,
-                description='Filter by trader ID',
-                type=openapi.TYPE_INTEGER
+                description="Filter by trader ID",
+                type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
-                'customer',
+                "customer",
                 openapi.IN_QUERY,
-                description='Filter by customer ID',
-                type=openapi.TYPE_INTEGER
+                description="Filter by customer ID",
+                type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
-                'delivery_zone',
+                "delivery_zone",
                 openapi.IN_QUERY,
-                description='Filter by delivery zone ID',
-                type=openapi.TYPE_INTEGER
+                description="Filter by delivery zone ID",
+                type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
-                'status',
+                "status",
                 openapi.IN_QUERY,
-                description='Filter by order status',
-                type=openapi.TYPE_STRING
-            ),
-            openapi.Parameter(
-                'search',
-                openapi.IN_QUERY,
-                description='Search in tracking number, reference code, or user details',
-                type=openapi.TYPE_STRING
-            ),
-            openapi.Parameter(
-                'ordering',
-                openapi.IN_QUERY,
-                description='Which field to use when ordering the results. Prefix with - for descending order.',
+                description="Filter by order status",
                 type=openapi.TYPE_STRING,
-                enum=['tracking_number', '-tracking_number', 'reference_code', '-reference_code', 'created', '-created', 'modified', '-modified']
+            ),
+            openapi.Parameter(
+                "search",
+                openapi.IN_QUERY,
+                description="Search in tracking number, reference code, or user details",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "ordering",
+                openapi.IN_QUERY,
+                description="Which field to use when ordering the results. Prefix with - for descending order.",
+                type=openapi.TYPE_STRING,
+                enum=[
+                    "tracking_number",
+                    "-tracking_number",
+                    "reference_code",
+                    "-reference_code",
+                    "created",
+                    "-created",
+                    "modified",
+                    "-modified",
+                ],
             ),
         ]
     )
@@ -111,7 +117,7 @@ class OrderViewSet(BaseViewSet):
         return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
+        if getattr(self, "swagger_fake_view", False):
             return Order.objects.none()
 
         user = self.request.user

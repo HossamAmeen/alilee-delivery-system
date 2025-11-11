@@ -104,7 +104,9 @@ class Order(AbstractBaseModel):
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = str(uuid.uuid4().int)[:12]
-        self.total_cost = self.product_cost + self.delivery_cost + self.extra_delivery_cost
+        self.total_cost = (
+            self.product_cost + self.delivery_cost + self.extra_delivery_cost
+        )
         super().save(*args, **kwargs)
 
     def __str__(self):
