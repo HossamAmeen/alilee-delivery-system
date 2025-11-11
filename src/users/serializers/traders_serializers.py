@@ -77,7 +77,7 @@ class SingleTraderSerializer(serializers.ModelSerializer):
         ]
 
 
-class RetrieveTraderSerializer(serializers.ModelSerializer):
+class SingleTraderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trader
         fields = [

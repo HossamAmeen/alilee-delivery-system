@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
 from users.serializers.driver_serializer import SingleDriverSerializer
-from users.serializers.traders_serializers import SingleTraderSerializer, RetrieveTraderSerializer
+from users.serializers.traders_serializers import SingleTraderSerializer, SingleTraderSerializer
 
 from .models import Customer, Order
 
@@ -63,7 +63,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderRetrieveSerializer(serializers.ModelSerializer):
     driver = SingleDriverSerializer(read_only=True)
-    trader = RetrieveTraderSerializer(read_only=True)
+    trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
 
