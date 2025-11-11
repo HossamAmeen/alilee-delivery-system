@@ -15,6 +15,8 @@ class UserAccountTransactionSerializer(ModelSerializer):
             "user_account",
             "amount",
             "transaction_type",
+            "file",
+            "notes",
             "created",
             "modified",
         ]
