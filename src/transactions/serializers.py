@@ -1,9 +1,13 @@
 from django.db.transaction import atomic
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from transactions.models import Expense, TransactionType, UserAccountTransaction
+from transactions.models import (
+    Expense, TransactionType, UserAccountTransaction
+)
+from orders.models import Order
 from users.models import Trader
 from utilities.exceptions import CustomValidationError
 
@@ -85,3 +89,36 @@ class FinancialInsightsSerializer(serializers.Serializer):
         if start and end and start > end:
             raise serializers.ValidationError("start_date cannot be after end_date.")
         return data
+
+    def to_representation(self, instance):
+        start_date = instance['start_date']
+        end_date = instance['end_date']
+        total_revenue = UserAccountTransaction.objects.filter(
+            created__range=(start_date, end_date),
+            transaction_type=TransactionType.DEPOSIT
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        total_expenses = UserAccountTransaction.objects.filter(
+            created__range=(start_date, end_date),
+            transaction_type=TransactionType.WITHDRAW
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        net_profit = total_revenue - total_expenses
+        order_completed = Order.objects.filter(
+            created__range=(start_date, end_date)
+        ).count()
+
+        pending_receivables = 0  # will take real value later
+        pending_payables = 0     # will take real value later
+        balance = total_revenue - total_expenses
+
+        return {
+            "start_date": start_date,
+            "end_date": end_date,
+            "total_revenue": total_revenue,
+            "total_expenses": total_expenses,
+            "net_profit": net_profit,
+            "shipments_completed": order_completed,
+            "pending_receivables": pending_receivables,
+            "pending_payables": pending_payables,
+            "balance": balance,
+        }

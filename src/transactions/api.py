@@ -94,20 +94,4 @@ class FinancialInsightsApiView(APIView):
         serializer = FinancialInsightsSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
-        start_date = serializer.validated_data["start_date"]
-        end_date = serializer.validated_data["end_date"]
-
-        data = {
-            "start_date": start_date,
-            "end_date": end_date,
-            "total_revenue": 0.00,
-            "total_expenses": 0.00,
-            "net_profit": 0.00,
-            "shipments_completed": 0,
-            "pending_receivables": 0.00,
-            "pending_payables": 0.00,
-            "balance": 0.00,
-        }
-
-        response_serializer = FinancialInsightsSerializer(data)
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
