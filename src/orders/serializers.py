@@ -4,11 +4,14 @@ from rest_framework import serializers
 from geo.serializers import SingleDeliveryZoneSerializer
 from users.serializers.driver_serializer import SingleDriverSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer, RetrieveTraderSerializer
+from utilities.exceptions import CustomValidationError
 
 from .models import Customer, Order
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = Customer
         fields = ["id", "name", "address", "location", "phone", "created", "modified"]
@@ -56,6 +59,18 @@ class OrderSerializer(serializers.ModelSerializer):
         validated_data["customer"] = customer
         validated_data["delivery_cost"] = validated_data["delivery_zone"].cost
         return super().create(validated_data)
+
+    @atomic
+    def update(self, instance, validated_data):
+        if validated_data.get("customer"):
+            if not validated_data["customer"].get("id"):
+                raise CustomValidationError("Customer ID is required")
+            customer_serializer = CustomerSerializer(instance.customer, data=validated_data["customer"], partial=True)
+            customer_serializer.is_valid(raise_exception=True)
+            customer = customer_serializer.save()
+            validated_data["customer"] = customer
+
+        return super().update(instance, validated_data)
 
 
 class OrderRetrieveSerializer(serializers.ModelSerializer):
