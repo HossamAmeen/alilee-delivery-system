@@ -3,8 +3,7 @@ from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
 from users.serializers.driver_serializer import SingleDriverSerializer
-from users.serializers.traders_serializers import SingleTraderSerializer, SingleTraderSerializer
-from users.serializers.traders_serializers import SingleTraderSerializer, RetrieveTraderSerializer
+from users.serializers.traders_serializers import SingleTraderSerializer
 from utilities.exceptions import CustomValidationError
 
 from .models import Customer, Order
@@ -26,6 +25,8 @@ class SingleCustomerSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer()
+    product_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
+    extra_delivery_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         model = Order
