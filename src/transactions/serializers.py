@@ -1,5 +1,6 @@
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from transactions.models import Expense, TransactionType, UserAccountTransaction
@@ -53,3 +54,34 @@ class ExpenseSerializer(ModelSerializer):
             "modified",
         ]
         read_only_fields = ("id", "created", "modified")
+
+
+class FinancialInsightsSerializer(serializers.Serializer):
+    start_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"])
+    end_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"])
+    total_revenue = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    total_expenses = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    net_profit = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    shipments_completed = serializers.IntegerField(read_only=True)
+    pending_receivables = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    pending_payables = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    balance = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+
+    def validate(self, data):
+        start = data.get("start_date")
+        end = data.get("end_date")
+        if start and end and start > end:
+            raise serializers.ValidationError("start_date cannot be after end_date.")
+        return data

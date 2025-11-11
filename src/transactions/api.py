@@ -5,10 +5,15 @@ from django.db.models.functions import ExtractMonth, ExtractYear
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
 from transactions.models import Expense, UserAccountTransaction
 from transactions.serializers import ExpenseSerializer, UserAccountTransactionSerializer
 from utilities.api import BaseViewSet
+from rest_framework.response import Response
+from rest_framework import status
+
+from transactions.serializers import FinancialInsightsSerializer
 
 
 class UserAccountTransactionViewSet(BaseViewSet):
@@ -80,3 +85,29 @@ class ExpenseViewSet(BaseViewSet):
 
         response_data = {"expenses": serializer.data, "statistics": statistics_data}
         return self.get_paginated_response(response_data)
+
+
+class FinancialInsightsApiView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        serializer = FinancialInsightsSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        start_date = serializer.validated_data["start_date"]
+        end_date = serializer.validated_data["end_date"]
+
+        data = {
+            "start_date": start_date,
+            "end_date": end_date,
+            "total_revenue": 0.00,
+            "total_expenses": 0.00,
+            "net_profit": 0.00,
+            "shipments_completed": 0,
+            "pending_receivables": 0.00,
+            "pending_payables": 0.00,
+            "balance": 0.00,
+        }
+
+        response_serializer = FinancialInsightsSerializer(data)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
