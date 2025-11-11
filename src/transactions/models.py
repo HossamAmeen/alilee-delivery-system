@@ -12,6 +12,8 @@ class TransactionType(models.TextChoices):
 class UserAccountTransaction(AbstractBaseModel):
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
+    file = models.FileField(upload_to="transaction_files/", blank=True, null=True)
+    notes = models.TextField(blank=True)
     user_account = models.ForeignKey(
         UserAccount,
         on_delete=models.SET_NULL,

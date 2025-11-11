@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
 from users.serializers.driver_serializer import SingleDriverSerializer
+from users.serializers.traders_serializers import SingleTraderSerializer, SingleTraderSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer, RetrieveTraderSerializer
 from utilities.exceptions import CustomValidationError
 
@@ -36,7 +37,10 @@ class OrderSerializer(serializers.ModelSerializer):
             "extra_delivery_cost",
             "status",
             "payment_method",
+            "product_payment_status",
             "note",
+            "longitude",
+            "latitude",
             "driver",
             "trader",
             "created",
@@ -75,7 +79,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderRetrieveSerializer(serializers.ModelSerializer):
     driver = SingleDriverSerializer(read_only=True)
-    trader = RetrieveTraderSerializer(read_only=True)
+    trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
 
@@ -86,12 +90,17 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "tracking_number",
             "reference_code",
             "product_cost",
+            "delivery_cost",
             "extra_delivery_cost",
+            "total_cost",
             "status",
             "driver",
             "trader",
             "delivery_zone",
             "payment_method",
+            "product_payment_status",
+            "longitude",
+            "latitude",
             "customer",
             "note",
             "created",
@@ -111,12 +120,15 @@ class OrderListSerializer(serializers.ModelSerializer):
             "id",
             "tracking_number",
             "reference_code",
+            "total_cost",
             "status",
             "driver",
             "trader",
             "customer",
             "delivery_zone",
             "created",
+            "longitude",
+            "latitude",
         ]
 
 
@@ -132,14 +144,19 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "tracking_number",
             "reference_code",
             "product_cost",
+            "delivery_cost",
             "extra_delivery_cost",
+            "total_cost",
             "status",
             "driver",
             "trader",
             "delivery_zone",
             "payment_method",
+            "product_payment_status",
             "customer",
             "note",
+            "longitude",
+            "latitude",
             "created",
             "modified",
         ]
@@ -159,4 +176,6 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "driver",
             "customer",
             "created",
+            "longitude",
+            "latitude",
         ]

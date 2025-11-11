@@ -21,6 +21,13 @@ class PaymentMethod(models.TextChoices):
     REMAINING_FEES = "remaining_fees", "Remaining Shipping Fees"
 
 
+class ProductPaymentStatus(models.TextChoices):
+    PAID = "paid", "Paid"
+    UNPAID = "unpaid", "Unpaid"
+    REMAINING_FEES = "remaining_fees", "Remaining Shipping Fees"
+    COD = "cod", "Cash on Delivery"
+
+
 class Customer(AbstractBaseModel):
     name = models.CharField(max_length=255)
     address = models.TextField()
@@ -52,12 +59,20 @@ class Order(AbstractBaseModel):
     extra_delivery_cost = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00
     )
+    product_payment_status = models.CharField(
+        max_length=20,
+        choices=ProductPaymentStatus.choices,
+        default=ProductPaymentStatus.COD,
+    )
     payment_method = models.CharField(
         max_length=20,
         choices=PaymentMethod.choices,
         default=PaymentMethod.COD,
     )
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     note = models.TextField(null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
     # Relations
     driver = models.ForeignKey(
@@ -89,6 +104,7 @@ class Order(AbstractBaseModel):
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = str(uuid.uuid4().int)[:12]
+        self.total_cost = self.product_cost + self.delivery_cost + self.extra_delivery_cost
         super().save(*args, **kwargs)
 
     def __str__(self):

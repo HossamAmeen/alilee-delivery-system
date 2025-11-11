@@ -20,6 +20,7 @@ class TraderSerializer(ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
+            "is_active",
             "created",
             "modified",
             "prices",
@@ -34,17 +35,17 @@ class TraderSerializer(ModelSerializer):
         return super().create(validated_data)
 
     def get_prices(self, obj):
-        qs = obj.trader_delivery_zones_trader.order_by("-id")[:5]
+        qs = obj.trader_delivery_zones_trader.order_by("-id")[:3]
         return TraderDeliveryZoneNestedSerializer(qs, many=True).data
 
     def get_transactions(self, obj):
-        qs = obj.transactions.order_by("-id")[:5]
+        qs = obj.transactions.order_by("-id")[:3]
         return UserAccountTransactionSerializer(qs, many=True).data
 
     def get_orders(self, obj):
         from orders.serializers import OrderTraderSerializer
 
-        qs = obj.orders.order_by("-id")[:5]
+        qs = obj.orders.order_by("-id")[:3]
         return OrderTraderSerializer(qs, many=True).data
 
 
@@ -57,7 +58,6 @@ class TraderListSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
-            "status",
             "created",
             "modified",
         ]
@@ -77,7 +77,7 @@ class SingleTraderSerializer(serializers.ModelSerializer):
         ]
 
 
-class RetrieveTraderSerializer(serializers.ModelSerializer):
+class SingleTraderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trader
         fields = [

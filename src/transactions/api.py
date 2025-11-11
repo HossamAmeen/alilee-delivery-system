@@ -13,7 +13,7 @@ from utilities.api import BaseViewSet
 
 class UserAccountTransactionViewSet(BaseViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = UserAccountTransaction.objects.all()
+    queryset = UserAccountTransaction.objects.order_by("-id")
     serializer_class = UserAccountTransactionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["transaction_type", "user_account"]

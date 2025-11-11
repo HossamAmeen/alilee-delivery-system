@@ -5,7 +5,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 
 from transactions.models import TransactionType
-from users.models import UserAccount
+from users.models import Driver
 from users.serializers.driver_serializer import (
     CreateUpdateDriverSerializer,
     DriverDetailSerializer,
@@ -17,7 +17,7 @@ from utilities.api import BaseViewSet
 
 class DriverViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = UserAccount.objects.filter(role="driver").annotate(
+    queryset = Driver.objects.filter(role="driver").annotate(
         sales=Coalesce(
             Sum(
                 "transactions__amount",

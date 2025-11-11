@@ -110,14 +110,6 @@ class OrderViewSet(BaseViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    def create(self, request, *args, **kwargs):
-        trader_account = get_object_or_404(
-            Trader, id=request._auth.payload["user_id"],
-            is_active=True)
-        request.data['trader'] = trader_account.pk
-
-        return super().create(request)
-
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Order.objects.none()
