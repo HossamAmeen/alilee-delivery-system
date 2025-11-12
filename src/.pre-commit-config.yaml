@@ -29,3 +29,12 @@ repos:
     hooks:
       - id: isort
         exclude: '.*/migrations/.*'
+
+  - repo: local
+    hooks:
+      - id: no-print
+        name: Disallow print() statements
+        entry: bash -c 'for f; do grep -nH -E "(^|[^A-Za-z0-9_])print[[:space:]]*\(" "$f" && exit 1 || true; done'
+        language: system
+        files: \.py$
+        exclude: '.*/migrations/.*'

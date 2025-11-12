@@ -7,7 +7,6 @@ from users.models import Trader, UserRole
 
 
 class TraderSerializer(ModelSerializer):
-
     class Meta:
         model = Trader
         fields = [
@@ -18,11 +17,12 @@ class TraderSerializer(ModelSerializer):
             "balance",
             "is_active",
             "created",
-            "modified"
+            "modified",
         ]
         read_only_fields = ("id", "created", "modified")
 
     def create(self, validated_data):
+        print("test")
         validated_data["role"] = UserRole.TRADER
         return super().create(validated_data)
 
