@@ -7,6 +7,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from transactions.models import TransactionType
 from users.models import Trader, UserAccount
 from users.serializers.traders_serializers import (
     RetrieveTraderSerializer,
@@ -15,7 +16,6 @@ from users.serializers.traders_serializers import (
 )
 from users.serializers.user_account_serializers import UserAccountSerializer
 from utilities.api import BaseViewSet
-from transactions.models import TransactionType
 
 
 class UserAccountViewSet(BaseViewSet):

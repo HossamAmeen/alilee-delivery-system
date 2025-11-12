@@ -10,11 +10,7 @@ from users.models import UserRole
 from utilities.api import BaseViewSet
 
 from .models import Order
-from .serializers import (
-    OrderListSerializer,
-    OrderRetrieveSerializer,
-    OrderSerializer,
-)
+from .serializers import OrderListSerializer, OrderRetrieveSerializer, OrderSerializer
 
 
 class OrderViewSet(BaseViewSet):
