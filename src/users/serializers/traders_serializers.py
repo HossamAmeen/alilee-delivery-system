@@ -18,11 +18,7 @@ class TraderSerializer(ModelSerializer):
             "balance",
             "is_active",
             "created",
-            "modified",
-            "prices",
-            "sales",
-            "transactions",
-            "orders",
+            "modified"
         ]
         read_only_fields = ("id", "created", "modified")
 
