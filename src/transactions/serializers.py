@@ -25,11 +25,6 @@ class UserAccountTransactionSerializer(ModelSerializer):
     @atomic
     def create(self, validated_data):
         trader = get_object_or_404(Trader, pk=validated_data["user_account"])
-        if (
-            validated_data["transaction_type"] == TransactionType.WITHDRAW
-            and validated_data["amount"] > trader.balance
-        ):
-            raise CustomValidationError("Trader's balance is not enough.")
 
         trader_transaction = super().create(validated_data)
         if validated_data["transaction_type"] == TransactionType.WITHDRAW:
