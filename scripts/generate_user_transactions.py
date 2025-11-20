@@ -48,7 +48,6 @@ def get_token_by_credentials(session, base_url, email, password):
     url = f"{base_url}/api/users/login/"
     resp = session.post(url, json={"email": email, "password": password})
     if resp.status_code not in (200, 201):
-        print(f"Failed to obtain token via {url}: {resp.status_code} {resp.text}")
         return None
     data = resp.json()
     if "access" in data:
@@ -56,7 +55,6 @@ def get_token_by_credentials(session, base_url, email, password):
     for key in ("token", "access_token", "accessToken"):
         if key in data:
             return data[key]
-    print("Token not found in login response; keys:", list(data.keys()))
     return None
 
 
@@ -90,20 +88,16 @@ def main():
     if token:
         session.headers.update({"Authorization": f"Bearer {token}"})
     else:
-        print("No TOKEN and no EMAIL/PASSWORD set. Edit the script to add credentials or a token.")
         sys.exit(1)
 
     # fetch traders to get user_account IDs
     traders_url = f"{base_url}/api/traders/"
-    print(f"Fetching traders from {traders_url} ...")
     traders = fetch_all(session, traders_url)
     trader_ids = [t.get("id") for t in traders if t.get("id") is not None]
     if not trader_ids:
-        print("No traders found. Aborting.")
         sys.exit(1)
 
     tx_url = f"{base_url}/api/transactions/user/"
-    print(f"Preparing up to {COUNT} unique transactions. Dry run={DRY_RUN}")
 
     creations = []
     tries = 0
@@ -113,36 +107,34 @@ def main():
         trader = random.choice(trader_ids)
         tx_type = random.choice(TRANSACTION_TYPES)
         amount = round(random.uniform(MIN_AMOUNT, MAX_AMOUNT), 2)
-        payload = {"user_account": trader, "transaction_type": tx_type, "amount": str(Decimal(amount).quantize(Decimal("0.01")))}
+        payload = {
+            "user_account": trader,
+            "transaction_type": tx_type,
+            "amount": str(Decimal(amount).quantize(Decimal("0.01"))),
+        }
         # avoid exact duplicate payloads in this run
         key = (trader, tx_type)
         if key in [(c["user_account"], c["transaction_type"]) for c in creations]:
             continue
         creations.append(payload)
 
-    print(f"Prepared {len(creations)} transactions.")
-
     results = []
     for payload in creations:
         if DRY_RUN:
-            print("DRY", payload)
             results.append({"status": "dry", "payload": payload})
             continue
         r = session.post(tx_url, json=payload)
         if r.status_code in (200, 201):
-            print(f"Created: {r.status_code} -> {r.json()}")
             results.append({"status": "created", "data": r.json()})
         else:
-            print(f"Failed to create {payload}: {r.status_code} {r.text}")
-            results.append({"status": "failed", "code": r.status_code, "text": r.text, "payload": payload})
-
-    print("Done. Summary:")
-    created = [r for r in results if r.get("status") == "created"]
-    failed = [r for r in results if r.get("status") == "failed"]
-    dry = [r for r in results if r.get("status") == "dry"]
-    print(f"  created: {len(created)}")
-    print(f"  failed:  {len(failed)}")
-    print(f"  dry:     {len(dry)}")
+            results.append(
+                {
+                    "status": "failed",
+                    "code": r.status_code,
+                    "text": r.text,
+                    "payload": payload,
+                }
+            )
 
 
 if __name__ == "__main__":

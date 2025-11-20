@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 from orders.models import Order
-from transactions.models import UserAccountTransaction, TransactionType
+from transactions.models import TransactionType, UserAccountTransaction
 
 
 @receiver(post_save, sender=Order)
@@ -13,7 +14,7 @@ def create_driver_withdraw_transaction(sender, instance, created, **kwargs):
             user_account=instance.driver,
             amount=total_withdraw,
             transaction_type=TransactionType.WITHDRAW,
-            created__date=instance.modified.date()
+            created__date=instance.modified.date(),
         ).exists()
         if already_exists:
             return

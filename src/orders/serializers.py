@@ -3,12 +3,15 @@ from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
 from users.serializers.driver_serializer import SingleDriverSerializer
-from users.serializers.traders_serializers import SingleTraderSerializer, SingleTraderSerializer
+from users.serializers.traders_serializers import SingleTraderSerializer
+from utilities.exceptions import CustomValidationError
 
 from .models import Customer, Order
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = Customer
         fields = ["id", "name", "address", "location", "phone", "created", "modified"]
@@ -22,6 +25,8 @@ class SingleCustomerSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer()
+    product_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
+    extra_delivery_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         model = Order
@@ -58,7 +63,26 @@ class OrderSerializer(serializers.ModelSerializer):
         customer = customer_serializer.save()
         validated_data["customer"] = customer
         validated_data["delivery_cost"] = validated_data["delivery_zone"].cost
+        validated_data["trader_merchant_cost"] = validated_data["trader"].trader_delivery_zones_trader.filter(
+            delivery_zone=validated_data["delivery_zone"]).first().price
         return super().create(validated_data)
+
+    @atomic
+    def update(self, instance, validated_data):
+        if validated_data.get("customer"):
+            if not validated_data["customer"].get("id"):
+                raise CustomValidationError("Customer ID is required")
+            customer_serializer = CustomerSerializer(
+                instance.customer, data=validated_data["customer"], partial=True
+            )
+            customer_serializer.is_valid(raise_exception=True)
+            customer = customer_serializer.save()
+            validated_data["customer"] = customer
+
+        if validated_data.get("delivery_zone") != instance.delivery_zone_id:
+            validated_data["trader_merchant_cost"] = validated_data["trader"].trader_delivery_zones_trader.filter(
+                delivery_zone=validated_data["delivery_zone"]).first().price
+        return super().update(instance, validated_data)
 
 
 class OrderRetrieveSerializer(serializers.ModelSerializer):

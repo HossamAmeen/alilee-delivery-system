@@ -7,11 +7,6 @@ from users.models import Trader, UserRole
 
 
 class TraderSerializer(ModelSerializer):
-    prices = serializers.SerializerMethodField()
-    transactions = serializers.SerializerMethodField()
-    orders = serializers.SerializerMethodField()
-    sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-
     class Meta:
         model = Trader
         fields = [
@@ -23,30 +18,13 @@ class TraderSerializer(ModelSerializer):
             "is_active",
             "created",
             "modified",
-            "prices",
-            "sales",
-            "transactions",
-            "orders",
         ]
         read_only_fields = ("id", "created", "modified")
 
     def create(self, validated_data):
+        print("test")
         validated_data["role"] = UserRole.TRADER
         return super().create(validated_data)
-
-    def get_prices(self, obj):
-        qs = obj.trader_delivery_zones_trader.order_by("-id")[:3]
-        return TraderDeliveryZoneNestedSerializer(qs, many=True).data
-
-    def get_transactions(self, obj):
-        qs = obj.transactions.order_by("-id")[:3]
-        return UserAccountTransactionSerializer(qs, many=True).data
-
-    def get_orders(self, obj):
-        from orders.serializers import OrderTraderSerializer
-
-        qs = obj.orders.order_by("-id")[:3]
-        return OrderTraderSerializer(qs, many=True).data
 
 
 class TraderListSerializer(serializers.ModelSerializer):
@@ -77,7 +55,12 @@ class SingleTraderSerializer(serializers.ModelSerializer):
         ]
 
 
-class SingleTraderSerializer(serializers.ModelSerializer):
+class RetrieveTraderSerializer(serializers.ModelSerializer):
+    prices = serializers.SerializerMethodField()
+    transactions = serializers.SerializerMethodField()
+    orders = serializers.SerializerMethodField()
+    orders_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Trader
         fields = [
@@ -87,4 +70,29 @@ class SingleTraderSerializer(serializers.ModelSerializer):
             "phone_number",
             "balance",
             "status",
+            "prices",
+            "transactions",
+            "orders",
+            "orders_count",
         ]
+
+    def get_prices(self, obj):
+        qs = obj.trader_delivery_zones_trader.order_by("-id")
+        if "date" in self.context:
+            qs = qs.filter(created__date=self.context["date"])
+        return TraderDeliveryZoneNestedSerializer(qs[:3], many=True).data
+
+    def get_transactions(self, obj):
+        qs = obj.transactions.order_by("-id")[:3]
+        return UserAccountTransactionSerializer(qs, many=True).data
+
+    def get_orders(self, obj):
+        from orders.serializers import OrderTraderSerializer
+
+        qs = obj.orders.order_by("-id")
+        return OrderTraderSerializer(qs, many=True).data
+
+    def get_orders_count(self, obj):
+        if self.context["date"] is None:
+            return obj.orders.count()
+        return obj.orders.filter(created__date=self.context["date"]).count()

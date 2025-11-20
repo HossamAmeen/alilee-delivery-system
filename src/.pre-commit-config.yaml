@@ -8,6 +8,12 @@ repos:
       - id: check-added-large-files
       - id: check-merge-conflict
 
+  # Hook to remove print statements
+  - repo: https://github.com/dhruvmanila/remove-print-statements
+    rev: v0.5.2 # Check the GitHub repo for the latest stable version
+    hooks:
+      - id: remove-print-statements
+
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:

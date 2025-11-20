@@ -1,14 +1,19 @@
-from django.db.models import DecimalField, Prefetch, Q, Sum, Value
+from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from trader_pricing.models import TraderDeliveryZone
-from transactions.models import TransactionType, UserAccountTransaction
+from transactions.models import TransactionType
 from users.models import Trader, UserAccount
-from users.serializers.traders_serializers import TraderListSerializer, TraderSerializer
+from users.serializers.traders_serializers import (
+    RetrieveTraderSerializer,
+    TraderListSerializer,
+    TraderSerializer,
+)
 from users.serializers.user_account_serializers import UserAccountSerializer
 from utilities.api import BaseViewSet
 
@@ -70,25 +75,25 @@ class TraderViewSet(BaseViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return TraderListSerializer
+        if self.action == "retrieve":
+            return RetrieveTraderSerializer
         return self.serializer_class
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        if self.action == "retrieve":
-            queryset = queryset.prefetch_related(
-                Prefetch(
-                    "trader_delivery_zones_trader",
-                    queryset=TraderDeliveryZone.objects.select_related(
-                        "delivery_zone"
-                    ).order_by("-id")[:5],
-                    to_attr="prefetched_prices",
-                ),
-                Prefetch(
-                    "transactions",
-                    queryset=UserAccountTransaction.objects.order_by("-id")[:5],
-                    to_attr="prefetched_transactions",
-                ),
+    @swagger_auto_schema(
+        operation_description="Retrieve a trader by ID, with optional date parameter to filter prices.",
+        manual_parameters=[
+            openapi.Parameter(
+                "date",
+                openapi.IN_QUERY,
+                description="Date to filter prices (YYYY-MM-DD). If not provided, all prices are returned.",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE,
             )
-
-        return queryset
+        ],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, context={"date": request.query_params.get("date")}
+        )
+        return Response(serializer.data)
