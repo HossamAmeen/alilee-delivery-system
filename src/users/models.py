@@ -1,4 +1,5 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser 
+from django.contrib.auth.models import UserManager
 from django.db import models
 
 from utilities.exceptions import CustomValidationError
@@ -13,7 +14,8 @@ class UserRole(models.TextChoices):
     DRIVER = "driver", "driver"
 
 
-class UserAccountManager(BaseUserManager):
+class UserAccountManager(UserManager):
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise CustomValidationError("The Email field must be set")
@@ -23,6 +25,16 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def create_superuser(self, username=None, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields)
 
 class UserAccount(AbstractUser, AbstractBaseModel):
     username = first_name = last_name = date_joined = None
