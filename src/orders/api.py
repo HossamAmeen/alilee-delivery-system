@@ -155,10 +155,7 @@ class OrderDeliveryAssignAPIView(APIView):
         driver = get_object_or_404(Driver, id=request.user.id)
         order = get_object_or_404(Order, tracking_number=tracking_number)
 
-        try:
-            updated_order = DeliveryAssignmentService.assign_driver(order, driver)
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        updated_order = DeliveryAssignmentService.assign_driver(order, driver)
 
         return Response({
             "tracking_number": updated_order.tracking_number,
