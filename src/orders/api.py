@@ -1,16 +1,21 @@
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from users.models import UserRole
+from orders.permissions import IsDriver
+from users.models import Driver, UserRole
 from utilities.api import BaseViewSet
 
 from .models import Order
 from .serializers import OrderListSerializer, OrderRetrieveSerializer, OrderSerializer
+from .services import DeliveryAssignmentService
 
 
 class OrderViewSet(BaseViewSet):
@@ -141,3 +146,22 @@ class OrderViewSet(BaseViewSet):
             )
 
         return super().update(request, *args, **kwargs)
+
+
+class OrderDeliveryAssignAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsDriver]
+
+    def patch(self, request, tracking_number):
+        driver = get_object_or_404(Driver, id=request.user.id)
+        order = get_object_or_404(Order, tracking_number=tracking_number)
+
+        try:
+            updated_order = DeliveryAssignmentService.assign_driver(order, driver)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "tracking_number": updated_order.tracking_number,
+            "assigned_driver": updated_order.driver.id,
+            "status": updated_order.status
+        }, status=status.HTTP_200_OK)
