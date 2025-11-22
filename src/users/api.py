@@ -1,7 +1,6 @@
-from django.db.models import DecimalField, Q, Sum, Value
+from django.db.models import DecimalField, IntegerField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.db.models.sql.query import Count
-from django.forms import IntegerField
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -53,10 +52,8 @@ class TraderViewSet(BaseViewSet):
             Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
         ),
         orders_count=Coalesce(
-            Count(
-                "orders",
-            ),
-            Value(0, output_field=IntegerField()),
+            Count("orders"),
+            Value(0, output_field=IntegerField())
         ),
     )
     serializer_class = TraderSerializer
