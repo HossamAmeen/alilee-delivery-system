@@ -6,4 +6,4 @@ from notifications.models import Notification
 class NotificationFilter(django_filters.FilterSet):
     class Meta:
         model = Notification
-        fields = {'description'}
+        fields = ['user_account']
