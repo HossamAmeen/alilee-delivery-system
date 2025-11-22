@@ -36,6 +36,8 @@ class TraderListSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
+            "total_sales",
+            "orders_count",
             "created",
             "modified",
         ]
@@ -89,7 +91,7 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
     def get_orders(self, obj):
         from orders.serializers import OrderTraderSerializer
 
-        qs = obj.orders.order_by("-id")
+        qs = obj.orders.order_by("-id")[:3]
         return OrderTraderSerializer(qs, many=True).data
 
     def get_orders_count(self, obj):
