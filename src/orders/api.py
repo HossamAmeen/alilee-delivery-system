@@ -1,15 +1,13 @@
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from orders.permissions import IsDriver
+from orders.permissions import IsDriverPermission
 from users.models import Driver, UserRole
 from utilities.api import BaseViewSet
 
@@ -149,11 +147,11 @@ class OrderViewSet(BaseViewSet):
 
 
 class OrderDeliveryAssignAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsDriver]
+    permission_classes = [IsAuthenticated, IsDriverPermission]
 
     def patch(self, request, tracking_number):
-        driver = get_object_or_404(Driver, id=request.user.id)
-        order = get_object_or_404(Order, tracking_number=tracking_number)
+        driver = Driver.objects.get(id=request.user.id)
+        order = Order.objects.get(tracking_number=tracking_number)
 
         updated_order = DeliveryAssignmentService.assign_driver(order, driver)
 
