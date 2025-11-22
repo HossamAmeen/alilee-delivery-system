@@ -11,6 +11,7 @@ class CitySerializer(serializers.ModelSerializer):
 
 class DeliveryZoneSerializer(serializers.ModelSerializer):
     city = CitySerializer(read_only=True)
+    cost = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
 
     class Meta:
         model = DeliveryZone
