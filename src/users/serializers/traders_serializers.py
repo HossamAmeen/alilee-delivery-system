@@ -72,10 +72,11 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
             "phone_number",
             "balance",
             "status",
+            "total_sales",
+            "orders_count",
             "prices",
             "transactions",
             "orders",
-            "orders_count",
         ]
 
     def get_prices(self, obj):
@@ -93,8 +94,3 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
 
         qs = obj.orders.order_by("-id")[:3]
         return OrderTraderSerializer(qs, many=True).data
-
-    def get_orders_count(self, obj):
-        if self.context["date"] is None:
-            return obj.orders.count()
-        return obj.orders.filter(created__date=self.context["date"]).count()
