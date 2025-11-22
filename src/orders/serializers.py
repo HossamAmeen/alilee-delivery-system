@@ -63,8 +63,14 @@ class OrderSerializer(serializers.ModelSerializer):
         customer = customer_serializer.save()
         validated_data["customer"] = customer
         validated_data["delivery_cost"] = validated_data["delivery_zone"].cost
-        validated_data["trader_merchant_cost"] = validated_data["trader"].trader_delivery_zones_trader.filter(
-            delivery_zone=validated_data["delivery_zone"]).first().price
+        validated_data["trader_merchant_cost"] = (
+            validated_data["trader"]
+            .trader_delivery_zones_trader.filter(
+                delivery_zone=validated_data["delivery_zone"]
+            )
+            .first()
+            .price
+        )
         return super().create(validated_data)
 
     @atomic
@@ -80,8 +86,14 @@ class OrderSerializer(serializers.ModelSerializer):
             validated_data["customer"] = customer
 
         if validated_data.get("delivery_zone") != instance.delivery_zone_id:
-            validated_data["trader_merchant_cost"] = validated_data["trader"].trader_delivery_zones_trader.filter(
-                delivery_zone=validated_data["delivery_zone"]).first().price
+            validated_data["trader_merchant_cost"] = (
+                validated_data["trader"]
+                .trader_delivery_zones_trader.filter(
+                    delivery_zone=validated_data["delivery_zone"]
+                )
+                .first()
+                .price
+            )
         return super().update(instance, validated_data)
 
 
