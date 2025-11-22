@@ -1,5 +1,4 @@
-from django.contrib.auth.models import AbstractUser 
-from django.contrib.auth.models import UserManager
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 from utilities.exceptions import CustomValidationError
@@ -25,7 +24,9 @@ class UserAccountManager(UserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username=None, email=None, password=None, **extra_fields):
+    def create_superuser(
+        self, username=None, email=None, password=None, **extra_fields
+    ):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
@@ -35,6 +36,7 @@ class UserAccountManager(UserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(email, password, **extra_fields)
+
 
 class UserAccount(AbstractUser, AbstractBaseModel):
     username = first_name = last_name = date_joined = None
