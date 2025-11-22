@@ -28,6 +28,8 @@ class TraderSerializer(ModelSerializer):
 
 
 class TraderListSerializer(serializers.ModelSerializer):
+    total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    
     class Meta:
         model = Trader
         fields = [
