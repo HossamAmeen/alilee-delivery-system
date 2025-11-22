@@ -1,13 +1,11 @@
-from django.db.transaction import atomic
 from django.db.models import Sum
+from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from transactions.models import (
-    Expense, TransactionType, UserAccountTransaction
-)
 from orders.models import Order
+from transactions.models import Expense, TransactionType, UserAccountTransaction
 from users.models import Trader
 
 
@@ -73,9 +71,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
     pending_payables = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
     )
-    balance = serializers.DecimalField(
-        max_digits=12, decimal_places=2, read_only=True
-    )
+    balance = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     def validate(self, data):
         start = data.get("start_date")
@@ -85,16 +81,22 @@ class FinancialInsightsSerializer(serializers.Serializer):
         return data
 
     def to_representation(self, instance):
-        start_date = instance['start_date']
-        end_date = instance['end_date']
-        total_revenue = UserAccountTransaction.objects.filter(
-            created__range=(start_date, end_date),
-            transaction_type=TransactionType.DEPOSIT
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        total_expenses = UserAccountTransaction.objects.filter(
-            created__range=(start_date, end_date),
-            transaction_type=TransactionType.WITHDRAW
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        start_date = instance["start_date"]
+        end_date = instance["end_date"]
+        total_revenue = (
+            UserAccountTransaction.objects.filter(
+                created__range=(start_date, end_date),
+                transaction_type=TransactionType.DEPOSIT,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
+        total_expenses = (
+            UserAccountTransaction.objects.filter(
+                created__range=(start_date, end_date),
+                transaction_type=TransactionType.WITHDRAW,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
 
         net_profit = total_revenue - total_expenses
         order_completed = Order.objects.filter(
@@ -102,7 +104,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         ).count()
 
         pending_receivables = 0  # will take real value later
-        pending_payables = 0     # will take real value later
+        pending_payables = 0  # will take real value later
         balance = total_revenue - total_expenses
 
         return {

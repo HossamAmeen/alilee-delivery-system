@@ -3,17 +3,19 @@ from datetime import date
 from django.db.models import Sum
 from django.db.models.functions import ExtractMonth, ExtractYear
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from transactions.models import Expense, UserAccountTransaction
-from transactions.serializers import ExpenseSerializer, UserAccountTransactionSerializer
+from transactions.serializers import (
+    ExpenseSerializer,
+    FinancialInsightsSerializer,
+    UserAccountTransactionSerializer,
+)
 from utilities.api import BaseViewSet
-from rest_framework.response import Response
-from rest_framework import status
-
-from transactions.serializers import FinancialInsightsSerializer
 
 
 class UserAccountTransactionViewSet(BaseViewSet):
