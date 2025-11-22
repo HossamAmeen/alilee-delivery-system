@@ -4,7 +4,6 @@ from rest_framework.serializers import ModelSerializer
 
 from transactions.models import Expense, TransactionType, UserAccountTransaction
 from users.models import Trader
-from utilities.exceptions import CustomValidationError
 
 
 class UserAccountTransactionSerializer(ModelSerializer):
