@@ -70,7 +70,9 @@ class Order(AbstractBaseModel):
         default=PaymentMethod.COD,
     )
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    trader_merchant_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    trader_merchant_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00
+    )
     note = models.TextField(null=True, blank=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)

@@ -18,7 +18,7 @@ def admin_user():
         full_name="Admin User",
         is_active=True,
         is_staff=True,
-        is_superuser=True
+        is_superuser=True,
     )
 
 
