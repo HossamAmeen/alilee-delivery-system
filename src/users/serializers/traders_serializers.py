@@ -61,10 +61,11 @@ class SingleTraderSerializer(serializers.ModelSerializer):
 
 
 class RetrieveTraderSerializer(serializers.ModelSerializer):
+    total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    orders_count = serializers.IntegerField(read_only=True)
     prices = serializers.SerializerMethodField()
     transactions = serializers.SerializerMethodField()
     orders = serializers.SerializerMethodField()
-    orders_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Trader
