@@ -28,6 +28,9 @@ class TraderSerializer(ModelSerializer):
 
 
 class TraderListSerializer(serializers.ModelSerializer):
+    total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    orders_count = serializers.IntegerField(read_only=True)
+    
     class Meta:
         model = Trader
         fields = [
@@ -36,6 +39,8 @@ class TraderListSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
+            "total_sales",
+            "orders_count",
             "created",
             "modified",
         ]
@@ -56,10 +61,11 @@ class SingleTraderSerializer(serializers.ModelSerializer):
 
 
 class RetrieveTraderSerializer(serializers.ModelSerializer):
+    total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    orders_count = serializers.IntegerField(read_only=True)
     prices = serializers.SerializerMethodField()
     transactions = serializers.SerializerMethodField()
     orders = serializers.SerializerMethodField()
-    orders_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Trader
@@ -70,10 +76,11 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
             "phone_number",
             "balance",
             "status",
+            "total_sales",
+            "orders_count",
             "prices",
             "transactions",
             "orders",
-            "orders_count",
         ]
 
     def get_prices(self, obj):
@@ -89,10 +96,5 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
     def get_orders(self, obj):
         from orders.serializers import OrderTraderSerializer
 
-        qs = obj.orders.order_by("-id")
+        qs = obj.orders.order_by("-id")[:3]
         return OrderTraderSerializer(qs, many=True).data
-
-    def get_orders_count(self, obj):
-        if self.context["date"] is None:
-            return obj.orders.count()
-        return obj.orders.filter(created__date=self.context["date"]).count()

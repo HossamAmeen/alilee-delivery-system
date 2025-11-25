@@ -16,3 +16,8 @@ class DeliveryZoneViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
     queryset = DeliveryZone.objects.all()
     serializer_class = DeliveryZoneSerializer
+    filterset_fields = ["city"]
+    search_fields = ["name"]
+    ordering_fields = ["id", "name"]
+    ordering = ["-id"]
+

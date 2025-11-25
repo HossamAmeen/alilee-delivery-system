@@ -1,5 +1,6 @@
-from django.db.models import DecimalField, Q, Sum, Value
+from django.db.models import DecimalField, IntegerField, Q, Sum, Value
 from django.db.models.functions import Coalesce
+from django.db.models.sql.query import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -43,13 +44,17 @@ class UserAccountViewSet(BaseViewSet):
 class TraderViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Trader.objects.annotate(
-        sales=Coalesce(
+        total_sales=Coalesce(
             Sum(
                 "transactions__amount",
                 filter=Q(transactions__transaction_type=TransactionType.WITHDRAW),
             ),
             Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
-        )
+        ),
+        orders_count=Coalesce(
+            Count("orders"),
+            Value(0, output_field=IntegerField())
+        ),
     )
     serializer_class = TraderSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
