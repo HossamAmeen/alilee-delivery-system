@@ -1,5 +1,7 @@
+from django.db.models import Sum
 from rest_framework import serializers
 
+from orders.models import Order
 from transactions.serializers import UserAccountTransactionSerializer
 from users.models import Driver
 
@@ -117,3 +119,26 @@ class DriverDetailSerializer(serializers.ModelSerializer):
     def get_transactions(self, obj):
         qs = obj.transactions.order_by("-id")[:3]
         return UserAccountTransactionSerializer(qs, many=True).data
+
+
+class DriverInsightsSerializer(serializers.Serializer):
+    driver = serializers.PrimaryKeyRelatedField(queryset=Driver.objects.all(),
+                                                required=True)
+
+    def to_representation(self, instance):
+        driver_orders = Order.objects.filter(driver=instance)
+        total_orders = driver_orders.filter(status='DELIVERED').aggregate(
+            total_delivery_cost=Sum('delivery_cost'),
+            total_extra_delivery_cost=Sum('extra_delivery_cost')
+        )
+        total_driver_earnings = (total_orders['total_delivery_cost'] or 0) + (
+            total_orders['total_extra_delivery_cost'] or 0)
+
+        return {'total_deliveries': driver_orders.filter(status='DELIVERED').count(),
+                'shipments': driver_orders.filter(status='ASSIGNED').count(),
+                'total_earnings': total_driver_earnings,
+                'delivered': driver_orders.filter(status='DELIVERED').count(),
+                'pending': driver_orders.filter(status='PENDING').count(),
+                'canceled': driver_orders.filter(status='CANCELED').count(),
+                'in_porgress': driver_orders.filter(status='IN_PROGRESS').count()
+                }

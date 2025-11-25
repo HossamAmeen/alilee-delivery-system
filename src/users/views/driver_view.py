@@ -3,14 +3,19 @@ from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from orders.permissions import IsDriverPermission
 from transactions.models import TransactionType
 from users.models import Driver
 from users.serializers.driver_serializer import (
     CreateUpdateDriverSerializer,
     DriverDetailSerializer,
+    DriverInsightsSerializer,
     ListDriverSerializer,
 )
 from users.serializers.user_account_serializers import UserAccountSerializer
@@ -79,3 +84,30 @@ class DriverViewSet(BaseViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
+
+class DriverInsightsAPIView(APIView):
+    permission_classes = (IsAuthenticated, IsDriverPermission)
+    serializer_class = DriverInsightsSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get insights for the authenticated driver",
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'total_deliveries': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of delivered orders'),
+                    'shipments': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of assigned orders'),
+                    'total_earnings': openapi.Schema(type=openapi.TYPE_NUMBER, description='Total earnings from delivered orders'),
+                    'delivered': openapi.Schema(type=openapi.TYPE_INTEGER, description='Delivered orders count'),
+                    'pending': openapi.Schema(type=openapi.TYPE_INTEGER, description='Pending orders count'),
+                    'canceled': openapi.Schema(type=openapi.TYPE_INTEGER, description='Canceled orders count'),
+                    'in_progress': openapi.Schema(type=openapi.TYPE_INTEGER, description='Orders in progress count'),
+                }
+            )
+        }
+    )
+    def get(self, request):
+        driver = request.user
+        serializer = DriverInsightsSerializer(driver)
+        return Response(serializer.data, status=status.HTTP_200_OK)
