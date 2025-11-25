@@ -119,6 +119,7 @@ class DriverDetailSerializer(serializers.ModelSerializer):
     def get_transactions(self, obj):
         qs = obj.transactions.order_by("-id")[:3]
         return UserAccountTransactionSerializer(qs, many=True).data
+from django.db.models import Count, Sum, Q
 
 
 class DriverInsightsSerializer(serializers.Serializer):
@@ -126,19 +127,25 @@ class DriverInsightsSerializer(serializers.Serializer):
                                                 required=True)
 
     def to_representation(self, instance):
-        driver_orders = Order.objects.filter(driver=instance)
-        total_orders = driver_orders.filter(status='DELIVERED').aggregate(
-            total_delivery_cost=Sum('delivery_cost'),
-            total_extra_delivery_cost=Sum('extra_delivery_cost')
+        aggregates = Order.objects.filter(driver=instance).aggregate(
+            total_delivery_cost=Sum('delivery_cost', filter=Q(status='DELIVERED')),
+            total_extra_delivery_cost=Sum('extra_delivery_cost', filter=Q(status='DELIVERED')),
+            total_deliveries=Count('id', filter=Q(status='DELIVERED')),
+            shipments=Count('id', filter=Q(status='ASSIGNED')),
+            pending=Count('id', filter=Q(status='PENDING')),
+            canceled=Count('id', filter=Q(status='CANCELED')),
+            in_progress=Count('id', filter=Q(status='IN_PROGRESS')),
         )
-        total_driver_earnings = (total_orders['total_delivery_cost'] or 0) + (
-            total_orders['total_extra_delivery_cost'] or 0)
 
-        return {'total_deliveries': driver_orders.filter(status='DELIVERED').count(),
-                'shipments': driver_orders.filter(status='ASSIGNED').count(),
-                'total_earnings': total_driver_earnings,
-                'delivered': driver_orders.filter(status='DELIVERED').count(),
-                'pending': driver_orders.filter(status='PENDING').count(),
-                'canceled': driver_orders.filter(status='CANCELED').count(),
-                'in_porgress': driver_orders.filter(status='IN_PROGRESS').count()
-                }
+        total_earnings = (aggregates['total_delivery_cost'] or 0) + \
+                        (aggregates['total_extra_delivery_cost'] or 0)
+
+        return {
+            'total_earnings': total_earnings,
+            'total_deliveries': aggregates['total_deliveries'],
+            'delivered': aggregates['total_deliveries'],
+            'shipments': aggregates['shipments'],
+            'pending': aggregates['pending'],
+            'canceled': aggregates['canceled'],
+            'in_progress': aggregates['in_progress'],
+        }
