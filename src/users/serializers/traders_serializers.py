@@ -22,7 +22,6 @@ class TraderSerializer(ModelSerializer):
         read_only_fields = ("id", "created", "modified")
 
     def create(self, validated_data):
-        print("test")
         validated_data["role"] = UserRole.TRADER
         return super().create(validated_data)
 
@@ -30,7 +29,7 @@ class TraderSerializer(ModelSerializer):
 class TraderListSerializer(serializers.ModelSerializer):
     total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     orders_count = serializers.IntegerField(read_only=True)
-    
+
     class Meta:
         model = Trader
         fields = [

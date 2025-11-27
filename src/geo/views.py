@@ -20,4 +20,3 @@ class DeliveryZoneViewSet(BaseViewSet):
     search_fields = ["name"]
     ordering_fields = ["id", "name"]
     ordering = ["-id"]
-

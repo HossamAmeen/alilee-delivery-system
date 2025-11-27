@@ -97,7 +97,7 @@ class DriverInsightsAPIView(APIView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'total_deliveries': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of delivered orders'),
-                    'shipments': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of assigned orders'),
+                    'assigned_order_count': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of assigned orders'),
                     'total_earnings': openapi.Schema(type=openapi.TYPE_NUMBER, description='Total earnings from delivered orders'),
                     'delivered': openapi.Schema(type=openapi.TYPE_INTEGER, description='Delivered orders count'),
                     'pending': openapi.Schema(type=openapi.TYPE_INTEGER, description='Pending orders count'),
@@ -108,6 +108,5 @@ class DriverInsightsAPIView(APIView):
         }
     )
     def get(self, request):
-        driver = request.user
-        serializer = DriverInsightsSerializer(driver)
+        serializer = DriverInsightsSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
