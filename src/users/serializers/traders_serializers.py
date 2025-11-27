@@ -15,14 +15,13 @@ class TraderSerializer(ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
-            "is_active",
+            "status",
             "created",
             "modified",
         ]
         read_only_fields = ("id", "created", "modified")
 
     def create(self, validated_data):
-        print("test")
         validated_data["role"] = UserRole.TRADER
         return super().create(validated_data)
 
@@ -39,6 +38,7 @@ class TraderListSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
+            "status",
             "total_sales",
             "orders_count",
             "created",

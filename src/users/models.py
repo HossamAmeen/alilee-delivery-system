@@ -40,6 +40,7 @@ class UserAccountManager(UserManager):
 
 class UserAccount(AbstractUser, AbstractBaseModel):
     username = first_name = last_name = date_joined = None
+
     email = models.EmailField("Email", unique=True)
     full_name = models.CharField("Full Name", max_length=255)
     phone_number = models.CharField(max_length=11, null=True)
