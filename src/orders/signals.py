@@ -24,13 +24,3 @@ def create_driver_withdraw_transaction(sender, instance, created, **kwargs):
             amount=total_withdraw,
             transaction_type=TransactionType.WITHDRAW,
         )
-
-
-@receiver(post_save, sender=Order)
-def update_driver_balance(sender, instance, created, **kwargs):
-    if not created and instance.driver and instance.status in [OrderStatus.DELIVERED, OrderStatus.CANCELLED, OrderStatus.POSTPONED]:
-        total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
-
-        driver_account = instance.driver.user_account
-        driver_account.balance -= total_withdraw
-        driver_account.save()
