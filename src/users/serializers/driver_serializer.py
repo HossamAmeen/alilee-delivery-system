@@ -122,29 +122,35 @@ class DriverDetailSerializer(serializers.ModelSerializer):
 
 
 class DriverInsightsSerializer(serializers.Serializer):
-    driver = serializers.PrimaryKeyRelatedField(queryset=Driver.objects.all(),
-                                                required=True)
+    driver = serializers.PrimaryKeyRelatedField(
+        queryset=Driver.objects.all(), required=True
+    )
 
     def to_representation(self, instance):
         aggregates = Order.objects.filter(driver=instance).aggregate(
-            total_delivery_cost=Sum('delivery_cost', filter=Q(status=OrderStatus.DELIVERED)),
-            total_extra_delivery_cost=Sum('extra_delivery_cost', filter=Q(status=OrderStatus.DELIVERED)),
-            delivered_order_count=Count('id', filter=Q(status=OrderStatus.DELIVERED)),
-            assigned_order_count=Count('id', filter=Q(status=OrderStatus.ASSIGNED)),
-            pending=Count('id', filter=Q(status=OrderStatus.POSTPONED)),
-            canceled=Count('id', filter=Q(status=OrderStatus.CANCELLED)),
-            in_progress=Count('id', filter=Q(status=OrderStatus.IN_PROGRESS)),
+            total_delivery_cost=Sum(
+                "delivery_cost", filter=Q(status=OrderStatus.DELIVERED)
+            ),
+            total_extra_delivery_cost=Sum(
+                "extra_delivery_cost", filter=Q(status=OrderStatus.DELIVERED)
+            ),
+            delivered_order_count=Count("id", filter=Q(status=OrderStatus.DELIVERED)),
+            assigned_order_count=Count("id", filter=Q(status=OrderStatus.ASSIGNED)),
+            pending=Count("id", filter=Q(status=OrderStatus.POSTPONED)),
+            canceled=Count("id", filter=Q(status=OrderStatus.CANCELLED)),
+            in_progress=Count("id", filter=Q(status=OrderStatus.IN_PROGRESS)),
         )
 
-        total_earnings = (aggregates['total_delivery_cost'] or 0) + \
-                         (aggregates['total_extra_delivery_cost'] or 0)
+        total_earnings = (aggregates["total_delivery_cost"] or 0) + (
+            aggregates["total_extra_delivery_cost"] or 0
+        )
 
         return {
-            'total_earnings': total_earnings,
-            'delivered_order_count': aggregates['delivered_order_count'],
-            'delivered': aggregates['delivered_order_count'],
-            'assigned_order_count': aggregates['assigned_order_count'],
-            'pending': aggregates['pending'],
-            'canceled': aggregates['canceled'],
-            'in_progress': aggregates['in_progress'],
+            "total_earnings": total_earnings,
+            "delivered_order_count": aggregates["delivered_order_count"],
+            "delivered": aggregates["delivered_order_count"],
+            "assigned_order_count": aggregates["assigned_order_count"],
+            "pending": aggregates["pending"],
+            "canceled": aggregates["canceled"],
+            "in_progress": aggregates["in_progress"],
         }

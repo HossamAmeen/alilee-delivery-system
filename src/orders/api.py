@@ -155,8 +155,11 @@ class OrderDeliveryAssignAPIView(APIView):
 
         updated_order = DeliveryAssignmentService.assign_driver(order, driver)
 
-        return Response({
-            "tracking_number": updated_order.tracking_number,
-            "assigned_driver": updated_order.driver.id,
-            "status": updated_order.status
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "tracking_number": updated_order.tracking_number,
+                "assigned_driver": updated_order.driver.id,
+                "status": updated_order.status,
+            },
+            status=status.HTTP_200_OK,
+        )

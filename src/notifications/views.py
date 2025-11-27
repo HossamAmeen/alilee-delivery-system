@@ -11,7 +11,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     filterset_class = NotificationFilter
 
     def get_queryset(self):
-        queryset = Notification.objects.order_by('-id')
+        queryset = Notification.objects.order_by("-id")
         if self.request.user == UserRole.DRIVER:
             return queryset.filter(user_account=self.request.user)
         return queryset

@@ -15,7 +15,7 @@ class TraderSerializer(ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
-            "is_active",
+            "status",
             "created",
             "modified",
         ]
@@ -27,7 +27,9 @@ class TraderSerializer(ModelSerializer):
 
 
 class TraderListSerializer(serializers.ModelSerializer):
-    total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_sales = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
     orders_count = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -38,6 +40,7 @@ class TraderListSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
+            "status",
             "total_sales",
             "orders_count",
             "created",
@@ -60,7 +63,9 @@ class SingleTraderSerializer(serializers.ModelSerializer):
 
 
 class RetrieveTraderSerializer(serializers.ModelSerializer):
-    total_sales = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_sales = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
     orders_count = serializers.IntegerField(read_only=True)
     prices = serializers.SerializerMethodField()
     transactions = serializers.SerializerMethodField()
