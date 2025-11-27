@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db.models import F, Sum
 from django.db.models.functions import TruncMonth
 from django.db.transaction import atomic
@@ -55,8 +57,10 @@ class ExpenseSerializer(ModelSerializer):
 
 
 class FinancialInsightsSerializer(serializers.Serializer):
-    start_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"])
-    end_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"])
+    start_date = serializers.DateField(format="%Y-%m-%d",
+                                       input_formats=["%Y-%m-%d"], required=False)
+    end_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"],
+                                     required=False)
     total_revenue = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
     )
@@ -84,9 +88,10 @@ class FinancialInsightsSerializer(serializers.Serializer):
         return data
 
     def to_representation(self, instance):
-        start_date = instance["start_date"]
-        end_date = instance["end_date"]
-        monthlyExpensesData = {}
+        today = date.today()
+
+        start_date = instance.get("start_date") or today.replace(day=1)
+        end_date = instance.get("end_date") or today
 
         monthly_revenue = (
             Order.objects.filter(created__range=(start_date, end_date))
