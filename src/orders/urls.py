@@ -9,6 +9,10 @@ router = DefaultRouter()
 router.register(r"", OrderViewSet, basename="orders")
 
 urlpatterns = [
-    path("orders/<str:tracking_number>/assign/", OrderDeliveryAssignAPIView.as_view(), name="order-assign-driver"),
+    path(
+        "orders/<str:tracking_number>/assign/",
+        OrderDeliveryAssignAPIView.as_view(),
+        name="order-assign-driver",
+    ),
 ]
 urlpatterns += router.urls
