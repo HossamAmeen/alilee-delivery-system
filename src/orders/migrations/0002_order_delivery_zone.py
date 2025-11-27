@@ -7,14 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('geo', '0004_deliveryzone'),
-        ('orders', '0001_initial'),
+        ("geo", "0004_deliveryzone"),
+        ("orders", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='delivery_zone',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='geo.deliveryzone'),
+            model_name="order",
+            name="delivery_zone",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="orders",
+                to="geo.deliveryzone",
+            ),
         ),
     ]

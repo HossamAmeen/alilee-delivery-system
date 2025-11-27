@@ -8,7 +8,9 @@ class Notification(AbstractBaseModel):
     title = models.CharField(max_length=200)
     description = models.TextField()
     is_read = models.BooleanField(default=False)
-    user_account = models.ForeignKey(UserAccount, on_delete=models.CASCADE, related_name='notifications')
+    user_account = models.ForeignKey(
+        UserAccount, on_delete=models.CASCADE, related_name="notifications"
+    )
 
     def __str__(self):
         return self.title
