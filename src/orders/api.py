@@ -28,6 +28,7 @@ class OrderViewSet(BaseViewSet):
     ]
 
     search_fields = [
+        "id",
         "tracking_number",
         "reference_code",
         "customer__full_name",
