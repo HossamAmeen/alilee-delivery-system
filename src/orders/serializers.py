@@ -27,6 +27,8 @@ class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer()
     product_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
     extra_delivery_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
+    status_ar = serializers.CharField(source="status_ar", read_only=True)
+
 
     class Meta:
         model = Order
@@ -37,6 +39,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "product_cost",
             "extra_delivery_cost",
             "status",
+            "status_ar",
             "payment_method",
             "product_payment_status",
             "note",
@@ -102,6 +105,8 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
     trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
+    status_ar = serializers.CharField(source="status_ar", read_only=True)
+
 
     class Meta:
         model = Order
@@ -114,6 +119,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "extra_delivery_cost",
             "total_cost",
             "status",
+            "status_ar",
             "driver",
             "trader",
             "delivery_zone",
@@ -133,6 +139,7 @@ class OrderListSerializer(serializers.ModelSerializer):
     trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
+    status_ar = serializers.CharField(source="status_ar", read_only=True)
 
     class Meta:
         model = Order
@@ -142,6 +149,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             "reference_code",
             "total_cost",
             "status",
+            "status_ar",
             "driver",
             "trader",
             "customer",
@@ -156,6 +164,7 @@ class SingleOrderSerializer(serializers.ModelSerializer):
     trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
+    status_ar = serializers.CharField(source="status_ar", read_only=True)
 
     class Meta:
         model = Order
@@ -168,6 +177,7 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "extra_delivery_cost",
             "total_cost",
             "status",
+            "status_ar",
             "driver",
             "trader",
             "delivery_zone",
@@ -185,6 +195,7 @@ class SingleOrderSerializer(serializers.ModelSerializer):
 class OrderTraderSerializer(serializers.ModelSerializer):
     customer = SingleCustomerSerializer(read_only=True)
     driver = SingleDriverSerializer(read_only=True)
+    status_ar = serializers.CharField(source="status_ar", read_only=True)
 
     class Meta:
         model = Order
@@ -193,6 +204,7 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "tracking_number",
             "product_cost",
             "status",
+            "status_ar",
             "driver",
             "customer",
             "created",

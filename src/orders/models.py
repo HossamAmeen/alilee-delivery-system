@@ -114,3 +114,18 @@ class Order(AbstractBaseModel):
 
     def __str__(self):
         return f"Order #{self.tracking_number}"
+
+    # Arabic display mapping for status codes — accessible from the model
+    STATUS_AR = {
+        "created": "تم الإنشاء",
+        "assigned_to_driver": "معين للسائق",
+        "in_progress": "قيد التوصيل",
+        "delivered": "تم التوصيل",
+        "cancelled": "ملغى",
+        "postponed": "مؤجل",
+    }
+
+    @property
+    def status_ar(self):
+        """Return the Arabic label for the current order status."""
+        return self.STATUS_AR.get(self.status, self.status)

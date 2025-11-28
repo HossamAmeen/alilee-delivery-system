@@ -28,12 +28,10 @@ class OrderViewSet(BaseViewSet):
     ]
 
     search_fields = [
-        "id",
         "tracking_number",
         "reference_code",
-        "customer__full_name",
-        "customer__email",
-        "customer__phone_number",
+        "customer__name",
+        "customer__phone",
         "trader__full_name",
         "trader__email",
         "trader__phone_number",
@@ -49,6 +47,24 @@ class OrderViewSet(BaseViewSet):
         "modified",
     ]
     ordering = ["-id"]
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Order.objects.none()
+
+        user = self.request.user
+
+        self.queryset = Order.objects.select_related(
+            "driver", "trader", "customer", "delivery_zone"
+        )
+
+        if user.role == UserRole.DRIVER:
+            return self.queryset.filter(driver=user)
+
+        elif user.role == UserRole.TRADER:
+            return self.queryset.filter(trader=user)
+
+        return self.queryset
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -116,23 +132,7 @@ class OrderViewSet(BaseViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    def get_queryset(self):
-        if getattr(self, "swagger_fake_view", False):
-            return Order.objects.none()
-
-        user = self.request.user
-
-        self.queryset = Order.objects.all().select_related(
-            "driver", "trader", "customer", "delivery_zone"
-        )
-
-        if user.role == UserRole.DRIVER:
-            return self.queryset.filter(driver=user)
-
-        elif user.role == UserRole.TRADER:
-            return self.queryset.filter(trader=user)
-
-        return self.queryset
+   
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

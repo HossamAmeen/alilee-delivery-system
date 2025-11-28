@@ -336,3 +336,26 @@ def test_search_orders(api_client, trader_user, customer, delivery_zone):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data["results"]) == 1
     assert response.data["results"][0]["reference_code"] == "ORDER123"
+
+
+@pytest.mark.django_db
+def test_list_orders_status_ar(api_client, trader_user, customer, delivery_zone):
+    """List endpoint should include Arabic mapping for status (status_ar)."""
+    Order.objects.create(
+        reference_code="ORDER-AR",
+        product_cost=Decimal("100.00"),
+        delivery_cost=Decimal("10.00"),
+        status="delivered",
+        trader=trader_user,
+        customer=customer,
+        delivery_zone=delivery_zone,
+    )
+
+    api_client.force_authenticate(user=trader_user)
+    list_url = reverse("order-list")
+    response = api_client.get(list_url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) >= 1
+    # ensure the status_ar mapping exists and matches expected Arabic label
+    assert response.data["results"][0].get("status_ar") == "تم التوصيل"
