@@ -10,7 +10,7 @@ class TraderDeliveryZoneSerializer(serializers.ModelSerializer):
     delivery_zone = SingleDeliveryZoneSerializer()
     class Meta:
         model = TraderDeliveryZone
-        fields = ["price", "trader", "delivery_zone"]
+        fields = ["id", "price", "trader", "delivery_zone"]
 
 
 class TraderDeliveryZoneNestedSerializer(serializers.ModelSerializer):
