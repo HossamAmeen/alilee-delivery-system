@@ -56,6 +56,13 @@ class UserAccount(AbstractUser, AbstractBaseModel):
     def __str__(self):
         return self.email
 
+    def get_user_account_role(self):
+        if self.role == UserRole.DRIVER:
+            return Driver
+        elif self.role == UserRole.TRADER:
+            return Trader
+        return None
+
 
 class TraderStatus(models.TextChoices):
     ACTIVE = "active", "Active"
