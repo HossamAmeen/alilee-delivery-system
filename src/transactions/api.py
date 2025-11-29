@@ -115,28 +115,52 @@ class FinancialInsightsApiView(APIView):
             200: openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "start_date": openapi.Schema(type=openapi.TYPE_STRING, example="2025-01-15"),
-                    "end_date": openapi.Schema(type=openapi.TYPE_STRING, example="2025-12-02"),
-                    "total_revenue": openapi.Schema(type=openapi.TYPE_NUMBER, example=75.0),
-                    "total_expenses": openapi.Schema(type=openapi.TYPE_NUMBER, example=250.0),
-                    "net_profit": openapi.Schema(type=openapi.TYPE_NUMBER, example=-175.0),
-                    "shipments_completed": openapi.Schema(type=openapi.TYPE_INTEGER, example=3),
-                    "pending_receivables": openapi.Schema(type=openapi.TYPE_NUMBER, example=0.0),
-                    "pending_payables": openapi.Schema(type=openapi.TYPE_NUMBER, example=0.0),
+                    "start_date": openapi.Schema(
+                        type=openapi.TYPE_STRING, example="2025-01-15"
+                    ),
+                    "end_date": openapi.Schema(
+                        type=openapi.TYPE_STRING, example="2025-12-02"
+                    ),
+                    "total_revenue": openapi.Schema(
+                        type=openapi.TYPE_NUMBER, example=75.0
+                    ),
+                    "total_expenses": openapi.Schema(
+                        type=openapi.TYPE_NUMBER, example=250.0
+                    ),
+                    "net_profit": openapi.Schema(
+                        type=openapi.TYPE_NUMBER, example=-175.0
+                    ),
+                    "shipments_completed": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, example=3
+                    ),
+                    "pending_receivables": openapi.Schema(
+                        type=openapi.TYPE_NUMBER, example=0.0
+                    ),
+                    "pending_payables": openapi.Schema(
+                        type=openapi.TYPE_NUMBER, example=0.0
+                    ),
                     "balance": openapi.Schema(type=openapi.TYPE_NUMBER, example=-175.0),
                     "monthlyExpensesData": openapi.Schema(
                         type=openapi.TYPE_ARRAY,
                         items=openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
-                                "name": openapi.Schema(type=openapi.TYPE_STRING, example="Oct"),
-                                "total_income": openapi.Schema(type=openapi.TYPE_NUMBER, example=50.0),
-                                "total_delivery_expense": openapi.Schema(type=openapi.TYPE_NUMBER, example=100.0),
-                                "net_profit": openapi.Schema(type=openapi.TYPE_NUMBER, example=-50.0),
+                                "name": openapi.Schema(
+                                    type=openapi.TYPE_STRING, example="Oct"
+                                ),
+                                "total_income": openapi.Schema(
+                                    type=openapi.TYPE_NUMBER, example=50.0
+                                ),
+                                "total_delivery_expense": openapi.Schema(
+                                    type=openapi.TYPE_NUMBER, example=100.0
+                                ),
+                                "net_profit": openapi.Schema(
+                                    type=openapi.TYPE_NUMBER, example=-50.0
+                                ),
                             },
                         ),
                     ),
-                }
+                },
             )
         },
         operation_summary="Get financial insights",

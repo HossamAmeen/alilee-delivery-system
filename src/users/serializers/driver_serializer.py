@@ -1,11 +1,10 @@
 from django.db.models import Count, Q, Sum
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer,
     TokenRefreshSerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import exceptions
 
 from orders.models import Order, OrderStatus
 from transactions.serializers import UserAccountTransactionSerializer
@@ -192,7 +191,9 @@ class DriverTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         user = getattr(self, "user", None)
         if user is None or user.role != UserRole.DRIVER:
-            raise exceptions.AuthenticationFailed("No active account found with the given credentials")
+            raise CustomValidationError(
+                message="No active account found with the given credentials"
+            )
         return data
 
 
@@ -206,6 +207,8 @@ class DriverTokenRefreshSerializer(TokenRefreshSerializer):
 
         role = token.get("role", None)
         if role != UserRole.DRIVER:
-            raise exceptions.AuthenticationFailed("Refresh token does not belong to a driver", code="authorization")
+            raise exceptions.AuthenticationFailed(
+                "Refresh token does not belong to a driver", code="authorization"
+            )
 
         return super().validate(attrs)

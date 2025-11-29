@@ -6,5 +6,4 @@ to add notifications-specific test fixtures later.
 
 import pytest
 
-
 __all__ = ["pytest"]

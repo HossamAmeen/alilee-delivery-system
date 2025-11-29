@@ -6,5 +6,4 @@ This module intentionally contains no fixtures. The project-level fixtures in
 
 import pytest
 
-
 __all__ = ["pytest"]

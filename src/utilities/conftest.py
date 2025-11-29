@@ -6,5 +6,4 @@ Top-level fixtures from `src/conftest.py` are automatically available.
 
 import pytest
 
-
 __all__ = ["pytest"]

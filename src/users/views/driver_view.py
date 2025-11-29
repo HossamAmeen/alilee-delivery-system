@@ -17,7 +17,9 @@ from users.serializers.driver_serializer import (
     CreateUpdateDriverSerializer,
     DriverDetailSerializer,
     DriverInsightsSerializer,
-    ListDriverSerializer, DriverTokenObtainPairSerializer, DriverTokenRefreshSerializer,
+    DriverTokenObtainPairSerializer,
+    DriverTokenRefreshSerializer,
+    ListDriverSerializer,
 )
 from users.serializers.user_account_serializers import UserAccountSerializer
 from utilities.api import BaseViewSet
@@ -87,12 +89,20 @@ class DriverViewSet(BaseViewSet):
         return super().retrieve(request, *args, **kwargs)
 
     def profile(self, request):
+        # enforce driver permission
+        perm = IsDriverPermission()
+        if not perm.has_permission(request, self):
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = CreateUpdateDriverSerializer(request.user)
         return Response(serializer.data)
 
-    def patch(self, request):
-        request.data.pop("role", None)
-        serializer = CreateUpdateDriverSerializer(request.user, data=request.data, partial=True)
+    def update_profile(self, request):
+        serializer = CreateUpdateDriverSerializer(
+            request.user, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)

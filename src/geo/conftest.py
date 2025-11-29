@@ -8,5 +8,4 @@ Add app-specific fixtures here when needed.
 
 import pytest
 
-
 __all__ = ["pytest"]
