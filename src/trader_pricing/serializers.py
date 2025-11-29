@@ -1,9 +1,13 @@
 from rest_framework import serializers
 
 from trader_pricing.models import TraderDeliveryZone
+from geo.serializers import SingleDeliveryZoneSerializer
+from users.serializers.traders_serializers import SingleTraderSerializer
 
 
 class TraderDeliveryZoneSerializer(serializers.ModelSerializer):
+    trader = SingleTraderSerializer()
+    delivery_zone = SingleDeliveryZoneSerializer()
     class Meta:
         model = TraderDeliveryZone
         fields = ["price", "trader", "delivery_zone"]

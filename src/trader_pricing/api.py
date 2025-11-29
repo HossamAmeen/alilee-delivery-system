@@ -10,7 +10,7 @@ from trader_pricing.filters import TraderDeliveryZoneFilter
 
 class TraderDeliveryZoneViewSet(BaseViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = TraderDeliveryZone.objects.order_by("-id")
+    queryset = TraderDeliveryZone.objects.order_by("-id").select_related("trader", "delivery_zone")
     serializer_class = TraderDeliveryZoneSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = TraderDeliveryZoneFilter

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from trader_pricing.serializers import TraderDeliveryZoneNestedSerializer
 from transactions.serializers import UserAccountTransactionSerializer
 from users.models import Trader, UserRole
 
@@ -88,6 +87,8 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
         ]
 
     def get_prices(self, obj):
+        from trader_pricing.serializers import TraderDeliveryZoneNestedSerializer
+
         qs = obj.trader_delivery_zones_trader.order_by("-id")
         if "date" in self.context:
             qs = qs.filter(created__date=self.context["date"])
