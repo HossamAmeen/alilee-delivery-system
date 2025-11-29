@@ -221,16 +221,16 @@ class OrderDriverAssignAPIView(APIView):
                 message="One or more orders cannot be assigned."
             )
         response_data = {
-                "data": [
-                    {
-                        "tracking_number": order.tracking_number,
-                        "assigned_driver": driver.full_name,
-                        "status": order.status,
-                    }
-                    for order in orders
-                ]
-            }
-           
+            "data": [
+                {
+                    "tracking_number": order.tracking_number,
+                    "assigned_driver": driver.full_name,
+                    "status": order.status,
+                }
+                for order in orders
+            ]
+        }
+
         orders.update(driver=driver, status=OrderStatus.ASSIGNED)
 
         return Response(
