@@ -92,15 +92,21 @@ class OrderSerializer(serializers.ModelSerializer):
             customer = customer_serializer.save()
             validated_data["customer"] = customer
 
-        if validated_data.get("delivery_zone") != instance.delivery_zone_id:
-            validated_data["trader_merchant_cost"] = (
-                validated_data["trader"]
+        if (
+            validated_data.get("delivery_zone")
+            and validated_data["delivery_zone"] != instance.delivery_zone_id
+        ):
+            merchant_cost = (
+                validated_data["trader", instance.trader]
                 .trader_delivery_zones_trader.filter(
                     delivery_zone=validated_data["delivery_zone"]
                 )
                 .first()
-                .price
             )
+            if not merchant_cost:
+                raise CustomValidationError(
+                    "The selected trader does not serve the selected delivery zone."
+                )
         return super().update(instance, validated_data)
 
 
@@ -121,6 +127,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "delivery_cost",
             "extra_delivery_cost",
             "total_cost",
+            "trader_merchant_cost",
             "status",
             "status_ar",
             "driver",

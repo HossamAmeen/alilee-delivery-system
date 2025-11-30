@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from orders.models import OrderStatus
 from orders.permissions import IsDriverPermission
 from transactions.models import TransactionType
 from users.models import Driver
@@ -27,7 +28,7 @@ from utilities.api import BaseViewSet
 
 class DriverViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Driver.objects.filter(role="driver")
+    queryset = Driver.objects.filter().order_by("-id")
     serializer_class = UserAccountSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["email", "full_name", "phone_number"]
@@ -46,11 +47,23 @@ class DriverViewSet(BaseViewSet):
             sales_filter &= Q(transactions__created__date=date)
             pass
 
+        # annotate sales from wallet transactions (withdrawals) and order totals
+        delivered_filter = order_filter & Q(
+            orders__status__in=[OrderStatus.DELIVERED, OrderStatus.CANCELLED]
+        )
+
         qs = qs.annotate(
-            sales=Coalesce(
+            total_delivery_cost=Coalesce(
                 Sum(
-                    "transactions__amount",
-                    filter=sales_filter,
+                    "orders__delivery_cost",
+                    filter=delivered_filter,
+                ),
+                Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
+            ),
+            total_extra_delivery_cost=Coalesce(
+                Sum(
+                    "orders__extra_delivery_cost",
+                    filter=delivered_filter,
                 ),
                 Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
             ),

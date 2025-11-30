@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from orders.models import Order
+from orders.models import Order, OrderStatus
 from transactions.models import TransactionType, UserAccountTransaction
 
 
@@ -13,7 +13,7 @@ def delivered_order_withdraw_transaction_from_trader(
     if (
         not created
         and instance.trader
-        and instance.status == Order.OrderStatus.DELIVERED
+        and instance.status == OrderStatus.DELIVERED
         and instance.product_payment_status == Order.ProductPaymentStatus.PAID
     ):
         total_withdraw = instance.trader_merchant_cost
@@ -37,11 +37,7 @@ def delivered_order_withdraw_transaction_from_trader(
 def cancelled_order_withdraw_transaction_from_trader(
     sender, instance, created, **kwargs
 ):
-    if (
-        not created
-        and instance.trader
-        and instance.status == Order.OrderStatus.CANCELLED
-    ):
+    if not created and instance.trader and instance.status == OrderStatus.CANCELLED:
         total_withdraw = instance.trader_merchant_cost
 
         already_exists = UserAccountTransaction.objects.filter(
@@ -66,7 +62,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
     if (
         not created
         and instance.trader
-        and instance.status == Order.OrderStatus.DELIVERED
+        and instance.status == OrderStatus.DELIVERED
         and instance.product_payment_status == Order.ProductPaymentStatus.COD
     ):
         total_deposit = instance.product_cost
@@ -108,7 +104,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
     if (
         not created
         and instance.driver
-        and instance.status == Order.OrderStatus.DELIVERED
+        and instance.status == OrderStatus.DELIVERED
         and instance.product_payment_status == Order.ProductPaymentStatus.COD
     ):
         total_deposit = instance.product_cost + instance.trader_merchant_cost
@@ -126,7 +122,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
             notes=instance.tracking_number,
         )
 
-        total_withdraw = instance.delivery_cost + instance.extra_cost
+        total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
         already_exists = UserAccountTransaction.objects.filter(
             notes__contains=instance.tracking_number
         ).exists()
@@ -147,7 +143,7 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
     if (
         not created
         and instance.driver
-        and instance.status == Order.OrderStatus.DELIVERED
+        and instance.status == OrderStatus.DELIVERED
         and instance.product_payment_status == Order.ProductPaymentStatus.PAID
     ):
         total_deposit = instance.delivery_cost + instance.extra_cost
@@ -171,12 +167,8 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
 def cancelled_order_withdraw_transaction_from_driver(
     sender, instance, created, **kwargs
 ):
-    if (
-        not created
-        and instance.driver
-        and instance.status == Order.OrderStatus.CANCELLED
-    ):
-        total_withdraw = instance.delivery_cost + instance.extra_cost
+    if not created and instance.driver and instance.status == OrderStatus.CANCELLED:
+        total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
 
         already_exists = UserAccountTransaction.objects.filter(
             notes__contains=instance.tracking_number

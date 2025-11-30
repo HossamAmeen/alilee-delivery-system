@@ -7,18 +7,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from orders.models import Order, OrderStatus
 from orders.permissions import IsDriverPermission
-from users.models import Driver, UserRole
-from utilities.api import BaseViewSet
-from utilities.exceptions import CustomValidationError
-
-from .models import Order, OrderStatus
-from .serializers import (
+from orders.serializers import (
     OrderListSerializer,
     OrderRetrieveSerializer,
     OrderSerializer,
     OrderTrackingNumberSerializer,
 )
+from users.models import Driver, UserRole
+from utilities.api import BaseViewSet
+from utilities.exceptions import CustomValidationError
+
 from .services import DeliveryAssignmentService
 
 
