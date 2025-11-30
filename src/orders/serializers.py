@@ -29,7 +29,6 @@ class OrderSerializer(serializers.ModelSerializer):
     extra_delivery_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
     status_ar = serializers.CharField(read_only=True)
 
-
     class Meta:
         model = Order
         fields = [
@@ -106,7 +105,6 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
     status_ar = serializers.CharField(read_only=True)
-
 
     class Meta:
         model = Order

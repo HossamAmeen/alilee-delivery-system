@@ -63,6 +63,12 @@ class UserAccount(AbstractUser, AbstractBaseModel):
             return Trader
         return None
 
+    def update_balance(self, amount):
+        if self.role == UserRole.DRIVER:
+            self.driver.balance += amount
+        elif self.role == UserRole.TRADER:
+            self.trader.balance += amount
+
 
 class TraderStatus(models.TextChoices):
     ACTIVE = "active", "Active"

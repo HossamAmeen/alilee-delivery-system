@@ -7,5 +7,4 @@ starts small and can be expanded later.
 
 import pytest
 
-
 __all__ = ["pytest"]

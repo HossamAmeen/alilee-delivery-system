@@ -132,8 +132,6 @@ class OrderViewSet(BaseViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-   
-
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
 

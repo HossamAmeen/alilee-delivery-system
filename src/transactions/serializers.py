@@ -57,10 +57,12 @@ class ExpenseSerializer(ModelSerializer):
 
 
 class FinancialInsightsSerializer(serializers.Serializer):
-    start_date = serializers.DateField(format="%Y-%m-%d",
-                                       input_formats=["%Y-%m-%d"], required=False)
-    end_date = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"],
-                                     required=False)
+    start_date = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
+    )
+    end_date = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
+    )
     total_revenue = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
     )
@@ -95,15 +97,17 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
         monthly_revenue = (
             Order.objects.filter(created__range=(start_date, end_date))
-            .annotate(month=TruncMonth('created'))
-            .values('month')
+            .annotate(month=TruncMonth("created"))
+            .values("month")
             .annotate(
-                total_income=Sum('trader_merchant_cost'),
+                total_income=Sum("trader_merchant_cost"),
                 total_delivery_expense=Sum(
-                    F('delivery_cost') + F('extra_delivery_cost'),
-                )).order_by('month')
+                    F("delivery_cost") + F("extra_delivery_cost"),
+                ),
+            )
+            .order_by("month")
         )
-        total_income , total_delivery_expense = 0, 0
+        total_income, total_delivery_expense = 0, 0
         converted_monthly = {
             1: "Jan",
             2: "Feb",
@@ -120,20 +124,26 @@ class FinancialInsightsSerializer(serializers.Serializer):
         }
         monthlyExpensesData = []
         for item in monthly_revenue:
-            total_income += item['total_income'] or 0
-            total_delivery_expense += item['total_delivery_expense'] or 0
-            monthlyExpensesData.append({
-                'name': converted_monthly[item['month'].month],
-                'total_income': float(item['total_income'] or 0),
-                'total_delivery_expense': float(item['total_delivery_expense'] or 0),
-                'net_profit': float((item['total_income'] or 0) - (
-                    item['total_delivery_expense'] or 0)),
-
-            })
+            total_income += item["total_income"] or 0
+            total_delivery_expense += item["total_delivery_expense"] or 0
+            monthlyExpensesData.append(
+                {
+                    "name": converted_monthly[item["month"].month],
+                    "total_income": float(item["total_income"] or 0),
+                    "total_delivery_expense": float(
+                        item["total_delivery_expense"] or 0
+                    ),
+                    "net_profit": float(
+                        (item["total_income"] or 0)
+                        - (item["total_delivery_expense"] or 0)
+                    ),
+                }
+            )
 
         operational_expenses = (
-            Expense.objects.filter(date__range=(start_date, end_date))
-            .aggregate(total=Sum("cost"))["total"]
+            Expense.objects.filter(date__range=(start_date, end_date)).aggregate(
+                total=Sum("cost")
+            )["total"]
             or 0
         )
         order_completed = Order.objects.filter(
@@ -148,7 +158,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "end_date": end_date,
             "total_revenue": total_income,
             "total_expenses": (total_delivery_expense + operational_expenses),
-            "net_profit": total_income - (total_delivery_expense + operational_expenses),
+            "net_profit": total_income
+            - (total_delivery_expense + operational_expenses),
             "shipments_completed": order_completed,
             "pending_receivables": pending_receivables,
             "pending_payables": pending_payables,

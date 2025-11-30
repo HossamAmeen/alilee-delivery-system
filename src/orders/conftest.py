@@ -6,5 +6,4 @@ automatically available to tests here. Add app-specific fixtures if needed.
 
 import pytest
 
-
 __all__ = ["pytest"]
