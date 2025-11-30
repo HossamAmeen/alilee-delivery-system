@@ -1,9 +1,15 @@
 from django.db.models import Count, Q, Sum
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
+from rest_framework_simplejwt.serializers import (
+    TokenObtainPairSerializer,
+    TokenRefreshSerializer,
+)
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from orders.models import Order, OrderStatus
 from transactions.serializers import UserAccountTransactionSerializer
-from users.models import Driver
+from users.models import Driver, UserRole
+from utilities.exceptions import CustomValidationError
 
 
 class ListDriverSerializer(serializers.ModelSerializer):
@@ -54,6 +60,11 @@ class RetrieveDriverSerializer(serializers.ModelSerializer):
 
 
 class CreateUpdateDriverSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, min_length=8)
+    confirm_password = serializers.CharField(
+        write_only=True, required=True, min_length=8
+    )
+
     class Meta:
         model = Driver
         fields = [
@@ -64,12 +75,24 @@ class CreateUpdateDriverSerializer(serializers.ModelSerializer):
             "license_number",
             "is_active",
             "password",
+            "confirm_password",
         ]
         extra_kwargs = {
             "password": {"write_only": True},
         }
 
+    def validate(self, data):
+        # Check that password and confirm_password match
+        password = data.get("password")
+        confirm_password = data.get("confirm_password")
+
+        if password != confirm_password:
+            raise CustomValidationError({"confirm_password": "Passwords do not match."})
+
+        return data
+
     def create(self, validated_data):
+        validated_data.pop("confirm_password", None)
         password = validated_data.pop("password", None)
         driver = Driver(**validated_data)
         if password:
@@ -78,6 +101,7 @@ class CreateUpdateDriverSerializer(serializers.ModelSerializer):
         return driver
 
     def update(self, instance, validated_data):
+        validated_data.pop("confirm_password", None)
         password = validated_data.pop("password", None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -154,3 +178,37 @@ class DriverInsightsSerializer(serializers.Serializer):
             "canceled": aggregates["canceled"],
             "in_progress": aggregates["in_progress"],
         }
+
+
+class DriverTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["role"] = user.role
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = getattr(self, "user", None)
+        if user is None or user.role != UserRole.DRIVER:
+            raise CustomValidationError(
+                message="No active account found with the given credentials"
+            )
+        return data
+
+
+class DriverTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = attrs.get("refresh")
+        try:
+            token = RefreshToken(refresh)
+        except Exception as exc:
+            raise exceptions.AuthenticationFailed("Invalid refresh token") from exc
+
+        role = token.get("role", None)
+        if role != UserRole.DRIVER:
+            raise exceptions.AuthenticationFailed(
+                "Refresh token does not belong to a driver", code="authorization"
+            )
+
+        return super().validate(attrs)

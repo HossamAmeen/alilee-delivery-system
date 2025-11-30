@@ -10,9 +10,15 @@ from rest_framework.views import APIView
 from orders.permissions import IsDriverPermission
 from users.models import Driver, UserRole
 from utilities.api import BaseViewSet
+from utilities.exceptions import CustomValidationError
 
-from .models import Order
-from .serializers import OrderListSerializer, OrderRetrieveSerializer, OrderSerializer
+from .models import Order, OrderStatus
+from .serializers import (
+    OrderListSerializer,
+    OrderRetrieveSerializer,
+    OrderSerializer,
+    OrderTrackingNumberSerializer,
+)
 from .services import DeliveryAssignmentService
 
 
@@ -157,8 +163,77 @@ class OrderDeliveryAssignAPIView(APIView):
         return Response(
             {
                 "tracking_number": updated_order.tracking_number,
-                "assigned_driver": updated_order.driver.id,
+                "assigned_driver": driver.full_name,
                 "status": updated_order.status,
             },
+            status=status.HTTP_200_OK,
+        )
+
+
+class OrderDriverAssignAPIView(APIView):
+    permission_classes = [
+        IsAuthenticated,
+    ]
+    serializer_class = OrderTrackingNumberSerializer
+
+    @swagger_auto_schema(
+        operation_description="Assign multiple orders to the authenticated driver",
+        request_body=OrderTrackingNumberSerializer,
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "tracking_number": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Tracking number of the order",
+                        ),
+                        "assigned_driver": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Full name of the assigned driver",
+                        ),
+                        "status": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Current status of the order",
+                        ),
+                    },
+                ),
+            ),
+            400: "Bad Request",
+        },
+    )
+    def patch(self, request):
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        driver = Driver.objects.get(id=serializer.validated_data.get("driver", None))
+
+        orders = Order.objects.filter(
+            tracking_number__in=serializer.validated_data["tracking_numbers"],
+            driver__isnull=True,
+        )
+
+        if not orders:
+            raise CustomValidationError(message="No orders available for assignment.")
+        if orders.count() != len(serializer.validated_data["tracking_numbers"]):
+            raise CustomValidationError(
+                message="One or more orders cannot be assigned."
+            )
+        response_data = {
+            "data": [
+                {
+                    "tracking_number": order.tracking_number,
+                    "assigned_driver": driver.full_name,
+                    "status": order.status,
+                }
+                for order in orders
+            ]
+        }
+
+        orders.update(driver=driver, status=OrderStatus.ASSIGNED)
+
+        return Response(
+            response_data,
             status=status.HTTP_200_OK,
         )

@@ -65,14 +65,19 @@ class OrderSerializer(serializers.ModelSerializer):
         customer = customer_serializer.save()
         validated_data["customer"] = customer
         validated_data["delivery_cost"] = validated_data["delivery_zone"].cost
-        validated_data["trader_merchant_cost"] = (
+        merchant_cost = (
             validated_data["trader"]
             .trader_delivery_zones_trader.filter(
                 delivery_zone=validated_data["delivery_zone"]
             )
             .first()
-            .price
         )
+        if not merchant_cost:
+            raise CustomValidationError(
+                "The selected trader does not serve the selected delivery zone."
+            )
+
+        validated_data["trader_merchant_cost"] = merchant_cost.price
         return super().create(validated_data)
 
     @atomic
@@ -209,3 +214,12 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "longitude",
             "latitude",
         ]
+
+
+class OrderTrackingNumberSerializer(serializers.ModelSerializer):
+    driver = serializers.IntegerField()
+    tracking_numbers = serializers.ListField(child=serializers.CharField())
+
+    class Meta:
+        model = Order
+        fields = ["tracking_numbers", "driver"]

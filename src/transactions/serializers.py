@@ -1,13 +1,13 @@
 from datetime import date
 
-from django.db.models import F, Sum
+from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncMonth
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from orders.models import Order
+from orders.models import Order, OrderStatus
 from transactions.models import Expense, TransactionType, UserAccountTransaction
 from users.models import Trader
 from utilities.exceptions import CustomValidationError
@@ -96,7 +96,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
         end_date = instance.get("end_date") or today
 
         monthly_revenue = (
-            Order.objects.filter(created__range=(start_date, end_date))
+            Order.objects.filter(
+                created__range=(start_date, end_date), status=OrderStatus.DELIVERED
+            )
             .annotate(month=TruncMonth("created"))
             .values("month")
             .annotate(
@@ -104,10 +106,12 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 total_delivery_expense=Sum(
                     F("delivery_cost") + F("extra_delivery_cost"),
                 ),
+                IDs_count=Count("id"),
             )
             .order_by("month")
         )
-        total_income, total_delivery_expense = 0, 0
+
+        total_income = total_delivery_expense = 0
         converted_monthly = {
             1: "Jan",
             2: "Feb",
@@ -122,10 +126,18 @@ class FinancialInsightsSerializer(serializers.Serializer):
             11: "Nov",
             12: "Dec",
         }
+
         monthlyExpensesData = []
+        shipments_per_month = {}
+
         for item in monthly_revenue:
+
+            shipments_per_month[converted_monthly[item["month"].month]] = item[
+                "IDs_count"
+            ]
             total_income += item["total_income"] or 0
             total_delivery_expense += item["total_delivery_expense"] or 0
+
             monthlyExpensesData.append(
                 {
                     "name": converted_monthly[item["month"].month],
@@ -146,22 +158,17 @@ class FinancialInsightsSerializer(serializers.Serializer):
             )["total"]
             or 0
         )
-        order_completed = Order.objects.filter(
-            created__range=(start_date, end_date)
-        ).count()
-
-        pending_receivables = 0
-        pending_payables = 0
-
         return {
             "start_date": start_date,
             "end_date": end_date,
             "total_revenue": total_income,
             "total_expenses": (total_delivery_expense + operational_expenses),
-            "net_profit": total_income
-            - (total_delivery_expense + operational_expenses),
-            "shipments_completed": order_completed,
-            "pending_receivables": pending_receivables,
-            "pending_payables": pending_payables,
+            "net_profit": (
+                total_income - (total_delivery_expense + operational_expenses)
+            ),
+            "shipments_completed": monthly_revenue.count(),
+            "shipments_per_month": shipments_per_month,
             "monthlyExpensesData": monthlyExpensesData,
+            "pending_earnings": 0,
+            "unpaid_obligations": 0,
         }

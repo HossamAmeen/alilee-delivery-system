@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # 1. API Endpoint URL
 URL = "https://alilee.hossamstore.store/api/orders/"  # e.g., "http://localhost:8000/api/orders/"
-
+URL = "http://localhost:8000/api/orders/"  # Example for local testing
 # 2. Authorization Token (Bearer Token)
 token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxODE2ODU0OTYxLCJpYXQiOjE3NjI4NTQ5NjEsImp0aSI6IjViYmRmZGRiOWIzNDRmZGZhMjkyNWZkYjQ1ZjdkMTU3IiwidXNlcl9pZCI6IjEifQ.xs3CL4n0WwDJrmQGugyKqWVtSRxTyOPZjRRieX3cjeE"
 
@@ -45,7 +45,7 @@ def create_order_request():
         "note": "string",
         "longitude": "50",
         "latitude": "50",
-        "driver": "113",
+        # "driver": "113",
         "trader": "12",
         "customer": {"name": "string", "address": "string", "phone": "string"},
         "delivery_zone": 4,

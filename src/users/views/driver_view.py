@@ -8,6 +8,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from orders.permissions import IsDriverPermission
 from transactions.models import TransactionType
@@ -16,6 +17,8 @@ from users.serializers.driver_serializer import (
     CreateUpdateDriverSerializer,
     DriverDetailSerializer,
     DriverInsightsSerializer,
+    DriverTokenObtainPairSerializer,
+    DriverTokenRefreshSerializer,
     ListDriverSerializer,
 )
 from users.serializers.user_account_serializers import UserAccountSerializer
@@ -85,6 +88,25 @@ class DriverViewSet(BaseViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
+    def profile(self, request):
+        # enforce driver permission
+        perm = IsDriverPermission()
+        if not perm.has_permission(request, self):
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        serializer = CreateUpdateDriverSerializer(request.user)
+        return Response(serializer.data)
+
+    def update_profile(self, request):
+        serializer = CreateUpdateDriverSerializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
 
 class DriverInsightsAPIView(APIView):
     permission_classes = (IsAuthenticated, IsDriverPermission)
@@ -128,3 +150,11 @@ class DriverInsightsAPIView(APIView):
     def get(self, request):
         serializer = DriverInsightsSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DriverTokenObtainPairView(TokenObtainPairView):
+    serializer_class = DriverTokenObtainPairSerializer
+
+
+class DriverTokenRefreshView(TokenRefreshView):
+    serializer_class = DriverTokenRefreshSerializer
