@@ -5,9 +5,15 @@ from geo.serializers import SingleDeliveryZoneSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer
 
 
-class TraderDeliveryZoneSerializer(serializers.ModelSerializer):
+class ListTraderDeliveryZoneSerializer(serializers.ModelSerializer):
     trader = SingleTraderSerializer()
     delivery_zone = SingleDeliveryZoneSerializer()
+    class Meta:
+        model = TraderDeliveryZone
+        fields = ["id", "price", "trader", "delivery_zone"]
+
+class TraderDeliveryZoneSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TraderDeliveryZone
         fields = ["id", "price", "trader", "delivery_zone"]
