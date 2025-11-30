@@ -40,7 +40,7 @@ class ExpenseViewSet(BaseViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(self.paginate_queryset(queryset), many=True)
-        
+
         yearly_data = (
             Expense.objects.annotate(year=ExtractYear("date"))
             .values("year")

@@ -96,8 +96,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
         end_date = instance.get("end_date") or today
 
         monthly_revenue = (
-            Order.objects.filter(created__range=(start_date, end_date),
-                                 status=OrderStatus.DELIVERED)
+            Order.objects.filter(
+                created__range=(start_date, end_date), status=OrderStatus.DELIVERED
+            )
             .annotate(month=TruncMonth("created"))
             .values("month")
             .annotate(
@@ -131,7 +132,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
         for item in monthly_revenue:
 
-            shipments_per_month[converted_monthly[item['month'].month]] = item['IDs_count']
+            shipments_per_month[converted_monthly[item["month"].month]] = item[
+                "IDs_count"
+            ]
             total_income += item["total_income"] or 0
             total_delivery_expense += item["total_delivery_expense"] or 0
 
@@ -162,7 +165,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "total_expenses": (total_delivery_expense + operational_expenses),
             "net_profit": (
                 total_income - (total_delivery_expense + operational_expenses)
-                            ),
+            ),
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
             "monthlyExpensesData": monthlyExpensesData,
