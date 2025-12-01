@@ -97,7 +97,7 @@ class OrderSerializer(serializers.ModelSerializer):
             and validated_data["delivery_zone"] != instance.delivery_zone_id
         ):
             merchant_cost = (
-                validated_data["trader", instance.trader]
+                validated_data.get("trader", instance.trader)
                 .trader_delivery_zones_trader.filter(
                     delivery_zone=validated_data["delivery_zone"]
                 )
