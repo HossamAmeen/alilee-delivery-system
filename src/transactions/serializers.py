@@ -128,13 +128,14 @@ class FinancialInsightsSerializer(serializers.Serializer):
         }
 
         monthlyExpensesData = []
-        shipments_per_month = {}
+        shipments_per_month = []
+        month_statistices = {}
 
         for item in monthly_revenue:
 
-            shipments_per_month[converted_monthly[item["month"].month]] = item[
-                "IDs_count"
-            ]
+            month_statistices['month'] = converted_monthly[item["month"].month]
+            month_statistices['shipment_count'] = item["IDs_count"]
+            shipments_per_month.append(month_statistices)
             total_income += item["total_income"] or 0
             total_delivery_expense += item["total_delivery_expense"] or 0
 
@@ -171,4 +172,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "monthlyExpensesData": monthlyExpensesData,
             "pending_earnings": 0,
             "unpaid_obligations": 0,
+            "unpaid_obligations_drivers": 0,
+            "unpaid_obligations_traders": 0,
         }
