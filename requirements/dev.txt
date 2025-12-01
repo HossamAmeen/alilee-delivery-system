@@ -9,3 +9,5 @@ factory_boy==3.3.3
 Faker==37.0.2
 
 pre-commit==4.2.0
+
+pytest==9.0.1

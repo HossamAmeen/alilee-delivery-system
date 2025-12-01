@@ -2,7 +2,6 @@ import json
 from decimal import Decimal
 
 import pytest
-from django.contrib.gis.geos import Point
 from django.urls import reverse
 from rest_framework import status
 
@@ -50,7 +49,6 @@ def delivery_zone():
     return DeliveryZone.objects.create(
         name="Downtown",
         cost=Decimal("10.00"),
-        polygon=Point(31.2357, 30.0444).buffer(0.1),  # Cairo coordinates
     )
 
 

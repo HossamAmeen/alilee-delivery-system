@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from orders.models import Order, OrderStatus
+from orders.models import Order, OrderStatus, ProductPaymentStatus
 from transactions.models import TransactionType, UserAccountTransaction
 
 
@@ -14,7 +14,7 @@ def delivered_order_withdraw_transaction_from_trader(
         not created
         and instance.trader
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status == Order.ProductPaymentStatus.PAID
+        and instance.product_payment_status == ProductPaymentStatus.PAID
     ):
         total_withdraw = instance.trader_merchant_cost
 
@@ -63,7 +63,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
         not created
         and instance.trader
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status == Order.ProductPaymentStatus.COD
+        and instance.product_payment_status == ProductPaymentStatus.COD
     ):
         total_deposit = instance.product_cost
 
@@ -105,7 +105,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
         not created
         and instance.driver
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status == Order.ProductPaymentStatus.COD
+        and instance.product_payment_status == ProductPaymentStatus.COD
     ):
         total_deposit = instance.product_cost + instance.trader_merchant_cost
 
@@ -144,9 +144,9 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
         not created
         and instance.driver
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status == Order.ProductPaymentStatus.PAID
+        and instance.product_payment_status == ProductPaymentStatus.PAID
     ):
-        total_deposit = instance.delivery_cost + instance.extra_cost
+        total_deposit = instance.delivery_cost + instance.extra_delivery_cost
 
         already_exists = UserAccountTransaction.objects.filter(
             notes__contains=instance.tracking_number
