@@ -13,7 +13,7 @@ from utilities.exceptions import CustomValidationError
 
 
 class ListDriverSerializer(serializers.ModelSerializer):
-    sales = serializers.DecimalField(max_digits=10, decimal_places=2)
+    sales = serializers.SerializerMethodField()
     order_count = serializers.IntegerField()
 
     class Meta:
@@ -30,6 +30,13 @@ class ListDriverSerializer(serializers.ModelSerializer):
             "is_active",
             "date_joined",
         ]
+
+    def get_sales(self, obj):
+        # Use annotated values when available; fall back to 0
+        total = (getattr(obj, "total_delivery_cost", None) or 0) + (
+            getattr(obj, "total_extra_delivery_cost", None) or 0
+        )
+        return total
 
 
 class SingleDriverSerializer(serializers.ModelSerializer):
