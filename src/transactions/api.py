@@ -18,6 +18,7 @@ from transactions.serializers import (
     UserAccountTransactionSerializer,
 )
 from utilities.api import BaseViewSet
+from transactions.filters import ExpenseFilter
 
 
 class UserAccountTransactionViewSet(BaseViewSet):
@@ -34,7 +35,7 @@ class ExpenseViewSet(BaseViewSet):
     queryset = Expense.objects.order_by("-id")
     serializer_class = ExpenseSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["date"]
+    filterset_class = ExpenseFilter
     search_fields = ["description"]
 
     def list(self, request, *args, **kwargs):

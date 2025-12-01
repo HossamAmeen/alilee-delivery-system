@@ -128,7 +128,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         }
 
         monthlyExpensesData = []
-        shipments_per_month = {}
+        shipments_per_month = []
 
         for item in monthly_revenue:
 
