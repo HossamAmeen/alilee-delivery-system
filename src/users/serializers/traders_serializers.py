@@ -79,6 +79,7 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
             "phone_number",
             "balance",
             "status",
+            "is_acitve",
             "total_sales",
             "orders_count",
             "prices",
