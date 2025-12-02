@@ -2,6 +2,7 @@ from django.db.transaction import atomic
 from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
+from users.models import Trader, Driver
 from users.serializers.driver_serializer import SingleDriverSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer
 from utilities.exceptions import CustomValidationError
@@ -50,6 +51,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "modified",
             "customer",
             "delivery_zone",
+            "cancel_reason",
+            "postpone_reason",
         ]
         read_only_fields = ("id", "tracking_number", "created", "modified")
         extra_kwargs = {
@@ -109,6 +112,16 @@ class OrderSerializer(serializers.ModelSerializer):
                 )
         return super().update(instance, validated_data)
 
+    def validate(self, data):
+        trader = Trader.objects.filter(pk=data.get("trader"), is_active=True).first()
+        if not trader:
+            raise CustomValidationError({"message": "Trader is not active or not found"})
+
+        driver = Driver.objects.filter(pk=data.get("driver"), is_active=True).first()
+        if not driver:
+            raise CustomValidationError({"message": "Driver is not active or not found"})
+        return data
+
 
 class OrderRetrieveSerializer(serializers.ModelSerializer):
     driver = SingleDriverSerializer(read_only=True)
@@ -141,6 +154,8 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "note",
             "created",
             "modified",
+            "cancel_reason",
+            "postpone_reason",
         ]
 
 
@@ -199,6 +214,8 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "latitude",
             "created",
             "modified",
+            "cancel_reason",
+            "postpone_reason",
         ]
 
 

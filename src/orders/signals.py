@@ -182,3 +182,11 @@ def cancelled_order_withdraw_transaction_from_driver(
             transaction_type=TransactionType.WITHDRAW,
             notes=instance.tracking_number,
         )
+
+
+# Make driver transaction, order paid, office will transfer balance to driver
+@receiver(post_save, sender=Order)
+def update_order_status_to_assigned_after_created(sender, instance, created, **kwargs):
+    if created and instance.driver:
+        instance.status = OrderStatus.ASSIGNED
+        instance.save()

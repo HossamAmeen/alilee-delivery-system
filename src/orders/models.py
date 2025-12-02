@@ -76,6 +76,8 @@ class Order(AbstractBaseModel):
     note = models.TextField(null=True, blank=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    cancel_reason = models.TextField(null=True, blank=True)
+    postpone_reason = models.TextField(null=True, blank=True)
 
     # Relations
     driver = models.ForeignKey(
