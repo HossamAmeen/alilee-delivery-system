@@ -19,19 +19,14 @@ from users.models import Driver, UserRole
 from utilities.api import BaseViewSet
 from utilities.exceptions import CustomValidationError
 
-from .services import DeliveryAssignmentService
+from orders.services import DeliveryAssignmentService
+from orders.filter import OrderFilter
 
 
 class OrderViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = [
-        "driver",
-        "trader",
-        "customer",
-        "delivery_zone",
-        "status",
-    ]
+    filterset_class = OrderFilter
 
     search_fields = [
         "tracking_number",
@@ -108,7 +103,19 @@ class OrderViewSet(BaseViewSet):
             openapi.Parameter(
                 "status",
                 openapi.IN_QUERY,
-                description="Filter by order status",
+                description=f"Filter by order status valid values: {', '.join([status.value for status in OrderStatus])}",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_QUERY,
+                description=f"Fiilter by date format YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_QUERY,
+                description=f"filter by date format YYYY-MM-DD",
                 type=openapi.TYPE_STRING,
             ),
             openapi.Parameter(
