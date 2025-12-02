@@ -59,6 +59,7 @@ class TraderViewSet(BaseViewSet):
         "full_name",
         "phone_number",
         "role",
+        "is_active",
         "balance",
         "status",
     ]

@@ -31,7 +31,7 @@ class DriverViewSet(BaseViewSet):
     queryset = Driver.objects.filter().order_by("-id")
     serializer_class = UserAccountSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["email", "full_name", "phone_number"]
+    filterset_fields = ["email", "full_name", "phone_number", "is_active"]
     search_fields = ["email", "full_name", "phone_number"]
     ordering_fields = ["email", "full_name", "phone_number"]
     ordering = ["-id"]
