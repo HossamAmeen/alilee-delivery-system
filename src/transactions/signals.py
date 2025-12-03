@@ -11,5 +11,3 @@ def update_user_account_balance_for_transaction(sender, instance, created, **kwa
             instance.user_account.update_balance(-instance.amount)
         elif instance.transaction_type == TransactionType.DEPOSIT:
             instance.user_account.update_balance(instance.amount)
-
-        instance.user_account.save()

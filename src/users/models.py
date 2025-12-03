@@ -66,8 +66,10 @@ class UserAccount(AbstractUser, AbstractBaseModel):
     def update_balance(self, amount):
         if self.role == UserRole.DRIVER:
             self.driver.balance += amount
+            self.driver.save()
         elif self.role == UserRole.TRADER:
             self.trader.balance += amount
+            self.trader.save()
 
 
 class TraderStatus(models.TextChoices):
