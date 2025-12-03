@@ -22,6 +22,6 @@ class TraderDeliveryZoneViewSet(BaseViewSet):
     ordering = ["-id"]
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.request.method == "GET":
             return ListTraderDeliveryZoneSerializer
         return super().get_serializer_class()

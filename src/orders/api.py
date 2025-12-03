@@ -27,7 +27,6 @@ class OrderViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = OrderFilter
-
     search_fields = [
         "tracking_number",
         "reference_code",
@@ -40,7 +39,6 @@ class OrderViewSet(BaseViewSet):
         "driver__email",
         "driver__phone_number",
     ]
-
     ordering_fields = [
         "tracking_number",
         "reference_code",

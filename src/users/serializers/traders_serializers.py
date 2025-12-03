@@ -15,6 +15,7 @@ class TraderSerializer(ModelSerializer):
             "phone_number",
             "balance",
             "status",
+            "is_active",
             "created",
             "modified",
         ]
@@ -39,6 +40,7 @@ class TraderListSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "balance",
+            "is_active",
             "status",
             "total_sales",
             "orders_count",
