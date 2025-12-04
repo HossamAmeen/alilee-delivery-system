@@ -1,9 +1,11 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
 from transactions.models import TransactionType, UserAccountTransaction
 from transactions.helpers import create_order_transaction
+from utilities.exceptions import CustomValidationError
+
 
 # Make trader transaction, order paid, office will take delivery cost from trader
 @receiver(post_save, sender=Order)
@@ -62,7 +64,7 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
         not created
         and instance.driver
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status == ProductPaymentStatus.PAID
+        and instance.product_payment_status in [ProductPaymentStatus.PAID, ProductPaymentStatus.REMAINING_FEES]
     ):
         total_deposit = instance.delivery_cost + instance.extra_delivery_cost
 
@@ -149,3 +151,9 @@ def update_order_status_to_assigned_after_created(sender, instance, created, **k
     if created and instance.driver:
         instance.status = OrderStatus.ASSIGNED
         instance.save()
+
+
+@receiver(pre_save, sender=Order)
+def prevent_order_product_cost_with_payment_remaining_fees(sender, instance, **kwargs):
+    if instance.product_payment_status == ProductPaymentStatus.REMAINING_FEES and instance.product_cost != 0:
+        raise CustomValidationError({"message": "When order payment method is REMAINING FEES, product cost should be 0"})

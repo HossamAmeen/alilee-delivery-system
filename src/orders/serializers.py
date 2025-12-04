@@ -120,6 +120,9 @@ class OrderSerializer(serializers.ModelSerializer):
         driver = Driver.objects.filter(pk=data.get("driver"), is_active=True).first()
         if data.get("driver") and not driver:
             raise CustomValidationError({"message": "Driver is not active or not found"})
+
+        # if data.get("product_payment_status") == ProductPaymentStatus.REMAINING_FEES and data.get("product_cost") != 0:
+        #     raise CustomValidationError({"message": "When order payment method is REMAINING FEES, product cost should be 0"})
         return data
 
 
