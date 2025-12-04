@@ -19,7 +19,8 @@ def delivered_order_withdraw_transaction_from_trader(
         total_withdraw = instance.trader_merchant_cost
 
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.trader
         ).exists()
         if already_exists:
             return
@@ -41,7 +42,8 @@ def cancelled_order_withdraw_transaction_from_trader(
         total_withdraw = instance.trader_merchant_cost
 
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.trader
         ).exists()
         if already_exists:
             return
@@ -68,7 +70,8 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
         total_deposit = instance.product_cost
 
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.trader
         ).exists()
         if already_exists:
             return
@@ -82,7 +85,8 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
 
         total_withdraw = instance.trader_merchant_cost
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.trader
         ).exists()
         if already_exists:
             return
@@ -110,7 +114,8 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
         total_deposit = instance.product_cost + instance.trader_merchant_cost
 
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.driver
         ).exists()
         if already_exists:
             return
@@ -124,7 +129,8 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
 
         total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.driver
         ).exists()
         if already_exists:
             return
@@ -149,7 +155,8 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
         total_deposit = instance.delivery_cost + instance.extra_delivery_cost
 
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.driver
         ).exists()
         if already_exists:
             return
@@ -171,7 +178,8 @@ def cancelled_order_withdraw_transaction_from_driver(
         total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
 
         already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number
+            notes__contains=instance.tracking_number,
+            user_account=instance.driver
         ).exists()
         if already_exists:
             return

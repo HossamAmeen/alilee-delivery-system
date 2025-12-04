@@ -67,7 +67,7 @@ class UserAccount(AbstractUser, AbstractBaseModel):
         if self.role == UserRole.DRIVER:
             self.driver.balance += amount
             self.driver.save()
-        elif self.role == UserRole.TRADER:
+        if self.role == UserRole.TRADER:
             self.trader.balance += amount
             self.trader.save()
 
