@@ -53,3 +53,18 @@ class UserAccountSerializer(serializers.ModelSerializer):
             user.set_password(password)
             user.save()
         return user
+
+
+class SingleUserAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAccount
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "phone_number",
+            "role",
+            "is_active",
+            "created",
+            "modified",
+        ]

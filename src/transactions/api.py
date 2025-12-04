@@ -29,6 +29,11 @@ class UserAccountTransactionViewSet(BaseViewSet):
     filterset_fields = ["transaction_type", "user_account"]
     ordering = ["-id"]
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return UserAccountTransactionSerializer
+        return super().get_serializer_class()
+
 
 class ExpenseViewSet(BaseViewSet):
     permission_classes = (IsAuthenticated,)

@@ -6,7 +6,7 @@ from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-
+from users.serializers.user_account_serializers import SingleUserAccountSerializer
 from orders.models import Order, OrderStatus
 from transactions.models import Expense, TransactionType, UserAccountTransaction
 from users.models import Trader
@@ -41,6 +41,21 @@ class UserAccountTransactionSerializer(ModelSerializer):
         trader.save()
         return trader_transaction
 
+
+class ListUserAccountTransactionSerializer(ModelSerializer):
+    user_account = SingleUserAccountSerializer()
+    class Meta:
+        model = UserAccountTransaction
+        fields = [
+            "id",
+            "user_account",
+            "amount",
+            "transaction_type",
+            "file",
+            "notes",
+            "created",
+            "modified",
+        ]
 
 class ExpenseSerializer(ModelSerializer):
     class Meta:
