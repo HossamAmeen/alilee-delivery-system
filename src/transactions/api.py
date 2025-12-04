@@ -16,6 +16,7 @@ from transactions.serializers import (
     ExpenseSerializer,
     FinancialInsightsSerializer,
     UserAccountTransactionSerializer,
+    ListUserAccountTransactionSerializer
 )
 from utilities.api import BaseViewSet
 from transactions.filters import ExpenseFilter
@@ -31,7 +32,7 @@ class UserAccountTransactionViewSet(BaseViewSet):
 
     def get_serializer_class(self):
         if self.action == "list":
-            return UserAccountTransactionSerializer
+            return ListUserAccountTransactionSerializer
         return super().get_serializer_class()
 
 
