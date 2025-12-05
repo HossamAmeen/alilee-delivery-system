@@ -115,14 +115,12 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, data):
         trader = Trader.objects.filter(pk=data.get("trader"), is_active=True).first()
         if data.get("trader") and not trader:
-            raise CustomValidationError({"message": "Trader is not active or not found"})
+            raise CustomValidationError(message= "Trader is not active or not found")
 
         driver = Driver.objects.filter(pk=data.get("driver"), is_active=True).first()
         if data.get("driver") and not driver:
-            raise CustomValidationError({"message": "Driver is not active or not found"})
+            raise CustomValidationError(message= "Driver is not active or not found")
 
-        # if data.get("product_payment_status") == ProductPaymentStatus.REMAINING_FEES and data.get("product_cost") != 0:
-        #     raise CustomValidationError({"message": "When order payment method is REMAINING FEES, product cost should be 0"})
         return data
 
 

@@ -168,6 +168,15 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 }
             )
 
+        orders_statistics = {
+            "delivered_order_count": 0,
+            "cancelled_order_count": 0,
+            "created__order_count": 0,
+            "assigned_to_driver": 0,
+            "in_progress_order_count": 0,
+            "postponed_order_count": 0,
+        }
+
         operational_expenses = (
             Expense.objects.filter(date__range=(start_date, end_date)).aggregate(
                 total=Sum("cost")
@@ -185,6 +194,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
             "monthlyExpensesData": monthlyExpensesData,
+            "orders": orders_statistics,
             "pending_earnings": 0,
             "unpaid_obligations": 0,
             "unpaid_obligations_drivers": 0,
