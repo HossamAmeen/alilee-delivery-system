@@ -16,7 +16,7 @@ def delivered_order_withdraw_transaction_from_trader(
         not created
         and instance.trader
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status == ProductPaymentStatus.PAID
+        and instance.product_payment_status in [ProductPaymentStatus.PAID, ProductPaymentStatus.REMAINING_FEES]
     ):
         total_withdraw = instance.trader_merchant_cost
 
@@ -64,7 +64,7 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
         not created
         and instance.driver
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status in [ProductPaymentStatus.PAID, ProductPaymentStatus.REMAINING_FEES]
+        and instance.product_payment_status == ProductPaymentStatus.PAID
     ):
         total_deposit = instance.delivery_cost + instance.extra_delivery_cost
 
@@ -81,6 +81,24 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
             transaction_type=TransactionType.WITHDRAW,
             notes=instance.tracking_number,
         )
+
+
+# Make driver transaction, order REMAINING_FEES, office will transfer balance to driver
+@receiver(post_save, sender=Order)
+def delivered_order_remaining_fees_deposit_transaction_to_driver(sender, instance, created, **kwargs):
+    if (
+        not created
+        and instance.driver
+        and instance.status == OrderStatus.DELIVERED
+        and instance.product_payment_status == ProductPaymentStatus.REMAINING_FEES
+    ):
+        total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
+
+        create_order_transaction(user=instance.driver, amount=total_withdraw,
+                                 transaction_type=TransactionType.WITHDRAW, tracking_number=instance.tracking_number)
+
+        create_order_transaction(user=instance.driver, amount=instance.trader_merchant_cost,
+                                 transaction_type=TransactionType.DEPOSIT, tracking_number=instance.tracking_number)
 
 
 # Make trader transaction, order COD, office will transfer product cost to trader
