@@ -16,7 +16,7 @@ from transactions.serializers import (
     ExpenseSerializer,
     FinancialInsightsSerializer,
     UserAccountTransactionSerializer,
-    ListUserAccountTransactionSerializer
+    ListUserAccountTransactionSerializer,
 )
 from utilities.api import BaseViewSet
 from transactions.filters import ExpenseFilter

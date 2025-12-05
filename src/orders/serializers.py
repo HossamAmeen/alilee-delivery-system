@@ -115,11 +115,11 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, data):
         trader = Trader.objects.filter(pk=data.get("trader"), is_active=True).first()
         if data.get("trader") and not trader:
-            raise CustomValidationError(message= "Trader is not active or not found")
+            raise CustomValidationError(message="Trader is not active or not found")
 
         driver = Driver.objects.filter(pk=data.get("driver"), is_active=True).first()
         if data.get("driver") and not driver:
-            raise CustomValidationError(message= "Driver is not active or not found")
+            raise CustomValidationError(message="Driver is not active or not found")
 
         return data
 
@@ -231,6 +231,7 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "id",
             "tracking_number",
             "product_cost",
+            "total_cost",
             "status",
             "status_ar",
             "driver",

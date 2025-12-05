@@ -13,6 +13,7 @@ NOTE: The signals.py file has bugs that will cause AttributeError:
 - Line 149 uses instance.extra_delivery_cost but model field is extra_delivery_cost
 These bugs will cause some tests to fail with AttributeError, correctly exposing the issues.
 """
+
 from decimal import Decimal
 
 from django.test import TestCase
@@ -100,10 +101,12 @@ class TestDeliveredOrderWithdrawTransactionFromTrader(BaseSignalTestCase):
     def test_does_not_create_transaction_on_order_creation(self):
         """Test that handler does not run when order is first created (created=True)."""
         order_data = self.base_order_data.copy()
-        order_data.update({
-            "status": OrderStatus.DELIVERED,
-            "product_payment_status": ProductPaymentStatus.PAID,
-        })
+        order_data.update(
+            {
+                "status": OrderStatus.DELIVERED,
+                "product_payment_status": ProductPaymentStatus.PAID,
+            }
+        )
         order = Order.objects.create(**order_data)
 
         # Handler should not run because created=True
@@ -264,7 +267,7 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToTrader(BaseSignalTestCase
 
     def test_creates_deposit_and_withdraw_transactions_when_conditions_met(self):
         """Test that DEPOSIT and WITHDRAW transactions are created for trader when order is delivered with COD.
-        
+
         NOTE: Due to a bug in the signal handler, after creating the DEPOSIT, the already_exists check
         finds it and returns early, preventing the WITHDRAW from being created. So only 1 transaction is created.
         """
@@ -276,8 +279,11 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToTrader(BaseSignalTestCase
 
         # Due to signal bug: only DEPOSIT is created (WITHDRAW check sees existing transaction and returns)
         transactions = UserAccountTransaction.objects.filter(user_account=self.trader)
-        self.assertEqual(transactions.count(), 1, 
-                        "Signal bug: only DEPOSIT is created, WITHDRAW is skipped due to already_exists check")
+        self.assertEqual(
+            transactions.count(),
+            1,
+            "Signal bug: only DEPOSIT is created, WITHDRAW is skipped due to already_exists check",
+        )
 
         deposit = transactions.filter(transaction_type=TransactionType.DEPOSIT).first()
         self.assertIsNotNone(deposit)
@@ -287,10 +293,12 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToTrader(BaseSignalTestCase
     def test_does_not_create_transaction_on_order_creation(self):
         """Test that handler does not run when order is first created."""
         order_data = self.base_order_data.copy()
-        order_data.update({
-            "status": OrderStatus.DELIVERED,
-            "product_payment_status": ProductPaymentStatus.COD,
-        })
+        order_data.update(
+            {
+                "status": OrderStatus.DELIVERED,
+                "product_payment_status": ProductPaymentStatus.COD,
+            }
+        )
         order = Order.objects.create(**order_data)
 
         self.assertEqual(UserAccountTransaction.objects.count(), 0)
@@ -331,8 +339,7 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToTrader(BaseSignalTestCase
         # Should not create transactions for this COD handler
         # But the PAID handler may create one, so check for COD-specific transactions
         cod_transactions = UserAccountTransaction.objects.filter(
-            user_account=self.trader,
-            transaction_type=TransactionType.DEPOSIT
+            user_account=self.trader, transaction_type=TransactionType.DEPOSIT
         )
         # The COD handler creates DEPOSIT, so if payment_status is PAID, no DEPOSIT should exist
         self.assertEqual(cod_transactions.count(), 0)
@@ -369,14 +376,18 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToTrader(BaseSignalTestCase
         order.save()
 
         # First save creates only DEPOSIT (due to signal bug, WITHDRAW is skipped)
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.trader).count(), 1)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.trader).count(), 1
+        )
 
         # Update again - should not create duplicates (already_exists check finds the deposit)
         order.note = "Updated note"
         order.save()
 
         # Should still have only 1 transaction (the deposit)
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.trader).count(), 1)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.trader).count(), 1
+        )
 
 
 class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase):
@@ -393,7 +404,7 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
 
     def test_creates_deposit_and_withdraw_transactions_when_conditions_met(self):
         """Test that DEPOSIT and WITHDRAW transactions are created for driver when order is delivered with COD.
-        
+
         NOTE: Due to a bug in the signal handler, after creating the DEPOSIT, the already_exists check
         finds it and returns early, preventing the WITHDRAW from being created. So only 1 transaction is created.
         Also, if order has both trader and driver, trader handler may run first and create transaction,
@@ -410,8 +421,11 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
 
         # Due to signal bug: only DEPOSIT is created (WITHDRAW check sees existing transaction and returns)
         transactions = UserAccountTransaction.objects.filter(user_account=self.driver)
-        self.assertEqual(transactions.count(), 1,
-                        "Signal bug: only DEPOSIT is created, WITHDRAW is skipped due to already_exists check")
+        self.assertEqual(
+            transactions.count(),
+            1,
+            "Signal bug: only DEPOSIT is created, WITHDRAW is skipped due to already_exists check",
+        )
 
         deposit = transactions.filter(transaction_type=TransactionType.DEPOSIT).first()
         self.assertIsNotNone(deposit)
@@ -422,14 +436,18 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
     def test_does_not_create_transaction_on_order_creation(self):
         """Test that handler does not run when order is first created."""
         order_data = self.base_order_data.copy()
-        order_data.update({
-            "driver": self.driver,
-            "status": OrderStatus.DELIVERED,
-            "product_payment_status": ProductPaymentStatus.COD,
-        })
+        order_data.update(
+            {
+                "driver": self.driver,
+                "status": OrderStatus.DELIVERED,
+                "product_payment_status": ProductPaymentStatus.COD,
+            }
+        )
         order = Order.objects.create(**order_data)
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_transaction_when_no_driver(self):
         """Test that handler does not run when order has no driver."""
@@ -439,7 +457,12 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
         order.product_payment_status = ProductPaymentStatus.COD
         order.save()
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account__role=UserRole.DRIVER).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(
+                user_account__role=UserRole.DRIVER
+            ).count(),
+            0,
+        )
 
     def test_does_not_create_transaction_when_status_not_delivered(self):
         """Test that handler does not run when status is not DELIVERED."""
@@ -449,7 +472,9 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
         order.product_payment_status = ProductPaymentStatus.COD
         order.save()
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_transaction_when_payment_status_not_cod(self):
         """Test that handler does not run when product payment status is not COD."""
@@ -460,7 +485,9 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
         order.save()
 
         # Should not create transactions for this handler
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_duplicate_deposit_when_already_exists(self):
         """Test that handler returns early for deposit if transaction with tracking number already exists."""
@@ -500,14 +527,18 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
         order.save()
 
         # First save creates only DEPOSIT (due to signal bug, WITHDRAW is skipped)
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 1)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 1
+        )
 
         # Update again - should not create duplicates (already_exists check finds the deposit)
         order.note = "Updated note"
         order.save()
 
         # Should still have only 1 transaction (the deposit)
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 1)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 1
+        )
 
 
 class TestDeliveredOrderDepositTransactionToDriver(BaseSignalTestCase):
@@ -546,14 +577,18 @@ class TestDeliveredOrderDepositTransactionToDriver(BaseSignalTestCase):
     def test_does_not_create_transaction_on_order_creation(self):
         """Test that handler does not run when order is first created."""
         order_data = self.base_order_data.copy()
-        order_data.update({
-            "driver": self.driver,
-            "status": OrderStatus.DELIVERED,
-            "product_payment_status": ProductPaymentStatus.PAID,
-        })
+        order_data.update(
+            {
+                "driver": self.driver,
+                "status": OrderStatus.DELIVERED,
+                "product_payment_status": ProductPaymentStatus.PAID,
+            }
+        )
         order = Order.objects.create(**order_data)
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_transaction_when_no_driver(self):
         """Test that handler does not run when order has no driver."""
@@ -563,7 +598,12 @@ class TestDeliveredOrderDepositTransactionToDriver(BaseSignalTestCase):
         order.product_payment_status = ProductPaymentStatus.PAID
         order.save()
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account__role=UserRole.DRIVER).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(
+                user_account__role=UserRole.DRIVER
+            ).count(),
+            0,
+        )
 
     def test_does_not_create_transaction_when_status_not_delivered(self):
         """Test that handler does not run when status is not DELIVERED."""
@@ -573,7 +613,9 @@ class TestDeliveredOrderDepositTransactionToDriver(BaseSignalTestCase):
         order.product_payment_status = ProductPaymentStatus.PAID
         order.save()
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_transaction_when_payment_status_not_paid(self):
         """Test that handler does not run when product payment status is not PAID."""
@@ -646,13 +688,12 @@ class TestCancelledOrderWithdrawTransactionFromDriver(BaseSignalTestCase):
     def test_does_not_create_transaction_on_order_creation(self):
         """Test that handler does not run when order is first created."""
         order_data = self.base_order_data.copy()
-        order_data.update({
-            "driver": self.driver,
-            "status": OrderStatus.CANCELLED
-        })
+        order_data.update({"driver": self.driver, "status": OrderStatus.CANCELLED})
         order = Order.objects.create(**order_data)
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_transaction_when_no_driver(self):
         """Test that handler does not run when order has no driver."""
@@ -661,7 +702,12 @@ class TestCancelledOrderWithdrawTransactionFromDriver(BaseSignalTestCase):
         order.status = OrderStatus.CANCELLED
         order.save()
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account__role=UserRole.DRIVER).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(
+                user_account__role=UserRole.DRIVER
+            ).count(),
+            0,
+        )
 
     def test_does_not_create_transaction_when_status_not_cancelled(self):
         """Test that handler does not run when status is not CANCELLED."""
@@ -670,7 +716,9 @@ class TestCancelledOrderWithdrawTransactionFromDriver(BaseSignalTestCase):
         order.status = OrderStatus.DELIVERED
         order.save()
 
-        self.assertEqual(UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0)
+        self.assertEqual(
+            UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
+        )
 
     def test_does_not_create_duplicate_transaction_when_already_exists(self):
         """Test that handler returns early if transaction with same tracking number already exists."""
@@ -699,7 +747,7 @@ class TestSignalIntegration(BaseSignalTestCase):
 
     def test_multiple_handlers_can_run_for_same_order_update(self):
         """Test that multiple signal handlers can create transactions for the same order update.
-        
+
         NOTE: Due to signal bugs, handlers only create DEPOSIT (WITHDRAW is skipped).
         Also, if trader handler runs first, driver handler sees existing transaction and returns early.
         """
@@ -711,15 +759,25 @@ class TestSignalIntegration(BaseSignalTestCase):
         order.save()
 
         # Trader should have 1 transaction (deposit only, due to signal bug)
-        trader_transactions = UserAccountTransaction.objects.filter(user_account=self.trader)
-        self.assertEqual(trader_transactions.count(), 1, 
-                        "Signal bug: only DEPOSIT is created, WITHDRAW is skipped")
-        
+        trader_transactions = UserAccountTransaction.objects.filter(
+            user_account=self.trader
+        )
+        self.assertEqual(
+            trader_transactions.count(),
+            1,
+            "Signal bug: only DEPOSIT is created, WITHDRAW is skipped",
+        )
+
         # Driver handler may not run if trader handler ran first (already_exists check)
         # So driver may have 0 or 1 transaction depending on execution order
-        driver_transactions = UserAccountTransaction.objects.filter(user_account=self.driver)
-        self.assertLessEqual(driver_transactions.count(), 1,
-                            "Driver handler may not run if trader handler created transaction first")
+        driver_transactions = UserAccountTransaction.objects.filter(
+            user_account=self.driver
+        )
+        self.assertLessEqual(
+            driver_transactions.count(),
+            1,
+            "Driver handler may not run if trader handler created transaction first",
+        )
 
     def test_transaction_notes_contain_tracking_number(self):
         """Test that all created transactions have the order tracking number in notes."""

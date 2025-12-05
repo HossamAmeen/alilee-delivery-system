@@ -9,7 +9,7 @@ from rest_framework.serializers import ModelSerializer
 from users.serializers.user_account_serializers import SingleUserAccountSerializer
 from orders.models import Order, OrderStatus
 from transactions.models import Expense, TransactionType, UserAccountTransaction
-from users.models import Trader
+from users.models import UserAccount
 from utilities.exceptions import CustomValidationError
 
 
@@ -28,22 +28,10 @@ class UserAccountTransactionSerializer(ModelSerializer):
         ]
         read_only_fields = ("id", "created", "modified")
 
-    @atomic
-    def create(self, validated_data):
-        trader = get_object_or_404(Trader, pk=validated_data["user_account"])
-
-        trader_transaction = super().create(validated_data)
-        if validated_data["transaction_type"] == TransactionType.WITHDRAW:
-            trader.balance -= validated_data["amount"]
-        elif validated_data["transaction_type"] == TransactionType.DEPOSIT:
-            trader.balance += validated_data["amount"]
-
-        trader.save()
-        return trader_transaction
-
 
 class ListUserAccountTransactionSerializer(ModelSerializer):
     user_account = SingleUserAccountSerializer()
+
     class Meta:
         model = UserAccountTransaction
         fields = [
@@ -56,6 +44,7 @@ class ListUserAccountTransactionSerializer(ModelSerializer):
             "created",
             "modified",
         ]
+
 
 class ExpenseSerializer(ModelSerializer):
     class Meta:
@@ -148,8 +137,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
         for item in monthly_revenue:
 
-            month_statistices['month'] = converted_monthly[item["month"].month]
-            month_statistices['shipment_count'] = item["IDs_count"]
+            month_statistices["month"] = converted_monthly[item["month"].month]
+            month_statistices["shipment_count"] = item["IDs_count"]
             shipments_per_month.append(month_statistices)
             total_income += item["total_income"] or 0
             total_delivery_expense += item["total_delivery_expense"] or 0
