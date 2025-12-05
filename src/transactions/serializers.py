@@ -185,6 +185,81 @@ class FinancialInsightsSerializer(serializers.Serializer):
             {"month": "اكتوبر", "shipment_count": 21957.0},
             {"month": "نوفمبر", "shipment_count": 10458.0},
         ]
+        monthly_expenses_data = [
+            {
+                "name": "Jan",
+                "total_income": 950.0,
+                "total_delivery_expense": 820.0,
+                "net_profit": 130.0,
+            },
+            {
+                "name": "Feb",
+                "total_income": 1100.0,
+                "total_delivery_expense": 980.0,
+                "net_profit": 120.0,
+            },
+            {
+                "name": "Mar",
+                "total_income": 3200.0,
+                "total_delivery_expense": 1500.0,
+                "net_profit": 1700.0,
+            },
+            {
+                "name": "Apr",
+                "total_income": 450.0,
+                "total_delivery_expense": 520.0,
+                "net_profit": -70.0,
+            },
+            {
+                "name": "May",
+                "total_income": 300.0,
+                "total_delivery_expense": 310.0,
+                "net_profit": -10.0,
+            },
+            {
+                "name": "Jun",
+                "total_income": 780.0,
+                "total_delivery_expense": 720.0,
+                "net_profit": 60.0,
+            },
+            {
+                "name": "Jul",
+                "total_income": 610.0,
+                "total_delivery_expense": 590.0,
+                "net_profit": 20.0,
+            },
+            {
+                "name": "Aug",
+                "total_income": 1200.0,
+                "total_delivery_expense": 1000.0,
+                "net_profit": 200.0,
+            },
+            {
+                "name": "Sep",
+                "total_income": 1600.0,
+                "total_delivery_expense": 1400.0,
+                "net_profit": 200.0,
+            },
+            {
+                "name": "Oct",
+                "total_income": 2000.0,
+                "total_delivery_expense": 1500.0,
+                "net_profit": 500.0,
+            },
+            {
+                "name": "Nov",
+                "total_income": 900.0,
+                "total_delivery_expense": 950.0,
+                "net_profit": -50.0,
+            },
+            {
+                "name": "Dec",
+                "total_income": 127.0,
+                "total_delivery_expense": 1317.0,
+                "net_profit": -1190.0,
+            },
+        ]
+
         return {
             "start_date": start_date,
             "end_date": end_date,
@@ -195,7 +270,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             ),
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
-            "monthlyExpensesData": monthlyExpensesData,
+            "monthly_expenses_data": monthly_expenses_data,
             "orders": orders_statistics,
             "pending_earnings": 0,
             "unpaid_obligations": 0,

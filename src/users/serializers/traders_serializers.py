@@ -60,6 +60,7 @@ class SingleTraderSerializer(serializers.ModelSerializer):
             "phone_number",
             "balance",
             "status",
+            "is_active",
         ]
 
 
