@@ -172,6 +172,19 @@ class FinancialInsightsSerializer(serializers.Serializer):
             )["total"]
             or 0
         )
+        shipments_per_month = [
+            {"month": "يناير", "shipment_count": 27446.0},
+            {"month": "فبراير", "shipment_count": 25524.0},
+            {"month": "مارس", "shipment_count": 26487.0},
+            {"month": "ابريل", "shipment_count": 24981.0},
+            {"month": "مايو", "shipment_count": 29135.0},
+            {"month": "يونيو", "shipment_count": 21013.0},
+            {"month": "يوليو", "shipment_count": 25751.0},
+            {"month": "اغسطس", "shipment_count": 21456.0},
+            {"month": "سبتمبر", "shipment_count": 15715.0},
+            {"month": "اكتوبر", "shipment_count": 21957.0},
+            {"month": "نوفمبر", "shipment_count": 10458.0},
+        ]
         return {
             "start_date": start_date,
             "end_date": end_date,
