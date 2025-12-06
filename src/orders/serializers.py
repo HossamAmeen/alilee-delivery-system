@@ -163,12 +163,14 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
     def get_total_cost(self, obj):
         return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
 
+
 class OrderListSerializer(serializers.ModelSerializer):
     driver = SingleDriverSerializer(read_only=True)
     trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
     status_ar = serializers.CharField(read_only=True)
+    total_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -188,12 +190,21 @@ class OrderListSerializer(serializers.ModelSerializer):
             "latitude",
         ]
 
+    def get_total_cost(self, obj):
+        if obj.product_payment_status == ProductPaymentStatus.PAID:
+            return 0
+        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
+            return obj.trader_merchant_cost
+        else:
+            return obj.product_cost + obj.trader_merchant_cost
+
 
 class SingleOrderSerializer(serializers.ModelSerializer):
     trader = SingleTraderSerializer(read_only=True)
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
     status_ar = serializers.CharField(read_only=True)
+    total_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -222,11 +233,20 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "postpone_reason",
         ]
 
+    def get_total_cost(self, obj):
+        if obj.product_payment_status == ProductPaymentStatus.PAID:
+            return 0
+        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
+            return obj.trader_merchant_cost
+        else:
+            return obj.product_cost + obj.trader_merchant_cost
+
 
 class OrderTraderSerializer(serializers.ModelSerializer):
     customer = SingleCustomerSerializer(read_only=True)
     driver = SingleDriverSerializer(read_only=True)
     status_ar = serializers.CharField(read_only=True)
+    total_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -243,6 +263,14 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "longitude",
             "latitude",
         ]
+
+    def get_total_cost(self, obj):
+        if obj.product_payment_status == ProductPaymentStatus.PAID:
+            return 0
+        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
+            return obj.trader_merchant_cost
+        else:
+            return obj.product_cost + obj.trader_merchant_cost
 
 
 class OrderTrackingNumberSerializer(serializers.ModelSerializer):
