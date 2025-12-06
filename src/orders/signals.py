@@ -2,8 +2,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
-from transactions.models import TransactionType, UserAccountTransaction
 from transactions.helpers import create_order_transaction
+from transactions.models import TransactionType, UserAccountTransaction
 from utilities.exceptions import CustomValidationError
 
 
@@ -59,15 +59,8 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
             tracking_number=instance.tracking_number,
         )
 
-        create_order_transaction(
-            user=instance.trader,
-            amount=instance.trader_merchant_cost,
-            transaction_type=TransactionType.DEPOSIT,
-            tracking_number=instance.tracking_number,
-        )
-
-
 # Driver Transaction
+
 
 # Make driver transaction, order cancelled, office will give delivery cost to driver
 @receiver(post_save, sender=Order)

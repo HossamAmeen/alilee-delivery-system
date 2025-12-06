@@ -2,7 +2,7 @@ from django.db.transaction import atomic
 from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
-from users.models import Trader, Driver
+from users.models import Driver, Trader
 from users.serializers.driver_serializer import SingleDriverSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer
 from utilities.exceptions import CustomValidationError

@@ -107,7 +107,7 @@ class TestDeliveredOrderWithdrawTransactionFromTrader(BaseSignalTestCase):
                 "product_payment_status": ProductPaymentStatus.PAID,
             }
         )
-        order = Order.objects.create(**order_data)
+        Order.objects.create(**order_data)
 
         # Handler should not run because created=True
         self.assertEqual(UserAccountTransaction.objects.count(), 0)
@@ -205,7 +205,7 @@ class TestCancelledOrderWithdrawTransactionFromTrader(BaseSignalTestCase):
         """Test that handler does not run when order is first created."""
         order_data = self.base_order_data.copy()
         order_data["status"] = OrderStatus.CANCELLED
-        order = Order.objects.create(**order_data)
+        Order.objects.create(**order_data)
 
         self.assertEqual(UserAccountTransaction.objects.count(), 0)
 
@@ -299,7 +299,7 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToTrader(BaseSignalTestCase
                 "product_payment_status": ProductPaymentStatus.COD,
             }
         )
-        order = Order.objects.create(**order_data)
+        Order.objects.create(**order_data)
 
         self.assertEqual(UserAccountTransaction.objects.count(), 0)
 
@@ -443,7 +443,7 @@ class TestDeliveredOrderDepositAndWithdrawTransactionToDriver(BaseSignalTestCase
                 "product_payment_status": ProductPaymentStatus.COD,
             }
         )
-        order = Order.objects.create(**order_data)
+        Order.objects.create(**order_data)
 
         self.assertEqual(
             UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
@@ -584,7 +584,7 @@ class TestDeliveredOrderDepositTransactionToDriver(BaseSignalTestCase):
                 "product_payment_status": ProductPaymentStatus.PAID,
             }
         )
-        order = Order.objects.create(**order_data)
+        Order.objects.create(**order_data)
 
         self.assertEqual(
             UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0
@@ -689,7 +689,7 @@ class TestCancelledOrderWithdrawTransactionFromDriver(BaseSignalTestCase):
         """Test that handler does not run when order is first created."""
         order_data = self.base_order_data.copy()
         order_data.update({"driver": self.driver, "status": OrderStatus.CANCELLED})
-        order = Order.objects.create(**order_data)
+        Order.objects.create(**order_data)
 
         self.assertEqual(
             UserAccountTransaction.objects.filter(user_account=self.driver).count(), 0

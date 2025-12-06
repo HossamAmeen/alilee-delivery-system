@@ -11,18 +11,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from transactions.filters import ExpenseFilter
 from transactions.models import Expense, UserAccountTransaction
 from transactions.serializers import (
     ExpenseSerializer,
     FinancialInsightsSerializer,
-    UserAccountTransactionSerializer,
     ListUserAccountTransactionSerializer,
+    UserAccountTransactionSerializer,
 )
 from utilities.api import BaseViewSet
-from transactions.filters import ExpenseFilter
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 class UserAccountTransactionViewSet(BaseViewSet):
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = (IsAuthenticated,)
     queryset = UserAccountTransaction.objects.order_by("-id")
     serializer_class = UserAccountTransactionSerializer
@@ -33,6 +35,8 @@ class UserAccountTransactionViewSet(BaseViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return ListUserAccountTransactionSerializer
+        if self.action == "create":
+            return UserAccountTransactionSerializer
         return super().get_serializer_class()
 
 

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from orders.filter import OrderFilter
 from orders.models import Order, OrderStatus
 from orders.permissions import IsDriverPermission
 from orders.serializers import (
@@ -15,12 +16,10 @@ from orders.serializers import (
     OrderSerializer,
     OrderTrackingNumberSerializer,
 )
+from orders.services import DeliveryAssignmentService
 from users.models import Driver, UserRole
 from utilities.api import BaseViewSet
 from utilities.exceptions import CustomValidationError
-
-from orders.services import DeliveryAssignmentService
-from orders.filter import OrderFilter
 
 
 class OrderViewSet(BaseViewSet):
@@ -107,13 +106,13 @@ class OrderViewSet(BaseViewSet):
             openapi.Parameter(
                 "start_date",
                 openapi.IN_QUERY,
-                description=f"Fiilter by date format YYYY-MM-DD",
+                description="Filter by start date format YYYY-MM-DD",
                 type=openapi.TYPE_STRING,
             ),
             openapi.Parameter(
                 "end_date",
                 openapi.IN_QUERY,
-                description=f"filter by date format YYYY-MM-DD",
+                description="Filter by end date format YYYY-MM-DD",
                 type=openapi.TYPE_STRING,
             ),
             openapi.Parameter(
