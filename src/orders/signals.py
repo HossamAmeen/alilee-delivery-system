@@ -54,7 +54,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
         create_order_transaction(
             user=instance.trader,
             amount=instance.product_cost,
-            transaction_type=TransactionType.WITHDRAW,
+            transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
         )
 
@@ -143,14 +143,14 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
         create_order_transaction(
             user=instance.driver,
             amount=instance.product_cost + instance.trader_merchant_cost,
-            transaction_type=TransactionType.WITHDRAW,
+            transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
         )
 
         create_order_transaction(
             user=instance.driver,
             amount=instance.delivery_cost + instance.extra_delivery_cost,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             tracking_number=instance.tracking_number,
         )
 
@@ -161,4 +161,3 @@ def update_order_status_to_assigned_after_created(sender, instance, created, **k
     if created and instance.driver:
         instance.status = OrderStatus.ASSIGNED
         instance.save()
-
