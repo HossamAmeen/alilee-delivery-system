@@ -162,13 +162,3 @@ def update_order_status_to_assigned_after_created(sender, instance, created, **k
         instance.status = OrderStatus.ASSIGNED
         instance.save()
 
-
-@receiver(pre_save, sender=Order)
-def prevent_order_product_cost_with_payment_remaining_fees(sender, instance, **kwargs):
-    if (
-        instance.product_payment_status == ProductPaymentStatus.REMAINING_FEES
-        and instance.product_cost != 0
-    ):
-        raise CustomValidationError(
-            message="When order payment method is REMAINING FEES, product cost should be 0"
-        )
