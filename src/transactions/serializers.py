@@ -3,16 +3,13 @@ from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncMonth
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from drf_spectacular.utils import extend_schema
 
 from orders.models import Order, OrderStatus
 from transactions.models import Expense, UserAccountTransaction
 from users.serializers.user_account_serializers import SingleUserAccountSerializer
 from utilities.exceptions import CustomValidationError
 
-@extend_schema(
-    request=UserAccountTransactionFileUploadSerializer,
-)
+
 class UserAccountTransactionSerializer(ModelSerializer):
     class Meta:
         model = UserAccountTransaction
