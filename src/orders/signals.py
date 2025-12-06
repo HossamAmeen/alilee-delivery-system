@@ -30,8 +30,7 @@ def delivered_order_withdraw_transaction_from_trader(
         not created
         and instance.trader
         and instance.status == OrderStatus.DELIVERED
-        and instance.product_payment_status
-        in [ProductPaymentStatus.PAID, ProductPaymentStatus.REMAINING_FEES]
+        and instance.product_payment_status == ProductPaymentStatus.PAID
     ):
         create_order_transaction(
             user=instance.trader,

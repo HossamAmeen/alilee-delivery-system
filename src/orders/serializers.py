@@ -130,6 +130,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
     customer = SingleCustomerSerializer(read_only=True)
     delivery_zone = SingleDeliveryZoneSerializer(read_only=True)
     status_ar = serializers.CharField(read_only=True)
+    total_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -159,6 +160,8 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "postpone_reason",
         ]
 
+    def get_total_cost(self, obj):
+        return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
 
 class OrderListSerializer(serializers.ModelSerializer):
     driver = SingleDriverSerializer(read_only=True)
