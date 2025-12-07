@@ -165,9 +165,9 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
         if obj.product_payment_status == ProductPaymentStatus.PAID:
             return 0
         if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
-            return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
+            return obj.trader_merchant_cost
         else:
-            return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
+            return obj.product_cost + obj.trader_merchant_cost
 
 
 class OrderListSerializer(serializers.ModelSerializer):
