@@ -74,8 +74,8 @@ class Order(AbstractBaseModel):
         max_digits=10, decimal_places=2, default=0.00
     )
     note = models.TextField(null=True, blank=True)
-    longitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    latitude = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=6, null=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=6, null=True)
     cancel_reason = models.TextField(null=True, blank=True)
     postpone_reason = models.TextField(null=True, blank=True)
 
