@@ -75,7 +75,7 @@ def cancelled_order_withdraw_transaction_from_driver(
         )
 
 
-# Make driver transaction, order REMAINING_FEES, office will transfer balance to driver
+# Make driver transaction, order REMAINING FEES, office will transfer balance to driver
 @receiver(post_save, sender=Order)
 def delivered_order_remaining_fees_deposit_transaction_to_driver(
     sender, instance, created, **kwargs
@@ -86,19 +86,17 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
         and instance.status == OrderStatus.DELIVERED
         and instance.product_payment_status == ProductPaymentStatus.REMAINING_FEES
     ):
-        total_withdraw = instance.delivery_cost + instance.extra_delivery_cost
-
         create_order_transaction(
             user=instance.driver,
-            amount=total_withdraw,
-            transaction_type=TransactionType.WITHDRAW,
+            amount=instance.delivery_cost + instance.extra_delivery_cost,
+            transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
         )
 
         create_order_transaction(
             user=instance.driver,
             amount=instance.trader_merchant_cost,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             tracking_number=instance.tracking_number,
         )
 
@@ -112,19 +110,11 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
         and instance.status == OrderStatus.DELIVERED
         and instance.product_payment_status == ProductPaymentStatus.PAID
     ):
-        total_deposit = instance.delivery_cost + instance.extra_delivery_cost
-
-        already_exists = UserAccountTransaction.objects.filter(
-            notes__contains=instance.tracking_number, user_account=instance.driver
-        ).exists()
-        if already_exists:
-            return
-
-        UserAccountTransaction.objects.create(
-            user_account=instance.driver,
-            amount=total_deposit,
+        create_order_transaction(
+            user=instance.driver,
+            amount=instance.delivery_cost + instance.extra_delivery_cost,
             transaction_type=TransactionType.WITHDRAW,
-            notes=instance.tracking_number,
+            tracking_number=instance.tracking_number,
         )
 
 
@@ -143,14 +133,14 @@ def delivered_order_deposit_and_withdraw_transaction_to_driver(
         create_order_transaction(
             user=instance.driver,
             amount=instance.product_cost + instance.trader_merchant_cost,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             tracking_number=instance.tracking_number,
         )
 
         create_order_transaction(
             user=instance.driver,
             amount=instance.delivery_cost + instance.extra_delivery_cost,
-            transaction_type=TransactionType.WITHDRAW,
+            transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
         )
 
