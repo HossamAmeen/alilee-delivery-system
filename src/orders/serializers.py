@@ -162,7 +162,12 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_cost(self, obj):
-        return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
+        if obj.product_payment_status == ProductPaymentStatus.PAID:
+            return 0
+        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
+            return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
+        else:
+            return obj.product_cost + obj.delivery_cost + obj.extra_delivery_cost
 
 
 class OrderListSerializer(serializers.ModelSerializer):
