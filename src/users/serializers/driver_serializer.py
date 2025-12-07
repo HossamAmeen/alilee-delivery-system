@@ -190,7 +190,7 @@ class DriverInsightsSerializer(serializers.Serializer):
         )
 
         return {
-            "balance": instance.balance,
+            "balance": instance.driver.balance,
             "total_earnings": total_earnings,
             "delivered_order_count": aggregates["delivered_order_count"],
             "delivered": aggregates["delivered_order_count"],
