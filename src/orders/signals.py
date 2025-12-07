@@ -1,10 +1,9 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
 from transactions.helpers import create_order_transaction
 from transactions.models import TransactionType, UserAccountTransaction
-from utilities.exceptions import CustomValidationError
 
 
 # Make trader transaction, order cancelled, office will take trader_merchant_cost from trader
@@ -57,6 +56,7 @@ def delivered_order_deposit_and_withdraw_transaction_to_trader(
             transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
         )
+
 
 # Driver Transaction
 

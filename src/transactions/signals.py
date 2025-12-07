@@ -8,6 +8,6 @@ from transactions.models import TransactionType, UserAccountTransaction
 def update_user_account_balance_for_transaction(sender, instance, created, **kwargs):
     if created:
         if instance.transaction_type == TransactionType.WITHDRAW:
-            instance.user_account.update_balance(-instance.amount)
-        elif instance.transaction_type == TransactionType.DEPOSIT:
             instance.user_account.update_balance(instance.amount)
+        elif instance.transaction_type == TransactionType.DEPOSIT:
+            instance.user_account.update_balance(-instance.amount)
