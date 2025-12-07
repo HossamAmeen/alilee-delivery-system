@@ -34,7 +34,7 @@ def delivered_order_withdraw_transaction_from_trader(
         create_order_transaction(
             user=instance.trader,
             amount=instance.trader_merchant_cost,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             tracking_number=instance.tracking_number,
         )
 
