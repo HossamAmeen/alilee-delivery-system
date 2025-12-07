@@ -113,7 +113,7 @@ def delivered_order_deposit_transaction_to_driver(sender, instance, created, **k
         create_order_transaction(
             user=instance.driver,
             amount=instance.delivery_cost + instance.extra_delivery_cost,
-            transaction_type=TransactionType.WITHDRAW,
+            transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
         )
 
