@@ -1,4 +1,5 @@
 from datetime import date
+
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncMonth
 from rest_framework import serializers
@@ -93,8 +94,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
     def to_representation(self, instance):
         today = date.today()
 
-        start_date = instance.get("start_date") or today.replace(day=1)
-        end_date = instance.get("end_date") or today
+        start_date = instance.get("start_date", today.replace(day=1))
+        end_date = instance.get("end_date", today)
 
         monthly_revenue = (
             Order.objects.filter(
@@ -154,6 +155,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 }
             )
 
+        orders_statistics_qs = Order.objects.filter(
+            created__range=(start_date, end_date)
+        ).values("status").annotate(count=Count("id"))
         orders_statistics = {
             "delivered_order_count": 0,
             "cancelled_order_count": 0,
@@ -162,6 +166,21 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "in_progress_order_count": 0,
             "postponed_order_count": 0,
         }
+
+        status_map = {
+            OrderStatus.DELIVERED: "delivered_order_count",
+            OrderStatus.CANCELLED: "cancelled_order_count",
+            OrderStatus.CREATED: "created__order_count",
+            OrderStatus.ASSIGNED: "assigned_to_driver",
+            OrderStatus.IN_PROGRESS: "in_progress_order_count",
+            OrderStatus.POSTPONED: "postponed_order_count",
+        }
+
+        for item in orders_statistics_qs:
+            status = item["status"]
+            count = item["count"]
+            if status in status_map:
+                orders_statistics[status_map[status]] = count
 
         operational_expenses = (
             Expense.objects.filter(date__range=(start_date, end_date)).aggregate(

@@ -1,5 +1,6 @@
 from django.db import models
 
+from orders.models import Order
 from users.models import UserAccount
 from utilities.models.abstract_base_model import AbstractBaseModel
 
@@ -14,6 +15,12 @@ class UserAccountTransaction(AbstractBaseModel):
     transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
     file = models.FileField(upload_to="transaction_files/", blank=True, null=True)
     notes = models.TextField(blank=True)
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        related_name="transactions",
+        null=True,
+    )
     user_account = models.ForeignKey(
         UserAccount,
         on_delete=models.SET_NULL,

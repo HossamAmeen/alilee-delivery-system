@@ -3,7 +3,7 @@ from django.dispatch import receiver
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
 from transactions.helpers import create_order_transaction
-from transactions.models import TransactionType, UserAccountTransaction
+from transactions.models import TransactionType
 
 
 # Make trader transaction, order cancelled, office will take trader_merchant_cost from trader
@@ -17,6 +17,7 @@ def cancelled_order_withdraw_transaction_from_trader(
             amount=instance.trader_merchant_cost,
             transaction_type=TransactionType.DEPOSIT,
             tracking_number=instance.tracking_number,
+            order_id=instance.id,
         )
 
 
