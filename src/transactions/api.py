@@ -7,6 +7,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,7 +21,6 @@ from transactions.serializers import (
     UserAccountTransactionSerializer,
 )
 from utilities.api import BaseViewSet
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 class UserAccountTransactionViewSet(BaseViewSet):
