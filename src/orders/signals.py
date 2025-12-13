@@ -16,6 +16,7 @@ def cancelled_order_withdraw_transaction_from_trader(
             user=instance.trader,
             amount=instance.trader_merchant_cost,
             transaction_type=TransactionType.DEPOSIT,
+            tracking_number=instance.tracking_number,
             order_id=instance.id,
         )
 
