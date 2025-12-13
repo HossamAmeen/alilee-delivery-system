@@ -142,18 +142,6 @@ class OrderViewSet(BaseViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        # Prevent update if delivered or cancelled
-        if instance.status in ["delivered", "cancelled"]:
-            return Response(
-                {"detail": "Delivered or cancelled orders cannot be updated."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return super().update(request, *args, **kwargs)
-
 
 class OrderDeliveryAssignAPIView(APIView):
     permission_classes = [IsAuthenticated, IsDriverPermission]
