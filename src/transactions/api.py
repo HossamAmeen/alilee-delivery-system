@@ -29,6 +29,7 @@ class UserAccountTransactionViewSet(BaseViewSet):
     queryset = UserAccountTransaction.objects.order_by("-id")
     serializer_class = UserAccountTransactionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    http_method_names = ["get", "post"]
     filterset_fields = ["transaction_type", "user_account"]
     ordering = ["-id"]
 

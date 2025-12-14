@@ -155,9 +155,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 }
             )
 
-        orders_statistics_qs = Order.objects.filter(
-            created__range=(start_date, end_date)
-        ).values("status").annotate(count=Count("id"))
+        orders_statistics_qs = Order.objects.values("status").annotate(count=Count("id"))
         orders_statistics = {
             "delivered_order_count": 0,
             "cancelled_order_count": 0,
