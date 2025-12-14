@@ -11,15 +11,15 @@ def create_transaction(user, amount, transaction_type, order_id, notes=""):
     )
 
 
-def create_order_transaction(user, amount, transaction_type, tracking_number, order_id):
+def create_order_transaction(user_id, amount, transaction_type, tracking_number, order_id):
     already_exists = UserAccountTransaction.objects.filter(
-        notes__contains=f"{transaction_type} + {tracking_number}", user_account=user
+        notes__contains=f"{transaction_type} + {tracking_number}", user_account_id=user_id
     ).exists()
     if already_exists:
         return
 
     create_transaction(
-        user=user,
+        user_id=user_id,
         amount=amount,
         transaction_type=transaction_type,
         order_id=order_id,

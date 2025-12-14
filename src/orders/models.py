@@ -90,7 +90,7 @@ class Order(AbstractBaseModel):
     trader = models.ForeignKey(
         "users.Trader",
         null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="orders",
     )
     customer = models.ForeignKey(
