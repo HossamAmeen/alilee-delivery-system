@@ -113,7 +113,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             .order_by("month")
         )
 
-        total_income = total_delivery_expense = 0
+        total_income = total_delivery_expense = total_commissions = 0
         converted_monthly = {
             1: "Jan",
             2: "Feb",
@@ -205,72 +205,84 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 "total_income": 950.0,
                 "total_delivery_expense": 820.0,
                 "net_profit": 130.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Feb",
                 "total_income": 1100.0,
                 "total_delivery_expense": 980.0,
                 "net_profit": 120.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Mar",
                 "total_income": 3200.0,
                 "total_delivery_expense": 1500.0,
                 "net_profit": 1700.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Apr",
                 "total_income": 450.0,
                 "total_delivery_expense": 520.0,
                 "net_profit": -70.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "May",
                 "total_income": 300.0,
                 "total_delivery_expense": 310.0,
                 "net_profit": -10.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Jun",
                 "total_income": 780.0,
                 "total_delivery_expense": 720.0,
                 "net_profit": 60.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Jul",
                 "total_income": 610.0,
                 "total_delivery_expense": 590.0,
                 "net_profit": 20.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Aug",
                 "total_income": 1200.0,
                 "total_delivery_expense": 1000.0,
                 "net_profit": 200.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Sep",
                 "total_income": 1600.0,
                 "total_delivery_expense": 1400.0,
                 "net_profit": 200.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Oct",
                 "total_income": 2000.0,
                 "total_delivery_expense": 1500.0,
                 "net_profit": 500.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Nov",
                 "total_income": 900.0,
                 "total_delivery_expense": 950.0,
                 "net_profit": -50.0,
+                "total_commissions": 100.0,
             },
             {
                 "name": "Dec",
                 "total_income": 127.0,
                 "total_delivery_expense": 1317.0,
                 "net_profit": -1190.0,
+                "total_commissions": 100.0,
             },
         ]
 
@@ -278,9 +290,10 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "start_date": start_date,
             "end_date": end_date,
             "total_revenue": total_income,
+            "total_commissions": total_commissions,
             "total_expenses": (total_delivery_expense + operational_expenses),
             "net_profit": (
-                total_income - (total_delivery_expense + operational_expenses)
+                total_income - (total_delivery_expense + operational_expenses) - total_commissions
             ),
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
