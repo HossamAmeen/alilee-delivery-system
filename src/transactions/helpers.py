@@ -1,9 +1,9 @@
 from transactions.models import UserAccountTransaction
 
 
-def create_transaction(user, amount, transaction_type, order_id, notes=""):
+def create_transaction(user_id, amount, transaction_type, order_id, notes=""):
     UserAccountTransaction.objects.create(
-        user_account=user,
+        user_account_id=user_id,
         amount=amount,
         transaction_type=transaction_type,
         notes=notes,
@@ -11,10 +11,8 @@ def create_transaction(user, amount, transaction_type, order_id, notes=""):
     )
 
 
-def create_order_transaction(user_id, amount, transaction_type, tracking_number, order_id):
-    already_exists = UserAccountTransaction.objects.filter(
-        notes__contains=f"{transaction_type} + {tracking_number}", user_account_id=user_id
-    ).exists()
+def create_order_transaction(user_id, amount, transaction_type, order_id, notes=""):
+    already_exists = UserAccountTransaction.objects.filter(order_id=order_id).exists()
     if already_exists:
         return
 
@@ -23,5 +21,5 @@ def create_order_transaction(user_id, amount, transaction_type, tracking_number,
         amount=amount,
         transaction_type=transaction_type,
         order_id=order_id,
-        notes=f"{transaction_type} + {tracking_number}",
+        notes=notes
     )

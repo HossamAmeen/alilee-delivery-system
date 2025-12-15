@@ -34,6 +34,7 @@ def cancelled_order_withdraw_transaction_from_trader(
             transaction_type=transaction_type,
             tracking_number=instance.tracking_number,
             order_id=instance.id,
+            notes=f"تحصيل رسوم شحن {instance.tracking_number}"
         )
 
 
@@ -46,16 +47,18 @@ def delivered_order_withdraw_transaction_from_trader(
         if instance.product_payment_status == ProductPaymentStatus.PAID:
             transaction_type = TransactionType.WITHDRAW
             amount = instance.trader_merchant_cost
+            notes = f"سحب رسوم شحن {instance.tracking_number}"
         elif instance.product_payment_status == ProductPaymentStatus.COD:
             transaction_type = TransactionType.DEPOSIT
             amount = instance.product_cost
+            notes = f"إيداع فلوس المنتج الخاص في  {instance.tracking_number}"
 
         create_order_transaction(
             user_id=instance.trader_id,
             amount=amount,
             transaction_type=transaction_type,
-            tracking_number=instance.tracking_number,
             order_id=instance.id,
+            notes=notes
         )
 
 
@@ -74,16 +77,16 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 user_id=instance.driver_id,
                 amount=instance.delivery_cost + instance.extra_delivery_cost,
                 transaction_type=TransactionType.DEPOSIT,
-                tracking_number=instance.tracking_number,
                 order_id=instance.id,
+                notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}"
             )
 
             create_order_transaction(
                 user_id=instance.driver_id,
                 amount=instance.trader_merchant_cost,
                 transaction_type=TransactionType.WITHDRAW,
-                tracking_number=instance.tracking_number,
                 order_id=instance.id,
+                notes=f"سحب رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}"
             )
 
         elif instance.product_payment_status == ProductPaymentStatus.PAID:
@@ -91,22 +94,22 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 user_id=instance.driver_id,
                 amount=instance.delivery_cost + instance.extra_delivery_cost,
                 transaction_type=TransactionType.DEPOSIT,
-                tracking_number=instance.tracking_number,
                 order_id=instance.id,
+                notes=f"إيداع رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}"
             )
         elif instance.product_payment_status == ProductPaymentStatus.COD:
             create_order_transaction(
                 user_id=instance.driver_id,
                 amount=instance.product_cost + instance.trader_merchant_cost,
                 transaction_type=TransactionType.WITHDRAW,
-                tracking_number=instance.tracking_number,
                 order_id=instance.id,
+                notes=f"سحب فلوس المنتج الخاص وفلوس الشحن الخاص بالمنطقة في {instance.tracking_number}"
             )
 
             create_order_transaction(
                 user_id=instance.driver_id,
                 amount=instance.delivery_cost + instance.extra_delivery_cost,
                 transaction_type=TransactionType.DEPOSIT,
-                tracking_number=instance.tracking_number,
                 order_id=instance.id,
+                notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}"
             )
