@@ -11,6 +11,10 @@ def create_transaction(user_id, amount, transaction_type, order_id, notes=""):
     )
 
 
+def roll_back_transactions(transaction_ids):
+    transactions = UserAccountTransaction.objects.filter(id__in=transaction_ids)
+    transactions.update(is_rolled_back=True)
+
 def create_order_transaction(user_id, amount, transaction_type, order_id, notes=""):
     already_exists = UserAccountTransaction.objects.filter(order_id=order_id).exists()
     if already_exists:

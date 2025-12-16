@@ -134,7 +134,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
         month_statistices = {}
 
         for item in monthly_revenue:
-
             month_statistices["month"] = converted_monthly[item["month"].month]
             month_statistices["shipment_count"] = item["IDs_count"]
             shipments_per_month.append(month_statistices)

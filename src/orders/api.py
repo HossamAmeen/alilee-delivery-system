@@ -1,5 +1,7 @@
+from transactions.helpers import roll_back_transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
+from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -141,6 +143,20 @@ class OrderViewSet(BaseViewSet):
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        old_status = instance.status
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        if old_status != serializer.validated_data["status"]:
+            if serializer.validated_data["status"] == OrderStatus.DELIVERED:
+                transactions_ids = instance.transactions.values_list("id", flat=True)
+                roll_back_transaction(transactions_id)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
 
 
 class OrderDeliveryAssignAPIView(APIView):
