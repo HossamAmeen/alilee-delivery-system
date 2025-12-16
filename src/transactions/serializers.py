@@ -177,12 +177,14 @@ class FinancialInsightsSerializer(serializers.Serializer):
             OrderStatus.POSTPONED: "postponed_order_count",
         }
 
+        total_count = 0
         for item in orders_statistics_qs:
             status = item["status"]
             count = item["count"]
+            total_count += count
             if status in status_map:
                 orders_statistics[status_map[status]] = count
-
+        orders_statistics["total_count"] = total_count
         operational_expenses = (
             Expense.objects.filter(date__range=(start_date, end_date)).aggregate(
                 total=Sum("cost")
