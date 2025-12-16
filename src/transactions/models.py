@@ -15,6 +15,7 @@ class UserAccountTransaction(AbstractBaseModel):
     transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
     file = models.FileField(upload_to="transaction_files/", blank=True, null=True)
     notes = models.TextField(blank=True)
+    is_rolled_back = models.BooleanField(default=False)
     order = models.ForeignKey(
         Order,
         on_delete=models.SET_NULL,
