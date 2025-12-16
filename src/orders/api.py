@@ -1,4 +1,4 @@
-from transactions.helpers import roll_back_transaction
+from transactions.helpers import roll_back_transactions
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from django.db import transaction
