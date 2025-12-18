@@ -6,9 +6,8 @@ starts small and can be expanded later.
 """
 
 import pytest
-from users.models import UserAccount, UserRole, Trader, Driver
 
-__all__ = ["pytest"]
+from users.models import Driver, Trader, UserAccount, UserRole
 
 
 @pytest.fixture
@@ -46,11 +45,11 @@ def admin(db):
 
 @pytest.fixture
 def trader(db):
-    """Create and return a Trader user."""
+    """Create and return an active trader for testing."""
     return Trader.objects.create_user(
-        email="trader_fixture@example.com",
+        email="trader@example.com",
         password="testpass123",
-        full_name="Trader Fixture",
+        full_name="Test Trader",
         role=UserRole.TRADER,
         status="active",
         is_active=True,
@@ -58,12 +57,37 @@ def trader(db):
 
 
 @pytest.fixture
-def driver(db):
-    """Create and return a Driver user."""
-    return Driver.objects.create_user(
-        email="driver_fixture@example.com",
+def inactive_trader(db):
+    """Create and return an inactive trader for testing."""
+    return Trader.objects.create_user(
+        email="inactive_trader@example.com",
         password="testpass123",
-        full_name="Driver Fixture",
+        full_name="Inactive Trader",
+        role=UserRole.TRADER,
+        status="inactive",
+        is_active=False,
+    )
+
+
+@pytest.fixture
+def driver(db):
+    """Create and return an active driver for testing."""
+    return Driver.objects.create_user(
+        email="driver@example.com",
+        password="testpass123",
+        full_name="Test Driver",
         role=UserRole.DRIVER,
         is_active=True,
+    )
+
+
+@pytest.fixture
+def inactive_driver(db):
+    """Create and return an inactive driver for testing."""
+    return Driver.objects.create_user(
+        email="inactive_driver@example.com",
+        password="testpass123",
+        full_name="Inactive Driver",
+        role=UserRole.DRIVER,
+        is_active=False,
     )

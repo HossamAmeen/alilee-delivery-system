@@ -158,7 +158,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 }
             )
 
-        orders_statistics_qs = Order.objects.values("status").annotate(count=Count("id"))
+        orders_statistics_qs = Order.objects.values("status").annotate(
+            count=Count("id")
+        )
         orders_statistics = {
             "delivered_order_count": 0,
             "cancelled_order_count": 0,
@@ -298,7 +300,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "total_commissions": total_commissions,
             "total_expenses": (total_delivery_expense + operational_expenses),
             "net_profit": (
-                total_income - (total_delivery_expense + operational_expenses) - total_commissions
+                total_income
+                - (total_delivery_expense + operational_expenses)
+                - total_commissions
             ),
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,

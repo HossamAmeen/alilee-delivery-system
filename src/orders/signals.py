@@ -1,10 +1,10 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from utilities.exceptions import CustomValidationError
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
 from transactions.helpers import create_order_transaction
 from transactions.models import TransactionType
+from utilities.exceptions import CustomValidationError
 
 
 @receiver(post_save, sender=Order)
@@ -33,7 +33,7 @@ def cancelled_order_withdraw_transaction_from_trader(
             amount=amount,
             transaction_type=transaction_type,
             order_id=instance.id,
-            notes=f"تحصيل رسوم شحن {instance.tracking_number}"
+            notes=f"تحصيل رسوم شحن {instance.tracking_number}",
         )
 
 
@@ -57,7 +57,7 @@ def delivered_order_withdraw_transaction_from_trader(
             amount=amount,
             transaction_type=transaction_type,
             order_id=instance.id,
-            notes=notes
+            notes=notes,
         )
 
 
@@ -66,18 +66,14 @@ def delivered_order_withdraw_transaction_from_trader(
 def delivered_order_remaining_fees_deposit_transaction_to_driver(
     sender, instance, created, **kwargs
 ):
-    if (
-        not created
-        and instance.driver
-        and instance.status == OrderStatus.DELIVERED
-    ):
+    if not created and instance.driver and instance.status == OrderStatus.DELIVERED:
         if instance.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
             create_order_transaction(
                 user_id=instance.driver_id,
                 amount=instance.delivery_cost + instance.extra_delivery_cost,
                 transaction_type=TransactionType.DEPOSIT,
                 order_id=instance.id,
-                notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}"
+                notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}",
             )
 
             create_order_transaction(
@@ -85,7 +81,7 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 amount=instance.trader_merchant_cost,
                 transaction_type=TransactionType.WITHDRAW,
                 order_id=instance.id,
-                notes=f"سحب رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}"
+                notes=f"سحب رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}",
             )
 
         elif instance.product_payment_status == ProductPaymentStatus.PAID:
@@ -94,7 +90,7 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 amount=instance.delivery_cost + instance.extra_delivery_cost,
                 transaction_type=TransactionType.DEPOSIT,
                 order_id=instance.id,
-                notes=f"إيداع رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}"
+                notes=f"إيداع رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}",
             )
         elif instance.product_payment_status == ProductPaymentStatus.COD:
             create_order_transaction(
@@ -102,7 +98,7 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 amount=instance.product_cost + instance.trader_merchant_cost,
                 transaction_type=TransactionType.WITHDRAW,
                 order_id=instance.id,
-                notes=f"سحب فلوس المنتج الخاص وفلوس الشحن الخاص بالمنطقة في {instance.tracking_number}"
+                notes=f"سحب فلوس المنتج الخاص وفلوس الشحن الخاص بالمنطقة في {instance.tracking_number}",
             )
 
             create_order_transaction(
@@ -110,5 +106,5 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 amount=instance.delivery_cost + instance.extra_delivery_cost,
                 transaction_type=TransactionType.DEPOSIT,
                 order_id=instance.id,
-                notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}"
+                notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}",
             )

@@ -10,82 +10,13 @@ from decimal import Decimal
 import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from geo.models import DeliveryZone
-from orders.models import Order
-from trader_pricing.models import TraderDeliveryZone
-from users.models import Driver, Trader, UserAccount, UserRole
+from orders.models import Customer, Order, ProductPaymentStatus
 
 
 @pytest.fixture
-def user(db):
-    """Create and return an authenticated user for testing."""
-    return UserAccount.objects.create_user(
-        email="testuser@example.com",
-        password="testpass123",
-        full_name="Test User",
-        role=UserRole.ADMIN,
-    )
-
-
-@pytest.fixture
-def trader(db):
-    """Create and return an active trader for testing."""
-    return Trader.objects.create_user(
-        email="trader@example.com",
-        password="testpass123",
-        full_name="Test Trader",
-        role=UserRole.TRADER,
-        status="active",
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def driver(db):
-    """Create and return an active driver for testing."""
-    return Driver.objects.create_user(
-        email="driver@example.com",
-        password="testpass123",
-        full_name="Test Driver",
-        role=UserRole.DRIVER,
-        is_active=True,
-    )
-
-
-@pytest.fixture
-def delivery_zone(db):
-    """Create and return a delivery zone for testing."""
-    return DeliveryZone.objects.create(
-        name="Downtown Zone",
-        cost=Decimal("15.00"),
-    )
-
-
-@pytest.fixture
-def trader_delivery_zone(trader, delivery_zone):
-    """Create and return a TraderDeliveryZone relationship."""
-    return TraderDeliveryZone.objects.create(
-        trader=trader,
-        delivery_zone=delivery_zone,
-        price=Decimal("5.00"),
-    )
-
-
-@pytest.fixture
-def auth_client(user):
-    """Create and return an authenticated API client."""
-    client = APIClient()
-    client.force_authenticate(user=user)
-    return client
-
-
-@pytest.fixture
-def created_order(auth_client, trader, delivery_zone, trader_delivery_zone, db):
+def created_order(admin_client, trader, delivery_zone, trader_delivery_zone, db):
     """Create an order via API and return the order instance."""
-    from orders.models import Customer
-    
     # Create customer first
     customer = Customer.objects.create(
         name="John Doe",
@@ -93,33 +24,21 @@ def created_order(auth_client, trader, delivery_zone, trader_delivery_zone, db):
         phone="+201234567890",
         location="https://maps.google.com/?q=31.2357,30.0444",
     )
-    
-    order_payload = {
-        "reference_code": "REF12345",
-        "product_cost": "100.00",
-        "extra_delivery_cost": "5.00",
-        "delivery_zone": delivery_zone.id,
-        "trader": trader.id,
-        "status": "created",
-        "payment_method": "cod",
-        "product_payment_status": "cod",
-        "note": "Initial order note",
-        "longitude": "31.235700",
-        "latitude": "30.044400",
-        "customer": {
-            "name": customer.name,
-            "address": customer.address,
-            "phone": customer.phone,
-            "location": customer.location,
-        },
-    }
-    
-    url = reverse("orders-list")
-    response = auth_client.post(url, data=order_payload, format="json")
-    
-    assert response.status_code == status.HTTP_201_CREATED
-    order_id = response.data["id"]
-    return Order.objects.get(id=order_id)
+
+    return Order.objects.create(
+        reference_code="REF12345",
+        product_cost=Decimal("100.00"),
+        delivery_cost=Decimal("10.00"),
+        extra_delivery_cost=Decimal("5.00"),
+        delivery_zone=delivery_zone,
+        trader=trader,
+        status="created",
+        product_payment_status=ProductPaymentStatus.COD,
+        note="Initial order note",
+        longitude="31.235700",
+        latitude="30.044400",
+        customer=customer,
+    )
 
 
 # ============================================================================
@@ -127,10 +46,10 @@ def created_order(auth_client, trader, delivery_zone, trader_delivery_zone, db):
 # ============================================================================
 
 
-def test_successful_order_update(auth_client, created_order, trader, delivery_zone):
+def test_successful_order_update(admin_client, created_order, trader, delivery_zone):
     """
     Test 1: Successful Order Update
-    
+
     Test that an authenticated user can successfully update an order:
     - Create order via API
     - Update order via API (status, note, price, etc.)
@@ -139,7 +58,7 @@ def test_successful_order_update(auth_client, created_order, trader, delivery_zo
     - Assert updated fields match payload
     """
     url = reverse("orders-detail", kwargs={"pk": created_order.id})
-    
+
     update_payload = {
         "reference_code": created_order.reference_code,
         "product_cost": "150.00",
@@ -160,44 +79,40 @@ def test_successful_order_update(auth_client, created_order, trader, delivery_zo
             "location": created_order.customer.location,
         },
     }
-    
-    response = auth_client.patch(url, data=update_payload, format="json")
-    
+
+    response = admin_client.patch(url, data=update_payload, format="json")
+
     # Assert HTTP 200 OK
-    assert response.status_code == status.HTTP_200_OK, (
-        f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
-    )
-    
+    assert (
+        response.status_code == status.HTTP_200_OK
+    ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
     # Assert order updated in DB
     created_order.refresh_from_db()
-    
+
     # Assert updated fields match payload
-    assert str(created_order.product_cost) == update_payload["product_cost"], (
-        "Product cost should be updated"
-    )
-    assert str(created_order.extra_delivery_cost) == update_payload["extra_delivery_cost"], (
-        "Extra delivery cost should be updated"
-    )
-    assert created_order.status == update_payload["status"], (
-        "Status should be updated"
-    )
-    assert created_order.note == update_payload["note"], (
-        "Note should be updated"
-    )
-    assert str(created_order.longitude) == update_payload["longitude"], (
-        "Longitude should be updated"
-    )
-    assert str(created_order.latitude) == update_payload["latitude"], (
-        "Latitude should be updated"
-    )
-    assert created_order.customer.address == update_payload["customer"]["address"], (
-        "Customer address should be updated"
-    )
+    assert (
+        str(created_order.product_cost) == update_payload["product_cost"]
+    ), "Product cost should be updated"
+    assert (
+        str(created_order.extra_delivery_cost) == update_payload["extra_delivery_cost"]
+    ), "Extra delivery cost should be updated"
+    assert created_order.status == update_payload["status"], "Status should be updated"
+    assert created_order.note == update_payload["note"], "Note should be updated"
+    assert (
+        str(created_order.longitude) == update_payload["longitude"]
+    ), "Longitude should be updated"
+    assert (
+        str(created_order.latitude) == update_payload["latitude"]
+    ), "Latitude should be updated"
+    assert (
+        created_order.customer.address == update_payload["customer"]["address"]
+    ), "Customer address should be updated"
 
 
 def test_unauthorized_update(api_client, created_order):
     url = reverse("orders-detail", kwargs={"pk": created_order.id})
-    
+
     update_payload = {
         "reference_code": created_order.reference_code,
         "product_cost": "150.00",
@@ -211,27 +126,26 @@ def test_unauthorized_update(api_client, created_order):
             "location": created_order.customer.location,
         },
     }
-    
+
     response = api_client.patch(url, data=update_payload, format="json")
-    
+
     # Assert HTTP 401 or 403
     assert response.status_code in [
         status.HTTP_401_UNAUTHORIZED,
         status.HTTP_403_FORBIDDEN,
-    ], (
-        f"Expected 401 or 403, got {response.status_code}. Response: {response.data}"
-    )
+    ], f"Expected 401 or 403, got {response.status_code}. Response: {response.data}"
 
-def test_update_nonexistent_order(auth_client):
+
+def test_update_nonexistent_order(admin_client):
     """
     Test 4: Update Non-Existing Order
-    
+
     Test that updating a non-existing order returns 404:
     - Non-existing order ID
     - Assert 404
     """
     url = reverse("orders-detail", kwargs={"pk": 99999})
-    
+
     update_payload = {
         "reference_code": "REF99999",
         "product_cost": "100.00",
@@ -243,20 +157,20 @@ def test_update_nonexistent_order(auth_client):
             "phone": "+201234567890",
         },
     }
-    
-    response = auth_client.patch(url, data=update_payload, format="json")
-    
-    assert response.status_code == status.HTTP_404_NOT_FOUND, (
-        f"Expected 404 Not Found, got {response.status_code}"
-    )
+
+    response = admin_client.patch(url, data=update_payload, format="json")
+
+    assert (
+        response.status_code == status.HTTP_404_NOT_FOUND
+    ), f"Expected 404 Not Found, got {response.status_code}"
 
 
 def test_business_rule_validation_cannot_update_delivered_order(
-    auth_client, created_order, trader, delivery_zone
+    admin_client, created_order, trader, delivery_zone
 ):
     """
     Test 5: Business Rules Validation - Cannot Update Delivered Order
-    
+
     Test that delivered orders cannot be updated:
     - Update order status to DELIVERED via API
     - Try to update the order again
@@ -264,7 +178,7 @@ def test_business_rule_validation_cannot_update_delivered_order(
     """
     # First, update order to DELIVERED
     url = reverse("orders-detail", kwargs={"pk": created_order.id})
-    
+
     delivered_payload = {
         "reference_code": created_order.reference_code,
         "product_cost": str(created_order.product_cost),
@@ -282,11 +196,12 @@ def test_business_rule_validation_cannot_update_delivered_order(
             "location": created_order.customer.location,
         },
     }
-    
-    response = auth_client.patch(url, data=delivered_payload, format="json")
+
+    response = admin_client.patch(url, data=delivered_payload, format="json")
     assert response.status_code == status.HTTP_200_OK
 
-def test_partial_update_patch(auth_client, created_order):
+
+def test_partial_update_patch(admin_client, created_order):
     """
     Test that PATCH (partial update) works correctly:
     - Update only note field
@@ -294,19 +209,18 @@ def test_partial_update_patch(auth_client, created_order):
     - Assert only note is updated
     """
     url = reverse("orders-detail", kwargs={"pk": created_order.id})
-    
+
     patch_payload = {
         "note": "Updated note via PATCH",
     }
-    
-    response = auth_client.patch(url, data=patch_payload, format="json")
-    
-    assert response.status_code == status.HTTP_200_OK, (
-        f"Expected 200 OK for PATCH, got {response.status_code}"
-    )
-    
-    created_order.refresh_from_db()
-    assert created_order.note == patch_payload["note"], (
-        "Note should be updated via PATCH"
-    )
 
+    response = admin_client.patch(url, data=patch_payload, format="json")
+
+    assert (
+        response.status_code == status.HTTP_200_OK
+    ), f"Expected 200 OK for PATCH, got {response.status_code}"
+
+    created_order.refresh_from_db()
+    assert (
+        created_order.note == patch_payload["note"]
+    ), "Note should be updated via PATCH"
