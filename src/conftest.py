@@ -1,10 +1,10 @@
 import pytest
+from rest_framework.test import APIClient
 
 
 @pytest.fixture
 def api_client():
     """Create and return an API client instance."""
-    from rest_framework.test import APIClient
     return APIClient()
 
 

@@ -1,4 +1,4 @@
-from transactions.helpers import roll_back_transactions
+from transactions.helpers import roll_back_order_transactions
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from django.db import transaction
@@ -150,10 +150,10 @@ class OrderViewSet(BaseViewSet):
         old_status = instance.status
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        if old_status != serializer.validated_data["status"]:
-            if serializer.validated_data["status"] == OrderStatus.DELIVERED:
+        if old_status != serializer.validated_data.get("status", instance.status):
+            if old_status == OrderStatus.DELIVERED:
                 transactions_ids = instance.transactions.values_list("id", flat=True)
-                roll_back_transactions(transactions_ids)
+                roll_back_order_transactions(transactions_ids)
         self.perform_update(serializer)
 
         return Response(serializer.data)

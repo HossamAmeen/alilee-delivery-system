@@ -32,7 +32,6 @@ def cancelled_order_withdraw_transaction_from_trader(
             user_id=instance.trader_id,
             amount=amount,
             transaction_type=transaction_type,
-            tracking_number=instance.tracking_number,
             order_id=instance.id,
             notes=f"تحصيل رسوم شحن {instance.tracking_number}"
         )
