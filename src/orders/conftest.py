@@ -1,8 +1,10 @@
+from orders.models import OrderStatus
 from decimal import Decimal
 
 import pytest
 
 from geo.models import DeliveryZone
+from orders.models import Customer, Order, ProductPaymentStatus
 from trader_pricing.models import TraderDeliveryZone
 from users.models import Driver, Trader, UserRole
 
@@ -34,6 +36,18 @@ def inactive_trader(db):
 
 
 @pytest.fixture
+def driver(db):
+    """Create and return an active driver for testing."""
+    return Driver.objects.create_user(
+        email="driver@example.com",
+        password="testpass123",
+        full_name="Test Driver",
+        role=UserRole.DRIVER,
+        is_active=True,
+    )
+
+
+@pytest.fixture
 def inactive_driver(db):
     """Create and return an inactive driver for testing."""
     return Driver.objects.create_user(
@@ -61,4 +75,31 @@ def trader_delivery_zone(trader, delivery_zone):
         trader=trader,
         delivery_zone=delivery_zone,
         price=Decimal("5.00"),
+    )
+
+
+@pytest.fixture
+def created_order(admin_client, trader, delivery_zone, trader_delivery_zone, db):
+    """Create an order via API and return the order instance."""
+    # Create customer first
+    customer = Customer.objects.create(
+        name="John Doe",
+        address="123 Main Street",
+        phone="+201234567890",
+        location="https://maps.google.com/?q=31.2357,30.0444",
+    )
+
+    return Order.objects.create(
+        reference_code="REF12345",
+        product_cost=Decimal("100.00"),
+        delivery_cost=Decimal("10.00"),
+        extra_delivery_cost=Decimal("5.00"),
+        delivery_zone=delivery_zone,
+        trader=trader,
+        status=OrderStatus.CREATED,
+        product_payment_status=ProductPaymentStatus.COD,
+        note="Initial order note",
+        longitude="31.235700",
+        latitude="30.044400",
+        customer=customer,
     )

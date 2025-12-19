@@ -1,3 +1,5 @@
+from notifications.service import send_notification
+from orders.models import OrderStatus
 from django.db.transaction import atomic
 from rest_framework import serializers
 
@@ -111,6 +113,13 @@ class OrderSerializer(serializers.ModelSerializer):
                 raise CustomValidationError(
                     "The selected trader does not serve the selected delivery zone."
                 )
+        if not instance.driver and validated_data.get("driver"):
+            instance.status = OrderStatus.ASSIGNED
+            send_notification(
+                title="تم تعيينك كسائق للطلب رقم " + instance.tracking_number,
+                description="تم تعيينك كسائق للطلب رقم " + instance.tracking_number,
+                user_id=validated_data.get("driver").id,
+            )
         return super().update(instance, validated_data)
 
     def validate(self, data):

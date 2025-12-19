@@ -51,6 +51,8 @@ def delivered_order_withdraw_transaction_from_trader(
             transaction_type = TransactionType.DEPOSIT
             amount = instance.product_cost
             notes = f"إيداع فلوس المنتج الخاص في  {instance.tracking_number}"
+        else:
+            return
 
         create_order_transaction(
             user_id=instance.trader_id,

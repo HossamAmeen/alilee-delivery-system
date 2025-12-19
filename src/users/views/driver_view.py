@@ -1,3 +1,4 @@
+from notifications.service import send_notification
 from django.db.models import Count, DecimalField, IntegerField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
@@ -100,6 +101,21 @@ class DriverViewSet(BaseViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        old_status = instance.is_active
+        self.perform_update(serializer)
+        if old_status != instance.is_active:
+            message = "تم تنشيط حسابك" if instance.is_active else "تم تعطيل حسابك"
+            send_notification(
+                instance.id,
+                "تعديل حالة حسابك",
+                message,
+            )
+        return Response(serializer.data)
 
     def profile(self, request):
         # enforce driver permission

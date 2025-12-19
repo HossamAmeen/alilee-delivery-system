@@ -25,8 +25,27 @@ def admin_user(db):
 
 
 @pytest.fixture
-def admin_client(api_client, admin_user):
+def trader(db):
+    """Create and return an active trader for testing."""
+    return Trader.objects.create_user(
+        email="trader@example.com",
+        password="testpass123",
+        full_name="Test Trader",
+        role=UserRole.TRADER,
+        status="active",
+        is_active=True,
+    )
+
+
+@pytest.fixture
+def admin_client(admin_user):
     """Create and return an authenticated API client with admin user."""
     api_client = APIClient()
     api_client.force_authenticate(user=admin_user)
+    return api_client
+
+@pytest.fixture
+def driver_client(trader):
+    api_client = APIClient()
+    api_client.force_authenticate(user=trader)
     return api_client
