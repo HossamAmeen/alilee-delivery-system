@@ -58,7 +58,6 @@ def valid_order_payload(trader, delivery_zone):
         "delivery_zone": delivery_zone.id,
         "trader": trader.id,
         "status": "created",
-        "payment_method": "cod",
         "product_payment_status": "cod",
         "note": "Test order note",
         "longitude": "31.235700",

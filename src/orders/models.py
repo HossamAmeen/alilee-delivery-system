@@ -64,11 +64,6 @@ class Order(AbstractBaseModel):
         choices=ProductPaymentStatus.choices,
         default=ProductPaymentStatus.COD,
     )
-    payment_method = models.CharField(
-        max_length=20,
-        choices=PaymentMethod.choices,
-        default=PaymentMethod.COD,
-    )
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     trader_merchant_cost = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00
