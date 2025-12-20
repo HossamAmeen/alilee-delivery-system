@@ -40,7 +40,6 @@ def create_order_request():
         "product_cost": "50",  # Note: These might need to be floats/numbers if the API expects them
         "extra_delivery_cost": "60",
         "status": "created",
-        "payment_method": "paid",
         "product_payment_status": "paid",
         "note": "string",
         "longitude": "50",
