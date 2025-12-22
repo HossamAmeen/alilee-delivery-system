@@ -278,8 +278,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
         orders_statistics["total_count"] = total_count
 
         return {
-            "summary_start_date": summary_start_date,
-            "summary_end_date": summary_end_date,
+            "start_date": summary_start_date,
+            "end_date": summary_end_date,
             "total_revenue": summary_revenue.get("total_revenue") or 0,
             "total_commissions": summary_revenue.get("total_commissions") or 0,
             "total_expenses": summary_expense,
