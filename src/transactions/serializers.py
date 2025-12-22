@@ -64,10 +64,12 @@ class ExpenseSerializer(ModelSerializer):
 
 
 class FinancialInsightsSerializer(serializers.Serializer):
-    summary_start_date = serializers.DateField(
+    # Represent 'summary_start_date'
+    start_date = serializers.DateField(
         format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
     )
-    summary_end_date = serializers.DateField(
+    # Represent 'summary_end_date'
+    end_date = serializers.DateField(
         format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
     )
     monthly_start_date = serializers.DateField(
