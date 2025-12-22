@@ -68,3 +68,7 @@ class SingleUserAccountSerializer(serializers.ModelSerializer):
             "created",
             "modified",
         ]
+
+
+class FirebaseDeviceSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=255)

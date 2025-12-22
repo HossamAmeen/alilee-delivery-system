@@ -1,10 +1,9 @@
-from orders.models import OrderStatus
 from decimal import Decimal
 
 import pytest
 
 from geo.models import DeliveryZone
-from orders.models import Customer, Order, ProductPaymentStatus
+from orders.models import Customer, Order, OrderStatus, ProductPaymentStatus
 from trader_pricing.models import TraderDeliveryZone
 from users.models import Driver, Trader, UserRole
 

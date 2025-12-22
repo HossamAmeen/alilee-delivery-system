@@ -2,12 +2,15 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from users.api import TraderViewSet, UserAccountViewSet
+from users.api import (
+    TraderViewSet, UserAccountViewSet, FirebaseDeviceRegisterAPIView
+)
 from users.views.driver_view import (
     DriverInsightsAPIView,
     DriverTokenObtainPairView,
     DriverTokenRefreshView,
     DriverViewSet,
+    
 )
 
 urlpatterns = [
@@ -42,7 +45,10 @@ urlpatterns = [
         DriverViewSet.as_view({"get": "profile", "patch": "update_profile"}),
         name="driver-profile",
     ),
+    path("firebase/devices/", FirebaseDeviceRegisterAPIView.as_view(), name="firebase-device-register"),    
+
 ]
+
 
 
 router = DefaultRouter()

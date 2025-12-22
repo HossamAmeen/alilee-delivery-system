@@ -1,5 +1,4 @@
-from transactions.models import TransactionType
-from transactions.models import UserAccountTransaction
+from transactions.models import TransactionType, UserAccountTransaction
 
 
 def create_transaction(user_id, amount, transaction_type, order_id, notes=""):

@@ -5,11 +5,11 @@ This module tests the order update functionality through the REST API,
 ensuring proper validation, authentication, and business rules are enforced.
 """
 
-from orders.models import ProductPaymentStatus
-from transactions.models import UserAccountTransaction
-from orders.models import OrderStatus
 from django.urls import reverse
 from rest_framework import status
+
+from orders.models import OrderStatus, ProductPaymentStatus
+from transactions.models import UserAccountTransaction
 
 # ============================================================================
 # TEST CASES

@@ -1,5 +1,6 @@
 from notifications.models import Notification
 
+
 def send_notification(user_id, title, description):
     Notification.objects.create(
         title=title,
