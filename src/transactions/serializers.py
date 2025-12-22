@@ -1,6 +1,6 @@
 from datetime import date
 
-from django.db.models import Count, F, Sum
+from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
@@ -10,6 +10,7 @@ from transactions.models import Expense, UserAccountTransaction
 from users.serializers.user_account_serializers import SingleUserAccountSerializer
 from utilities.exceptions import CustomValidationError
 
+DEFAULT_START_DATE = "1024-12-01"
 
 class UserAccountTransactionSerializer(ModelSerializer):
     class Meta:
@@ -63,10 +64,24 @@ class ExpenseSerializer(ModelSerializer):
 
 
 class FinancialInsightsSerializer(serializers.Serializer):
+    # Represent 'summary_start_date'
     start_date = serializers.DateField(
         format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
     )
+    # Represent 'summary_end_date'
     end_date = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
+    )
+    monthly_start_date = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
+    )
+    monthly_end_date = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
+    )
+    shipment_start_date = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
+    )
+    shipment_end_date = serializers.DateField(
         format="%Y-%m-%d", input_formats=["%Y-%m-%d"], required=False
     )
     total_revenue = serializers.DecimalField(
@@ -86,7 +101,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         max_digits=12, decimal_places=2, read_only=True
     )
     balance = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
-    monthlyExpensesData = serializers.DictField(read_only=True)
+    monthly_expenses_data = serializers.DictField(read_only=True)
 
     def validate(self, data):
         start = data.get("start_date")
@@ -98,62 +113,138 @@ class FinancialInsightsSerializer(serializers.Serializer):
     def to_representation(self, instance):
         today = date.today()
 
-        start_date = instance.get("start_date", today.replace(day=1))
-        end_date = instance.get("end_date", today)
+        summary_start_date = instance.get("summary_start_date", today.replace(day=1))
+        summary_end_date = instance.get("summary_end_date", today)
+
+        monthly_start_date = instance.get("monthly_start_date",DEFAULT_START_DATE)
+        monthly_end_date = instance.get("monthly_end_date", today)
+
+        shipment_start_date = instance.get("shipment_start_date", DEFAULT_START_DATE)
+        shipment_end_date = instance.get("shipment_end_date", today)
+
+
+        accepted_statuses = [OrderStatus.DELIVERED, OrderStatus.CANCELLED]
+
+        summary_revenue = Order.objects.filter(
+            created__range=(summary_start_date, summary_end_date),
+            status__in=accepted_statuses).aggregate(
+                total_revenue=Sum("trader_merchant_cost"),
+
+                total_commissions=Sum(
+                    Case(
+                        When(
+                            status=OrderStatus.DELIVERED,
+                            then=F("delivery_cost") + F("extra_delivery_cost"),
+                        ),
+                        default=Value(0),
+                        output_field=DecimalField(),
+                    )
+                ),
+            )
+
+        summary_expense = (
+            Expense.objects.filter(
+                date__range=(summary_start_date, summary_end_date)
+            )
+            .aggregate(total_expense=Sum("cost"))
+        )["total_expense"] or 0
 
         monthly_revenue = (
             Order.objects.filter(
-                created__range=(start_date, end_date), status=OrderStatus.DELIVERED
+                created__range=(monthly_start_date, monthly_end_date),
+                status__in=accepted_statuses,
             )
             .annotate(month=TruncMonth("created"))
             .values("month")
             .annotate(
                 total_income=Sum("trader_merchant_cost"),
-                total_delivery_expense=Sum(
-                    F("delivery_cost") + F("extra_delivery_cost"),
+
+                total_commissions=Sum(
+                    Case(
+                        When(
+                            status=OrderStatus.DELIVERED,
+                            then=F("delivery_cost") + F("extra_delivery_cost"),
+                        ),
+                        default=Value(0),
+                        output_field=DecimalField(),
+                    )
                 ),
-                IDs_count=Count("id"),
             )
             .order_by("month")
         )
 
-        total_income = total_delivery_expense = total_commissions = 0
-        converted_monthly = {
-            1: "Jan",
-            2: "Feb",
-            3: "Mar",
-            4: "Apr",
-            5: "May",
-            6: "Jun",
-            7: "Jul",
-            8: "Aug",
-            9: "Sep",
-            10: "Oct",
-            11: "Nov",
-            12: "Dec",
+        monthly_expenses = (
+            Expense.objects.filter(
+                date__range=(monthly_start_date, monthly_end_date)
+            )
+            .annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(monthly_expense=Sum("cost"))
+        )
+
+        expenses_by_month = {
+            item["month"].month: item["monthly_expense"] or 0
+            for item in monthly_expenses
         }
 
-        monthlyExpensesData = []
+        total_income = total_commissions = 0
+        converted_monthly = {
+            1: "يناير",
+            2: "فبراير",
+            3: "مارس",
+            4: "أبريل",
+            5: "مايو",
+            6: "يونيو",
+            7: "يوليو",
+            9: "سبتمبر",
+            10: "أكتوبر",
+            11: "نوفمبر",
+            12: "ديسمبر",
+        }
+
+        monthly_expenses_data = []
         shipments_per_month = []
         month_statistices = {}
+        
+        shipment_count_chart =(
+             Order.objects.filter(
+                created__range=(shipment_start_date, shipment_end_date),
+                status__in=accepted_statuses,
+            )
+            .annotate(month=TruncMonth("created"))
+            .values("month")
+            .annotate(IDs_count=Count("id"))
+            .order_by("month")
+        )
 
         for item in monthly_revenue:
-            month_statistices["month"] = converted_monthly[item["month"].month]
+            total_commissions += item["total_commissions"] or 0
+            total_income += item["total_income"] or 0
+
+        for item in shipment_count_chart:
+            month_number = item["month"].month
+
+            # extract the value of month from the date field
+            month_statistices["month"] = converted_monthly[month_number]
             month_statistices["shipment_count"] = item["IDs_count"]
             shipments_per_month.append(month_statistices)
-            total_income += item["total_income"] or 0
-            total_delivery_expense += item["total_delivery_expense"] or 0
 
-            monthlyExpensesData.append(
+        for item in monthly_revenue:
+
+            month_number = item["month"].month
+            month_expenses = expenses_by_month.get(month_number, 0)
+            monthly_expenses_data.append(
                 {
-                    "name": converted_monthly[item["month"].month],
+                    "name": converted_monthly[month_number],
                     "total_income": float(item["total_income"] or 0),
-                    "total_delivery_expense": float(
-                        item["total_delivery_expense"] or 0
+                    "total_commissions": float(
+                        item["total_commissions"] or 0
                     ),
+                    # It must be 'total_expenses' not 'total_delivery_expense'
+                    "total_delivery_expense": float(month_expenses),
                     "net_profit": float(
                         (item["total_income"] or 0)
-                        - (item["total_delivery_expense"] or 0)
+                        - (item["total_commissions"] or 0) - month_expenses
                     ),
                 }
             )
@@ -187,122 +278,16 @@ class FinancialInsightsSerializer(serializers.Serializer):
             if status in status_map:
                 orders_statistics[status_map[status]] = count
         orders_statistics["total_count"] = total_count
-        operational_expenses = (
-            Expense.objects.filter(date__range=(start_date, end_date)).aggregate(
-                total=Sum("cost")
-            )["total"]
-            or 0
-        )
-        shipments_per_month = [
-            {"month": "يناير", "shipment_count": 27446.0},
-            {"month": "فبراير", "shipment_count": 25524.0},
-            {"month": "مارس", "shipment_count": 26487.0},
-            {"month": "ابريل", "shipment_count": 24981.0},
-            {"month": "مايو", "shipment_count": 29135.0},
-            {"month": "يونيو", "shipment_count": 21013.0},
-            {"month": "يوليو", "shipment_count": 25751.0},
-            {"month": "اغسطس", "shipment_count": 21456.0},
-            {"month": "سبتمبر", "shipment_count": 15715.0},
-            {"month": "اكتوبر", "shipment_count": 21957.0},
-            {"month": "نوفمبر", "shipment_count": 10458.0},
-        ]
-        monthly_expenses_data = [
-            {
-                "name": "Jan",
-                "total_income": 950.0,
-                "total_delivery_expense": 820.0,
-                "net_profit": 130.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Feb",
-                "total_income": 1100.0,
-                "total_delivery_expense": 980.0,
-                "net_profit": 120.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Mar",
-                "total_income": 3200.0,
-                "total_delivery_expense": 1500.0,
-                "net_profit": 1700.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Apr",
-                "total_income": 450.0,
-                "total_delivery_expense": 520.0,
-                "net_profit": -70.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "May",
-                "total_income": 300.0,
-                "total_delivery_expense": 310.0,
-                "net_profit": -10.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Jun",
-                "total_income": 780.0,
-                "total_delivery_expense": 720.0,
-                "net_profit": 60.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Jul",
-                "total_income": 610.0,
-                "total_delivery_expense": 590.0,
-                "net_profit": 20.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Aug",
-                "total_income": 1200.0,
-                "total_delivery_expense": 1000.0,
-                "net_profit": 200.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Sep",
-                "total_income": 1600.0,
-                "total_delivery_expense": 1400.0,
-                "net_profit": 200.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Oct",
-                "total_income": 2000.0,
-                "total_delivery_expense": 1500.0,
-                "net_profit": 500.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Nov",
-                "total_income": 900.0,
-                "total_delivery_expense": 950.0,
-                "net_profit": -50.0,
-                "total_commissions": 100.0,
-            },
-            {
-                "name": "Dec",
-                "total_income": 127.0,
-                "total_delivery_expense": 1317.0,
-                "net_profit": -1190.0,
-                "total_commissions": 100.0,
-            },
-        ]
 
         return {
-            "start_date": start_date,
-            "end_date": end_date,
-            "total_revenue": total_income,
-            "total_commissions": total_commissions,
-            "total_expenses": (total_delivery_expense + operational_expenses),
+            "start_date": summary_start_date,
+            "end_date": summary_end_date,
+            "total_revenue": summary_revenue.get("total_revenue") or 0,
+            "total_commissions": summary_revenue.get("total_commissions") or 0,
+            "total_expenses": summary_expense,
             "net_profit": (
-                total_income
-                - (total_delivery_expense + operational_expenses)
-                - total_commissions
+                (summary_revenue.get("total_revenue") or 0) - (summary_expense or 0)
+                - (summary_revenue.get("total_commissions") or 0)
             ),
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
