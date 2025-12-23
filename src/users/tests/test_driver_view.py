@@ -1,7 +1,9 @@
 import pytest
 from django.urls import reverse
 from rest_framework import status
+
 from users.models import Driver
+
 
 @pytest.mark.django_db
 class TestDriverViewSet:

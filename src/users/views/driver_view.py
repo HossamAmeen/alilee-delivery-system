@@ -1,4 +1,3 @@
-from notifications.service import send_notification
 from django.db.models import Count, DecimalField, IntegerField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from notifications.service import send_notification
 from orders.models import OrderStatus
 from orders.permissions import IsDriverPermission
 from transactions.models import TransactionType
