@@ -12,6 +12,7 @@ from utilities.exceptions import CustomValidationError
 
 DEFAULT_START_DATE = "1024-12-01"
 
+
 class UserAccountTransactionSerializer(ModelSerializer):
     class Meta:
         model = UserAccountTransaction
@@ -116,12 +117,11 @@ class FinancialInsightsSerializer(serializers.Serializer):
         summary_start_date = instance.get("summary_start_date", today.replace(day=1))
         summary_end_date = instance.get("summary_end_date", today)
 
-        monthly_start_date = instance.get("monthly_start_date",DEFAULT_START_DATE)
+        monthly_start_date = instance.get("monthly_start_date", DEFAULT_START_DATE)
         monthly_end_date = instance.get("monthly_end_date", today)
 
         shipment_start_date = instance.get("shipment_start_date", DEFAULT_START_DATE)
         shipment_end_date = instance.get("shipment_end_date", today)
-
 
         accepted_statuses = [OrderStatus.DELIVERED, OrderStatus.CANCELLED]
 

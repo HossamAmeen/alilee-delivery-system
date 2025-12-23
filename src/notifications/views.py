@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
 from notifications.filters import NotificationFilter
 from notifications.models import Notification
@@ -7,6 +8,7 @@ from users.models import UserRole
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated,]
     serializer_class = NotificationSerializer
     filterset_class = NotificationFilter
 

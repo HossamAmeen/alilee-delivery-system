@@ -12,3 +12,4 @@ pre-commit==4.2.0
 
 pytest==9.0.1
 pytest-django==4.11.1
+django-debug-toolbar==6.1.0

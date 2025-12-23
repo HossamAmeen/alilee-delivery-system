@@ -117,4 +117,3 @@ class FirebaseDevice(models.Model):
         indexes = [
             models.Index(fields=["user", "token"]),
         ]
-
