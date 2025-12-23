@@ -127,26 +127,25 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
         summary_revenue = Order.objects.filter(
             created__range=(summary_start_date, summary_end_date),
-            status__in=accepted_statuses).aggregate(
-                total_revenue=Sum("trader_merchant_cost"),
-
-                total_commissions=Sum(
-                    Case(
-                        When(
-                            status=OrderStatus.DELIVERED,
-                            then=F("delivery_cost") + F("extra_delivery_cost"),
-                        ),
-                        default=Value(0),
-                        output_field=DecimalField(),
-                    )
-                ),
-            )
+            status__in=accepted_statuses,
+        ).aggregate(
+            total_revenue=Sum("trader_merchant_cost"),
+            total_commissions=Sum(
+                Case(
+                    When(
+                        status=OrderStatus.DELIVERED,
+                        then=F("delivery_cost") + F("extra_delivery_cost"),
+                    ),
+                    default=Value(0),
+                    output_field=DecimalField(),
+                )
+            ),
+        )
 
         summary_expense = (
             Expense.objects.filter(
                 date__range=(summary_start_date, summary_end_date)
-            )
-            .aggregate(total_expense=Sum("cost"))
+            ).aggregate(total_expense=Sum("cost"))
         )["total_expense"] or 0
 
         monthly_revenue = (
@@ -158,7 +157,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
             .values("month")
             .annotate(
                 total_income=Sum("trader_merchant_cost"),
-
                 total_commissions=Sum(
                     Case(
                         When(
@@ -174,9 +172,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         )
 
         monthly_expenses = (
-            Expense.objects.filter(
-                date__range=(monthly_start_date, monthly_end_date)
-            )
+            Expense.objects.filter(date__range=(monthly_start_date, monthly_end_date))
             .annotate(month=TruncMonth("date"))
             .values("month")
             .annotate(monthly_expense=Sum("cost"))
@@ -205,9 +201,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
         monthly_expenses_data = []
         shipments_per_month = []
         month_statistices = {}
-        
-        shipment_count_chart =(
-             Order.objects.filter(
+
+        shipment_count_chart = (
+            Order.objects.filter(
                 created__range=(shipment_start_date, shipment_end_date),
                 status__in=accepted_statuses,
             )
@@ -237,14 +233,13 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 {
                     "name": converted_monthly[month_number],
                     "total_income": float(item["total_income"] or 0),
-                    "total_commissions": float(
-                        item["total_commissions"] or 0
-                    ),
+                    "total_commissions": float(item["total_commissions"] or 0),
                     # It must be 'total_expenses' not 'total_delivery_expense'
                     "total_delivery_expense": float(month_expenses),
                     "net_profit": float(
                         (item["total_income"] or 0)
-                        - (item["total_commissions"] or 0) - month_expenses
+                        - (item["total_commissions"] or 0)
+                        - month_expenses
                     ),
                 }
             )
@@ -286,7 +281,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "total_commissions": summary_revenue.get("total_commissions") or 0,
             "total_expenses": summary_expense,
             "net_profit": (
-                (summary_revenue.get("total_revenue") or 0) - (summary_expense or 0)
+                (summary_revenue.get("total_revenue") or 0)
+                - (summary_expense or 0)
                 - (summary_revenue.get("total_commissions") or 0)
             ),
             "shipments_completed": monthly_revenue.count(),

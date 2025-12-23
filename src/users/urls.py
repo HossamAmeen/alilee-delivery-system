@@ -42,10 +42,13 @@ urlpatterns = [
         DriverViewSet.as_view({"get": "profile", "patch": "update_profile"}),
         name="driver-profile",
     ),
-    path("firebase/devices/", FirebaseDeviceRegisterAPIView.as_view(),
-         name="firebase-device-register"),
-
+    path(
+        "firebase/devices/",
+        FirebaseDeviceRegisterAPIView.as_view(),
+        name="firebase-device-register",
+    ),
 ]
+
 
 router = DefaultRouter()
 router.register(r"users", UserAccountViewSet, basename="users")
