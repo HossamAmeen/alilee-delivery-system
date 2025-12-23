@@ -95,3 +95,26 @@ class Driver(UserAccount):
     def save(self, **kwargs):
         self.role = UserRole.DRIVER
         return super().save(**kwargs)
+
+
+class FirebaseDevice(models.Model):
+    user = models.ForeignKey(
+        UserAccount,
+        on_delete=models.CASCADE,
+        related_name="firebase_devices",
+    )
+
+    token = models.CharField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+    )
+
+    last_seen = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "token"]),
+        ]
+
