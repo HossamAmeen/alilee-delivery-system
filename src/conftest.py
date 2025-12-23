@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 
-from users.models import UserAccount, UserRole
+from users.models import Trader, UserAccount, UserRole
 
 
 @pytest.fixture
@@ -43,6 +43,7 @@ def admin_client(admin_user):
     api_client = APIClient()
     api_client.force_authenticate(user=admin_user)
     return api_client
+
 
 @pytest.fixture
 def driver_client(trader):
