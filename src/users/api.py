@@ -8,7 +8,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers.user_account_serializers import FirebaseDeviceSerializer
 
 from orders.models import OrderStatus
 from users.models import Trader, UserAccount
@@ -17,7 +16,10 @@ from users.serializers.traders_serializers import (
     TraderListSerializer,
     TraderSerializer,
 )
-from users.serializers.user_account_serializers import UserAccountSerializer
+from users.serializers.user_account_serializers import (
+    FirebaseDeviceSerializer,
+    UserAccountSerializer,
+)
 from utilities.api import BaseViewSet
 
 from .models import FirebaseDevice
