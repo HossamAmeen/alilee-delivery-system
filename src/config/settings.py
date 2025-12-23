@@ -60,7 +60,6 @@ THIRD_PARTY_APPS = [
     "corsheaders",  # CORS
     "django_extensions",
     "django_softdelete",
-    'debug_toolbar',
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + LOCAL_APPS + THIRD_PARTY_APPS
@@ -92,7 +91,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = "config.urls"

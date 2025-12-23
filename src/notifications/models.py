@@ -4,7 +4,6 @@ from users.models import UserAccount
 from utilities.models.abstract_base_model import AbstractBaseModel
 
 from .helpers import chunks
-from .services import send_notification
 
 
 class Notification(AbstractBaseModel):
@@ -19,11 +18,12 @@ class Notification(AbstractBaseModel):
         return self.title
 
     def bulk_create(self, notification_objs, **kwargs):
-        created_notifications = []
+        from .services import send_notification_to_firebase
+        notification_ids = []
 
         for batch in chunks(notification_objs, 499):
             objs = super().bulk_create(batch, **kwargs)
-            created_notifications.extend(objs)
+            notification_ids.extend(obj.id for obj in objs)
 
-        send_notification(created_notifications)
-        return created_notifications
+        send_notification_to_firebase(notification_ids)
+        return notification_ids

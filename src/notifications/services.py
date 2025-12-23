@@ -1,12 +1,17 @@
 from firebase_admin import messaging
-
+from .models import Notification
 from .helpers import chunks
 
 BATCH_SIZE = 500
 
 
-def send_notification(notifications):
-
+def send_notification_to_firebase(notification_ids):
+    notifications = (
+            Notification.objects
+            .filter(id__in=notification_ids)
+            .select_related("user_account")
+            .prefetch_related("user_account__firebase_devices")
+        )
     for notification in notifications:
         tokens = list(notification.user_account.firebase_devices.all()
                       .values_list('token', flat=True))
