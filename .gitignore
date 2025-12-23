@@ -208,3 +208,6 @@ __marimo__/
 
 staticfiles/
 media/
+
+# Firebase service account key
+firebase_cred.json
