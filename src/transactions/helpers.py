@@ -12,7 +12,9 @@ def create_transaction(user_id, amount, transaction_type, order_id, notes=""):
 
 
 def roll_back_order_transactions(order_ids):
-    transactions = UserAccountTransaction.objects.filter(order_id__in=order_ids, is_rolled_back=False)
+    transactions = UserAccountTransaction.objects.filter(
+        order_id__in=order_ids, is_rolled_back=False
+    )
     for transaction in transactions:
         transaction.is_rolled_back = True
         transaction.notes = transaction.notes + " (استرجاع)"
@@ -22,7 +24,8 @@ def roll_back_order_transactions(order_ids):
                 user_account_id=transaction.user_account_id,
                 amount=transaction.amount,
                 transaction_type=TransactionType.DEPOSIT,
-                notes="مبلغ مسترجع الخاص بالطلب رقم " + transaction.order.tracking_number,
+                notes="مبلغ مسترجع الخاص بالطلب رقم "
+                + transaction.order.tracking_number,
                 order_id=transaction.order_id,
             )
         elif transaction.transaction_type == TransactionType.DEPOSIT:
@@ -30,9 +33,11 @@ def roll_back_order_transactions(order_ids):
                 user_account_id=transaction.user_account_id,
                 amount=transaction.amount,
                 transaction_type=TransactionType.WITHDRAW,
-                notes="مبلغ مسترجع الخاص بالطلب رقم " + transaction.order.tracking_number,
+                notes="مبلغ مسترجع الخاص بالطلب رقم "
+                + transaction.order.tracking_number,
                 order_id=transaction.order_id,
             )
+
 
 def create_order_transaction(user_id, amount, transaction_type, order_id, notes=""):
     already_exists = UserAccountTransaction.objects.filter(

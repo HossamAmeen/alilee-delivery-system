@@ -13,6 +13,7 @@ def update_user_account_balance_for_transaction(sender, instance, created, **kwa
         elif instance.transaction_type == TransactionType.DEPOSIT:
             instance.user_account.update_balance(-instance.amount)
 
+
 @receiver(post_save, sender=UserAccountTransaction)
 def send_notification_after_transaction(sender, instance, created, **kwargs):
     if created:
