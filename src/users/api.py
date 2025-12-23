@@ -109,6 +109,7 @@ class TraderViewSet(BaseViewSet):
 class FirebaseDeviceRegisterAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(request_body=FirebaseDeviceSerializer)
     def post(self, request):
         serializer = FirebaseDeviceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
