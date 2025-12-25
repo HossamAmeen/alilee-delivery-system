@@ -126,7 +126,7 @@ class FirebaseDeviceRegisterAPIView(APIView):
 
         if not created and device.user != user:
             device.user = user
-            device.save(update_fields=["last_seen"])
+            device.save(update_fields=["user", "last_seen"])
 
         return Response(
             {
@@ -135,3 +135,11 @@ class FirebaseDeviceRegisterAPIView(APIView):
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
+
+    @swagger_auto_schema(request_body=FirebaseDeviceSerializer)
+    def delete(self, request):
+        serializer = FirebaseDeviceSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data["token"]
+        FirebaseDevice.objects.filter(user=request.user, token=token).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

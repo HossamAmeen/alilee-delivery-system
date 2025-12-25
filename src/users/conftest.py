@@ -7,7 +7,7 @@ starts small and can be expanded later.
 
 import pytest
 
-from users.models import Driver, Trader, UserAccount, UserRole
+from users.models import Driver, FirebaseDevice, Trader, UserAccount, UserRole
 
 
 @pytest.fixture
@@ -91,3 +91,16 @@ def inactive_driver(db):
         role=UserRole.DRIVER,
         is_active=False,
     )
+
+
+@pytest.fixture
+def user_client(api_client, admin):
+    """Create and return an authenticated API client."""
+    api_client.force_authenticate(user=admin)
+    return api_client
+
+
+@pytest.fixture
+def firebase_device(admin):
+    """Create and return a FirebaseDevice instance."""
+    return FirebaseDevice.objects.create(user=admin, token="test-firebase-token-123")

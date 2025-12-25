@@ -16,7 +16,7 @@ from orders.serializers import (
     OrderRetrieveSerializer,
     OrderSerializer,
     OrderTrackingNumberSerializer,
-    ReferenceCodeSerializer
+    ReferenceCodeSerializer,
 )
 from orders.services import DeliveryAssignmentService
 from transactions.helpers import roll_back_order_transactions
@@ -301,26 +301,42 @@ class OrderAcceptAPIView(APIView):
         driver = Driver.objects.filter(id=request.user.id).first()
         if not driver:
             raise CustomValidationError(message="Driver not found.")
-        orders = Order.objects.filter(reference_code__in=serializer.validated_data["reference_codes"])
+        orders = Order.objects.filter(
+            reference_code__in=serializer.validated_data["reference_codes"]
+        )
         errors = []
         if not orders:
-            raise CustomValidationError(message="لا توجد طلبات بهذه اكواد التعريفة", errors=errors)
+            raise CustomValidationError(
+                message="لا توجد طلبات بهذه اكواد التعريفة", errors=errors
+            )
         if orders.count() != len(serializer.validated_data["reference_codes"]):
             orders_reference_codes = orders.values_list("reference_code", flat=True)
             for reference_code in serializer.validated_data["reference_codes"]:
                 if reference_code not in orders_reference_codes:
-                    errors.append({reference_code: f"هذا الطلب {reference_code} غير موجود."})
+                    errors.append(
+                        {reference_code: f"هذا الطلب {reference_code} غير موجود."}
+                    )
 
             raise CustomValidationError(message="بعض الطلبات غير موجودة", errors=errors)
 
         for order in orders:
             if order.status not in [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]:
-                errors.append({order.reference_code: f"هذا الطلب {order.reference_code} غير قابل للقبول."})
+                errors.append(
+                    {
+                        order.reference_code: f"هذا الطلب {order.reference_code} غير قابل للقبول."
+                    }
+                )
             elif order.driver:
-                errors.append({order.reference_code: f"هذا الطلب {order.reference_code} مخصص ل{order.driver.full_name}."})
+                errors.append(
+                    {
+                        order.reference_code: f"هذا الطلب {order.reference_code} مخصص ل{order.driver.full_name}."
+                    }
+                )
 
         if errors:
-            raise CustomValidationError(message="بعض الطلبات غير قابلة للقبول", errors=errors)
+            raise CustomValidationError(
+                message="بعض الطلبات غير قابلة للقبول", errors=errors
+            )
 
         response_data = {
             "data": [
