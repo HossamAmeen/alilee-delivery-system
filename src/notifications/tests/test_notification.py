@@ -12,6 +12,7 @@ def driver_user(db):
     )
     return user
 
+
 @pytest.fixture
 def admin_user(db):
     user = UserAccount.objects.create_user(

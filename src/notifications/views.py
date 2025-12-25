@@ -8,7 +8,9 @@ from users.models import UserRole
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [
+        IsAuthenticated,
+    ]
     serializer_class = NotificationSerializer
     filterset_class = NotificationFilter
 
@@ -20,5 +22,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        response.data["unread_count"] = self.get_queryset().filter(is_read=False).count()
+        response.data["unread_count"] = (
+            self.get_queryset().filter(is_read=False).count()
+        )
         return response

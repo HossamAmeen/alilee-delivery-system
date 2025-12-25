@@ -8,4 +8,6 @@ from .services import send_notification_to_firebase
 @receiver(post_save, sender=Notification)
 def send_notification_for_user(sender, instance, created, **kwargs):
     if created:
-        send_notification_to_firebase([instance.id], )
+        send_notification_to_firebase(
+            [instance.id],
+        )

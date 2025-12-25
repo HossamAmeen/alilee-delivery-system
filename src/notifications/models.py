@@ -19,6 +19,7 @@ class Notification(AbstractBaseModel):
 
     def bulk_create(self, notification_objs, **kwargs):
         from .services import send_notification_to_firebase
+
         notification_ids = []
 
         for batch in chunks(notification_objs, 499):
