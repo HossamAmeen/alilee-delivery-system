@@ -15,6 +15,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
     filterset_class = NotificationFilter
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Notification.objects.none()
         queryset = Notification.objects.order_by("-id")
         if self.request.user.role == UserRole.DRIVER:
             return queryset.filter(user_account=self.request.user)
