@@ -21,6 +21,7 @@ from django.urls import include, path, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from django.contrib import admin
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -35,6 +36,8 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     # API URLs
+    path("admin/", admin.site.urls),
+
     path("api/", include("users.urls")),
     path("api/transactions/", include("transactions.urls")),
     path("api/geo/", include("geo.urls")),
