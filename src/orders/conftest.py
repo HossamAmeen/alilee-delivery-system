@@ -102,3 +102,10 @@ def created_order(admin_client, trader, delivery_zone, trader_delivery_zone, db)
         latitude="30.044400",
         customer=customer,
     )
+
+
+@pytest.fixture
+def driver_client(api_client, driver):
+    """Create and return an authenticated API client with driver user."""
+    api_client.force_authenticate(user=driver)
+    return api_client

@@ -315,7 +315,7 @@ class OrderAcceptAPIView(APIView):
         for order in orders:
             if order.status not in [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]:
                 errors.append({order.tracking_number: f"Order {order.tracking_number} with status {order.status} cannot be accepted."})
-            if order.driver:
+            elif order.driver:
                 errors.append({order.tracking_number: f"Order {order.tracking_number} is already assigned to {order.driver.full_name}."})
 
         if errors:
