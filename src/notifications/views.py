@@ -12,6 +12,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Notification.objects.order_by("-id")
-        if self.request.user == UserRole.DRIVER:
+        if self.request.user.role == UserRole.DRIVER:
             return queryset.filter(user_account=self.request.user)
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response.data["unread_count"] = self.get_queryset().filter(is_read=False).count()
+        return response
