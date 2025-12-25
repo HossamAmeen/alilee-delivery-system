@@ -16,7 +16,7 @@ from orders.serializers import (
     OrderRetrieveSerializer,
     OrderSerializer,
     OrderTrackingNumberSerializer,
-    TrackingNumberSerializer
+    ReferenceCodeSerializer
 )
 from orders.services import DeliveryAssignmentService
 from transactions.helpers import roll_back_order_transactions
@@ -253,7 +253,7 @@ class OrderAcceptAPIView(APIView):
 
     @swagger_auto_schema(
         operation_description="Accept multiple orders for the authenticated driver",
-        request_body=TrackingNumberSerializer,
+        request_body=ReferenceCodeSerializer,
         responses={
             200: openapi.Schema(
                 type=openapi.TYPE_ARRAY,
@@ -296,38 +296,37 @@ class OrderAcceptAPIView(APIView):
         },
     )
     def post(self, request):
-        serializer = TrackingNumberSerializer(data=request.data)
+        serializer = ReferenceCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         driver = Driver.objects.filter(id=request.user.id).first()
         if not driver:
             raise CustomValidationError(message="Driver not found.")
-        orders = Order.objects.filter(tracking_number__in=serializer.validated_data["tracking_numbers"])
+        orders = Order.objects.filter(reference_code__in=serializer.validated_data["reference_codes"])
         errors = []
         if not orders:
-            raise CustomValidationError(message="No orders available for acceptance.", errors=errors)
-        if orders.count() != len(serializer.validated_data["tracking_numbers"]):
-            orders_tracking_numbers = orders.values_list("tracking_number", flat=True)
-            for tracking_number in serializer.validated_data["tracking_numbers"]:
-                if tracking_number not in orders_tracking_numbers:
-                    errors.append({tracking_number: f"Order {tracking_number} not found."})
+            raise CustomValidationError(message="لا توجد طلبات بهذه اكواد التعريفة", errors=errors)
+        if orders.count() != len(serializer.validated_data["reference_codes"]):
+            orders_reference_codes = orders.values_list("reference_code", flat=True)
+            for reference_code in serializer.validated_data["reference_codes"]:
+                if reference_code not in orders_reference_codes:
+                    errors.append({reference_code: f"هذا الطلب {reference_code} غير موجود."})
 
-            raise CustomValidationError(message="some of orders not found.", errors=errors)
+            raise CustomValidationError(message="بعض الطلبات غير موجودة", errors=errors)
 
         for order in orders:
             if order.status not in [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]:
-                errors.append({order.tracking_number: f"Order {order.tracking_number} with status {order.status} cannot be accepted."})
-            if order.driver:
-                errors.append({order.tracking_number: f"Order {order.tracking_number} is already assigned to {order.driver.full_name}."})
+                errors.append({order.reference_code: f"هذا الطلب {order.reference_code} غير قابل للقبول."})
+            elif order.driver:
+                errors.append({order.reference_code: f"هذا الطلب {order.reference_code} مخصص ل{order.driver.full_name}."})
 
         if errors:
-            raise CustomValidationError(message="some of orders not found.", errors=errors)
+            raise CustomValidationError(message="بعض الطلبات غير قابلة للقبول", errors=errors)
 
         response_data = {
             "data": [
                 {
-                    "tracking_number": order.tracking_number,
+                    "reference_code": order.reference_code,
                     "assigned_driver": driver.full_name,
-                    "status": order.status,
                 }
                 for order in orders
             ]
