@@ -16,6 +16,7 @@ from orders.serializers import (
     OrderRetrieveSerializer,
     OrderSerializer,
     OrderTrackingNumberSerializer,
+    TrackingNumberSerializer
 )
 from orders.services import DeliveryAssignmentService
 from transactions.helpers import roll_back_order_transactions
@@ -227,6 +228,82 @@ class OrderDriverAssignAPIView(APIView):
             raise CustomValidationError(
                 message="One or more orders cannot be assigned."
             )
+        response_data = {
+            "data": [
+                {
+                    "tracking_number": order.tracking_number,
+                    "assigned_driver": driver.full_name,
+                    "status": order.status,
+                }
+                for order in orders
+            ]
+        }
+
+        orders.update(driver=driver, status=OrderStatus.ASSIGNED)
+
+        return Response(
+            response_data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class OrderAcceptAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsDriverPermission]
+
+    @swagger_auto_schema(
+        operation_description="Accept multiple orders for the authenticated driver",
+        request_body=TrackingNumberSerializer,
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "tracking_number": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Tracking number of the order",
+                        ),
+                        "assigned_driver": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Full name of the assigned driver",
+                        ),
+                        "status": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Current status of the order",
+                        ),
+                    },
+                ),
+            ),
+            400: "Bad Request",
+        },
+    )
+    def post(self, request):
+        serializer = TrackingNumberSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        driver = Driver.objects.filter(id=request.user.id).first()
+        if not driver:
+            raise CustomValidationError(message="Driver not found.")
+        orders = Order.objects.filter(tracking_number__in=serializer.validated_data["tracking_numbers"])
+        errors = []
+        if not orders:
+            raise CustomValidationError(message="No orders available for acceptance.", errors=errors)
+        if orders.count() != len(serializer.validated_data["tracking_numbers"]):
+            orders_tracking_numbers = orders.values_list("tracking_number", flat=True)
+            for tracking_number in serializer.validated_data["tracking_numbers"]:
+                if tracking_number not in orders_tracking_numbers:
+                    errors.append({tracking_number: f"Order {tracking_number} not found."})
+
+            raise CustomValidationError(message="some of orders not found.", errors=errors)
+
+        for order in orders:
+            if order.status not in [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]:
+                errors.append({order.tracking_number: f"Order {order.tracking_number} with status {order.status} cannot be accepted."})
+            if order.driver:
+                errors.append({order.tracking_number: f"Order {order.tracking_number} is already assigned to {order.driver.full_name}."})
+
+        if errors:
+            raise CustomValidationError(message="some of orders not found.", errors=errors)
+
         response_data = {
             "data": [
                 {

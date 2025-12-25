@@ -17,6 +17,11 @@ urlpatterns = [
         name="order-assign-driver",
     ),
     path(
+        "accept-orders/",
+        OrderAcceptAPIView.as_view(),
+        name="order-accept",
+    ),
+    path(
         "orders/assign/",
         OrderDriverAssignAPIView.as_view(),
         name="order-assign-driver",

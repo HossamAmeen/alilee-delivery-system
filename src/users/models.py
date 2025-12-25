@@ -86,6 +86,11 @@ class Trader(UserAccount):
         default=TraderStatus.ACTIVE,
     )
 
+    def save(self, **kwargs):
+        self.role = UserRole.TRADER
+        return super().save(**kwargs)
+
+
 
 class Driver(UserAccount):
     vehicle_number = models.CharField(max_length=20, null=True)
