@@ -26,6 +26,7 @@ from utilities.exceptions import CustomValidationError
 
 
 class OrderViewSet(BaseViewSet):
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = OrderFilter
     search_fields = [
