@@ -274,7 +274,24 @@ class OrderAcceptAPIView(APIView):
                     },
                 ),
             ),
-            400: "Bad Request",
+            400: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                    "errors": openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Items(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                "tracking_number": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                "message": openapi.Schema(type=openapi.TYPE_STRING),
+                            },
+                        ),
+                    ),
+                },
+            ),
         },
     )
     def post(self, request):

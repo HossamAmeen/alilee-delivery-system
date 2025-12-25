@@ -90,6 +90,9 @@ class Trader(UserAccount):
         self.role = UserRole.TRADER
         return super().save(**kwargs)
 
+    class Meta:
+        verbose_name = "Trader"
+        verbose_name_plural = "Traders"
 
 
 class Driver(UserAccount):
@@ -100,6 +103,10 @@ class Driver(UserAccount):
     def save(self, **kwargs):
         self.role = UserRole.DRIVER
         return super().save(**kwargs)
+
+    class Meta:
+        verbose_name = "Driver"
+        verbose_name_plural = "Drivers"
 
 
 class FirebaseDevice(models.Model):
