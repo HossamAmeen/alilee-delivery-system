@@ -6,18 +6,20 @@ from orders.models import Order, OrderStatus
 
 @pytest.mark.django_db
 class TestOrderAcceptAPIView:
+    url = reverse("order-accept")
+
     def test_successful_order_acceptance(self, driver_client, created_order, driver):
         """Test that a driver can successfully accept an order."""
-        url = reverse("order-accept")
+        
         payload = {
-            "tracking_numbers": [created_order.tracking_number]
+            "reference_codes": [created_order.reference_code]
         }
 
-        response = driver_client.post(url, data=payload, format="json")
+        response = driver_client.post(self.url, data=payload, format="json")
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["data"][0]["tracking_number"] == created_order.tracking_number
-        assert response.data["data"][0]["status"] == OrderStatus.ASSIGNED # The status in response is BEFORE update in the view implementation
+        assert response.data["data"][0]["reference_code"] == created_order.reference_code
+        assert response.data["data"][0]["assigned_driver"] == driver.full_name
 
         # Verify DB update
         created_order.refresh_from_db()
@@ -38,12 +40,12 @@ class TestOrderAcceptAPIView:
             customer=created_order.customer
         )
         
-        url = reverse("order-accept")
+        
         payload = {
-            "tracking_numbers": [created_order.tracking_number, order2.tracking_number]
+            "reference_codes": [created_order.reference_code, order2.reference_code]
         }
         
-        response = driver_client.post(url, data=payload, format="json")
+        response = driver_client.post(self.url, data=payload, format="json")
         
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["data"]) == 2
@@ -57,15 +59,14 @@ class TestOrderAcceptAPIView:
 
     def test_order_not_found(self, driver_client):
         """Test error when tracking number doesn't exist."""
-        url = reverse("order-accept")
         payload = {
-            "tracking_numbers": ["NONEXISTENT"]
+            "reference_codes": ["NONEXISTENT"]
         }
         
-        response = driver_client.post(url, data=payload, format="json")
+        response = driver_client.post(self.url, data=payload, format="json")
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "No orders available for acceptance" in response.data["message"]
+        assert "لا توجد طلبات بهذه اكواد التعريفة" in response.data["message"]
         # When no orders are found at all, errors list is empty in the view implementation
         assert response.data["errors"] == []
 
@@ -74,53 +75,47 @@ class TestOrderAcceptAPIView:
         created_order.status = OrderStatus.DELIVERED
         created_order.save()
         
-        url = reverse("order-accept")
         payload = {
-            "tracking_numbers": [created_order.tracking_number]
+            "reference_codes": [created_order.reference_code]
         }
         
-        response = driver_client.post(url, data=payload, format="json")
+        response = driver_client.post(self.url, data=payload, format="json")
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        # The error message in api.py uses "some of orders not found." when errors list is populated
-        assert "some of orders not found" in response.data["message"]
-        assert any(created_order.tracking_number in str(err) for err in response.data["errors"])
-        assert "cannot be accepted" in str(response.data["errors"])
+        assert "بعض الطلبات غير قابلة للقبول" in response.data["message"]
+        assert any(created_order.reference_code in str(err) for err in response.data["errors"])
+        assert f"هذا الطلب {created_order.reference_code} غير قابل للقبول." in str(response.data["errors"])
 
     def test_order_already_assigned(self, driver_client, created_order, inactive_driver):
         """Test error when order already has a driver."""
         created_order.driver = inactive_driver # Assign to another driver
         created_order.save()
         
-        url = reverse("order-accept")
         payload = {
-            "tracking_numbers": [created_order.tracking_number]
+            "reference_codes": [created_order.reference_code]
         }
         
-        response = driver_client.post(url, data=payload, format="json")
+        response = driver_client.post(self.url, data=payload, format="json")
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "already assigned" in str(response.data["errors"])
+        assert f"هذا الطلب {created_order.reference_code} مخصص ل{created_order.driver.full_name}." in str(response.data["errors"])
 
     def test_unauthorized_access(self, api_client, created_order):
         """Test that unauthenticated users cannot accept orders."""
-        url = reverse("order-accept")
         payload = {
-            "tracking_numbers": [created_order.tracking_number]
+            "reference_codes": [created_order.reference_code]
         }
         
-        response = api_client.post(url, data=payload, format="json")
+        response = api_client.post(self.url, data=payload, format="json")
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_non_driver_cannot_accept(self, admin_client, created_order):
         """Test that non-driver users (e.g. admin) cannot accept orders if IsDriverPermission is enforced."""
-        url = reverse("order-accept")
         payload = {
-            "tracking_numbers": [created_order.tracking_number]
+            "reference_codes": [created_order.reference_code]
         }
         
-        response = admin_client.post(url, data=payload, format="json")
+        response = admin_client.post(self.url, data=payload, format="json")
         
-        # Depending on how IsDriverPermission is implemented, this might be 403
         assert response.status_code == status.HTTP_403_FORBIDDEN

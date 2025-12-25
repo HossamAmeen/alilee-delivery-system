@@ -284,8 +284,8 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             return obj.product_cost + obj.trader_merchant_cost
 
 
-class TrackingNumberSerializer(serializers.Serializer):
-    tracking_numbers = serializers.ListField(child=serializers.CharField())
+class ReferenceCodeSerializer(serializers.Serializer):
+    reference_codes = serializers.ListField(child=serializers.CharField())
 
 
 class OrderTrackingNumberSerializer(serializers.ModelSerializer):
