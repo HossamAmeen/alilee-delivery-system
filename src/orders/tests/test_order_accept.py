@@ -86,8 +86,9 @@ class TestOrderAcceptAPIView:
         assert any(
             created_order.reference_code in str(err) for err in response.data["errors"]
         )
-        assert f"هذا الطلب {created_order.reference_code} غير قابل للقبول." in str(
-            response.data["errors"]
+        assert (
+            f"هذا الطلب {created_order.reference_code} غير قابل للقبول لأنه {created_order.status}."
+            in str(response.data["errors"])
         )
 
     def test_order_already_assigned(

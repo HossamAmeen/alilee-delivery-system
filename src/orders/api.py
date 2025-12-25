@@ -317,21 +317,20 @@ class OrderAcceptAPIView(APIView):
                         {reference_code: f"هذا الطلب {reference_code} غير موجود."}
                     )
 
-            raise CustomValidationError(message="بعض الطلبات غير موجودة", errors=errors)
-
         for order in orders:
-            if order.status not in [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]:
-                errors.append(
-                    {
-                        order.reference_code: f"هذا الطلب {order.reference_code} غير قابل للقبول."
-                    }
-                )
-            elif order.driver:
+            if order.driver:
                 errors.append(
                     {
                         order.reference_code: f"هذا الطلب {order.reference_code} مخصص ل{order.driver.full_name}."
                     }
                 )
+            elif order.status not in [OrderStatus.CREATED, OrderStatus.IN_PROGRESS]:
+                errors.append(
+                    {
+                        order.reference_code: f"هذا الطلب {order.reference_code} غير قابل للقبول لأنه {order.status}."
+                    }
+                )
+            
 
         if errors:
             raise CustomValidationError(
