@@ -38,9 +38,12 @@ def send_notification_to_firebase(notification_ids):
                 failed_tokens = []
                 for res in response.responses:
                     if not res.success:
-                        for idx, resp in enumerate(res):
-                            if not resp.success:
-                                failed_tokens.append(token_batch[idx])
+                        try:
+                            for idx, resp in enumerate(res):
+                                if not resp.success:
+                                    failed_tokens.append(token_batch[idx])
+                        except Exception as e:
+                            print(e)
                                 #  Needs action here in case of field tokens
     else:
         message = messaging.Message(notification=notif, token=tokens[0])
