@@ -44,7 +44,7 @@ def send_notification_to_firebase(notification_ids):
                                     failed_tokens.append(token_batch[idx])
                         except Exception as e:
                             print(e)
-                                #  Needs action here in case of field tokens
+                            #  Needs action here in case of field tokens
     else:
         message = messaging.Message(notification=notif, token=tokens[0])
         response = messaging.send(message)

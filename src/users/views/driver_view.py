@@ -87,21 +87,6 @@ class DriverViewSet(BaseViewSet):
         else:
             return CreateUpdateDriverSerializer
 
-    @swagger_auto_schema(
-        operation_description="Retrieve a driver by ID",
-        manual_parameters=[
-            openapi.Parameter(
-                "date",
-                openapi.IN_QUERY,
-                description="Date to filter prices (YYYY-MM-DD). If not provided, all prices are returned.",
-                type=openapi.TYPE_STRING,
-                format=openapi.FORMAT_DATE,
-            )
-        ],
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -143,6 +128,22 @@ class DriverInsightsAPIView(APIView):
 
     @swagger_auto_schema(
         operation_description="Get insights for the authenticated driver",
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_QUERY,
+                description="Start date to filter prices (YYYY-MM-DD). If not provided, all prices are returned.",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE,
+            ),
+            openapi.Parameter(
+                "end_date",
+                openapi.IN_QUERY,
+                description="End date to filter prices (YYYY-MM-DD). If not provided, all prices are returned.",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE,
+            ),
+        ],
         responses={
             200: openapi.Schema(
                 type=openapi.TYPE_OBJECT,
@@ -177,7 +178,9 @@ class DriverInsightsAPIView(APIView):
         },
     )
     def get(self, request):
-        serializer = DriverInsightsSerializer(request.user)
+        serializer = DriverInsightsSerializer(
+            request.user, context=request.query_params
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

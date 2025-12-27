@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -97,7 +99,7 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
         elif instance.product_payment_status == ProductPaymentStatus.COD:
             create_order_transaction(
                 user_id=instance.driver_id,
-                amount=instance.product_cost + instance.trader_merchant_cost,
+                amount=instance.product_cost + Decimal(instance.trader_merchant_cost),
                 transaction_type=TransactionType.WITHDRAW,
                 order_id=instance.id,
                 notes=f"سحب فلوس المنتج الخاص وفلوس الشحن الخاص بالمنطقة في {instance.tracking_number}",

@@ -330,7 +330,6 @@ class OrderAcceptAPIView(APIView):
                         order.reference_code: f"هذا الطلب {order.reference_code} غير قابل للقبول لأنه {order.status}."
                     }
                 )
-            
 
         if errors:
             raise CustomValidationError(

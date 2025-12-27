@@ -38,6 +38,19 @@ def trader(db):
 
 
 @pytest.fixture
+def driver(db):
+    """Create and return an active driver for testing."""
+    return UserAccount.objects.create_user(
+        email="driver@example.com",
+        password="testpass123",
+        full_name="Test Driver",
+        role=UserRole.DRIVER,
+        status="active",
+        is_active=True,
+    )
+
+
+@pytest.fixture
 def admin_client(admin_user):
     """Create and return an authenticated API client with admin user."""
     api_client = APIClient()
@@ -46,7 +59,7 @@ def admin_client(admin_user):
 
 
 @pytest.fixture
-def driver_client(trader):
+def driver_client(driver):
     api_client = APIClient()
-    api_client.force_authenticate(user=trader)
+    api_client.force_authenticate(user=driver)
     return api_client

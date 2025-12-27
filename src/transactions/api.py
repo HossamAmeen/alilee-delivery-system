@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from transactions.filters import ExpenseFilter
+from transactions.filters import ExpenseFilter, UserAccountTransactionFilter
 from transactions.models import Expense, UserAccountTransaction
 from transactions.serializers import (
     ExpenseSerializer,
@@ -29,8 +29,8 @@ class UserAccountTransactionViewSet(BaseViewSet):
     queryset = UserAccountTransaction.objects.order_by("-id")
     serializer_class = UserAccountTransactionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = UserAccountTransactionFilter
     http_method_names = ["get", "post"]
-    filterset_fields = ["transaction_type", "user_account"]
     ordering = ["-id"]
 
     def get_serializer_class(self):

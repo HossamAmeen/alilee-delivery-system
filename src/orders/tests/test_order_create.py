@@ -118,11 +118,11 @@ def test_successful_order_creation(
         order.delivery_zone.id == valid_order_payload["delivery_zone"]
     ), "Order delivery zone should match payload"
     assert order.note == valid_order_payload["note"], "Order note should match payload"
-    assert (
-        str(order.longitude) == valid_order_payload["longitude"]
+    assert Decimal(order.longitude) == Decimal(
+        valid_order_payload["longitude"]
     ), "Order longitude should match payload"
-    assert (
-        str(order.latitude) == valid_order_payload["latitude"]
+    assert Decimal(order.latitude) == Decimal(
+        valid_order_payload["latitude"]
     ), "Order latitude should match payload"
 
     # Assert trader assigned correctly

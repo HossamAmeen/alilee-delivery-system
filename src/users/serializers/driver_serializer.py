@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django.db.models import Count, Q, Sum
 from rest_framework import exceptions, serializers
 from rest_framework_simplejwt.serializers import (
@@ -9,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from orders.models import Order, OrderStatus
 from transactions.serializers import UserAccountTransactionSerializer
 from users.models import Driver, UserRole
+from utilities.constant import DEFAULT_START_DATE
 from utilities.exceptions import CustomValidationError
 
 
@@ -172,7 +175,12 @@ class DriverInsightsSerializer(serializers.Serializer):
     )
 
     def to_representation(self, instance):
-        aggregates = Order.objects.filter(driver=instance).aggregate(
+        start_date = self.context.get("start_date", DEFAULT_START_DATE)
+        end_date = self.context.get("end_date", date.today() + timedelta(days=1))
+
+        aggregates = Order.objects.filter(
+            driver=instance, created__range=(start_date, end_date)
+        ).aggregate(
             total_delivery_cost=Sum(
                 "delivery_cost", filter=Q(status=OrderStatus.DELIVERED)
             ),
@@ -191,6 +199,8 @@ class DriverInsightsSerializer(serializers.Serializer):
         )
 
         return {
+            "start_date": start_date,
+            "end_date": end_date,
             "balance": instance.driver.balance,
             "total_earnings": total_earnings,
             "delivered_order_count": aggregates["delivered_order_count"],

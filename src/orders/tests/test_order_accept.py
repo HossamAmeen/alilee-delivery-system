@@ -38,7 +38,6 @@ class TestOrderAcceptAPIView:
             reference_code="REF67890",
             product_cost=Decimal("100.00"),
             delivery_cost=Decimal("10.00"),
-            extra_delivery_cost=Decimal("0.00"),
             delivery_zone=delivery_zone,
             trader=trader,
             status=OrderStatus.CREATED,

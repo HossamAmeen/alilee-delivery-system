@@ -8,9 +8,8 @@ from rest_framework.serializers import ModelSerializer
 from orders.models import Order, OrderStatus
 from transactions.models import Expense, UserAccountTransaction
 from users.serializers.user_account_serializers import SingleUserAccountSerializer
+from utilities.constant import DEFAULT_START_DATE
 from utilities.exceptions import CustomValidationError
-
-DEFAULT_START_DATE = "1024-12-01"
 
 
 class UserAccountTransactionSerializer(ModelSerializer):
