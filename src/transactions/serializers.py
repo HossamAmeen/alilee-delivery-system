@@ -114,8 +114,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
     def to_representation(self, instance):
         today = date.today()
 
-        summary_start_date = instance.get("summary_start_date", today.replace(day=1))
-        summary_end_date = instance.get("summary_end_date", today)
+        summary_start_date = instance.get("start_date", today.replace(day=1))
+        summary_end_date = instance.get("end_date", today)
 
         monthly_start_date = instance.get("monthly_start_date", DEFAULT_START_DATE)
         monthly_end_date = instance.get("monthly_end_date", today)
