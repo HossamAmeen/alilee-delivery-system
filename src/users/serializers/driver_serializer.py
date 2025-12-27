@@ -23,6 +23,7 @@ class ListDriverSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "full_name",
+            "balance",
             "vehicle_number",
             "license_number",
             "sales",

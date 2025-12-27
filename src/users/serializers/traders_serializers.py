@@ -41,7 +41,6 @@ class TraderListSerializer(serializers.ModelSerializer):
             "phone_number",
             "balance",
             "is_active",
-            "status",
             "total_sales",
             "orders_count",
             "created",
