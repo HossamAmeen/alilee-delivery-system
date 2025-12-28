@@ -105,9 +105,7 @@ class Order(AbstractBaseModel):
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = str(uuid.uuid4().int)[:12]
-        self.total_cost = (
-            self.product_cost + self.delivery_cost + self.extra_delivery_cost
-        )
+        self.total_cost = 0 # TODO: calculate total cost
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -127,3 +125,12 @@ class Order(AbstractBaseModel):
     def status_ar(self):
         """Return the Arabic label for the current order status."""
         return self.STATUS_AR.get(self.status, self.status)
+
+    @property
+    def total_cost_for_driver(self):
+        if self.product_payment_status == ProductPaymentStatus.PAID:
+            return 0
+        if self.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
+            return self.trader_merchant_cost
+        else:
+            return self.product_cost

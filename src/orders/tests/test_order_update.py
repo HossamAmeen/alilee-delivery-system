@@ -288,16 +288,10 @@ class TestUpdateOrder:
         ), "Transaction should be created"
 
         # update order status to delivered again
-        print(update_payload)
         response = admin_client.patch(url, data=update_payload, format="json")
         assert (
             response.status_code == status.HTTP_200_OK
         ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
-        print(
-            UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=driver.id
-            ).values("is_rolled_back")
-        )
         assert (
             UserAccountTransaction.objects.filter(
                 order_id=created_order.id, user_account_id=driver.id

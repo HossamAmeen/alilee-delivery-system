@@ -9,7 +9,7 @@ from users.serializers.driver_serializer import SingleDriverSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer
 from utilities.exceptions import CustomValidationError
 
-from .models import Customer, Order
+from orders.models import Customer, Order
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -168,12 +168,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_cost(self, obj):
-        if obj.product_payment_status == ProductPaymentStatus.PAID:
-            return 0
-        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
-            return obj.trader_merchant_cost
-        else:
-            return obj.product_cost + obj.trader_merchant_cost
+        return obj.total_cost_for_driver
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -203,12 +198,7 @@ class OrderListSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_cost(self, obj):
-        if obj.product_payment_status == ProductPaymentStatus.PAID:
-            return 0
-        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
-            return obj.trader_merchant_cost
-        else:
-            return obj.product_cost + obj.trader_merchant_cost
+        return obj.total_cost_for_driver
 
 
 class SingleOrderSerializer(serializers.ModelSerializer):
@@ -245,12 +235,7 @@ class SingleOrderSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_cost(self, obj):
-        if obj.product_payment_status == ProductPaymentStatus.PAID:
-            return 0
-        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
-            return obj.trader_merchant_cost
-        else:
-            return obj.product_cost + obj.trader_merchant_cost
+        return obj.total_cost_for_driver
 
 
 class OrderTraderSerializer(serializers.ModelSerializer):
@@ -276,12 +261,7 @@ class OrderTraderSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_cost(self, obj):
-        if obj.product_payment_status == ProductPaymentStatus.PAID:
-            return 0
-        if obj.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
-            return obj.trader_merchant_cost
-        else:
-            return obj.product_cost + obj.trader_merchant_cost
+        return obj.total_cost_for_driver
 
 
 class ReferenceCodeSerializer(serializers.Serializer):

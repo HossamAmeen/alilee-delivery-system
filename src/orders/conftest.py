@@ -105,6 +105,31 @@ def created_order(admin_client, trader, delivery_zone, trader_delivery_zone, db)
 
 
 @pytest.fixture
+def assigned_order(trader, delivery_zone, driver, db):
+    """Create an order via API and return the order instance."""
+    # Create customer first
+    customer = Customer.objects.create(
+        name="John Doe",
+        address="123 Main Street",
+        phone="+201234567890")
+
+    return Order.objects.create(
+        reference_code="REF12345",
+        product_cost=Decimal("100.00"),
+        delivery_cost=Decimal("10.00"),
+        extra_delivery_cost=Decimal("5.00"),
+        delivery_zone=delivery_zone,
+        trader=trader,
+        driver=driver,
+        status=OrderStatus.ASSIGNED,
+        product_payment_status=ProductPaymentStatus.COD,
+        note="Initial order note",
+        longitude="31.235700",
+        latitude="30.044400",
+        customer=customer,
+    )
+
+@pytest.fixture
 def driver_client(api_client, driver):
     """Create and return an authenticated API client with driver user."""
     api_client.force_authenticate(user=driver)
