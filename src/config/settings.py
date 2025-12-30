@@ -10,10 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -178,6 +181,25 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
 }
 
+# Sentry Configuration
+
+SENTRY_ENABLED = env.bool("SENTRY_ENABLED")
+SENTRY_DSN = env.str("SENTRY_DSN", default=None)
+
+if SENTRY_ENABLED and SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        environment=env.str("DJANGO_ENV", default="development"),
+        send_default_pii=False,
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', default=0.0),
+        ignore_errors=[
+            "django.http.Http404",
+            "django.core.exceptions.PermissionDenied",
+        ],
+    )
+
+# Swagger Configuration
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
