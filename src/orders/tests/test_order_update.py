@@ -11,10 +11,6 @@ from rest_framework import status
 from orders.models import OrderStatus, ProductPaymentStatus
 from transactions.models import UserAccountTransaction
 
-# ============================================================================
-# TEST CASES
-# ============================================================================
-
 
 class TestUpdateOrder:
     def test_unauthorized_update(self, api_client, created_order):
@@ -93,11 +89,11 @@ class TestUpdateOrder:
             UserAccountTransaction.objects.filter(
                 order_id=created_order.id, user_account_id=trader.id
             ).count()
-            == 1
+            == 2
         ), "Transaction should be created"
         trader.refresh_from_db()
         assert (
-            trader.balance == -1 * created_order.product_cost
+            trader.balance == -1 * created_order.product_cost + created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
     def test_update_order_with_product_payment_status_paid_success(
@@ -354,11 +350,11 @@ class TestUpdateOrder:
             UserAccountTransaction.objects.filter(
                 order_id=created_order.id, user_account_id=trader.id
             ).count()
-            == 1
+            == 2
         ), "Transaction should be created"
         trader.refresh_from_db()
         assert (
-            trader.balance == -1 * created_order.product_cost
+            trader.balance == -1 * created_order.product_cost + created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
         update_payload = {"status": OrderStatus.CREATED}

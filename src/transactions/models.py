@@ -8,6 +8,7 @@ from utilities.models.abstract_base_model import AbstractBaseModel
 class TransactionType(models.TextChoices):
     WITHDRAW = "withdraw", "withdraw"
     DEPOSIT = "deposit", "deposit"
+    EXPENSE = "expense", "expense"
 
 
 class UserAccountTransaction(AbstractBaseModel):

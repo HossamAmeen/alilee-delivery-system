@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
@@ -65,10 +66,10 @@ class UserAccount(AbstractUser, AbstractBaseModel):
 
     def update_balance(self, amount):
         if self.role == UserRole.DRIVER:
-            self.driver.balance += amount
+            self.driver.balance += Decimal(amount)
             self.driver.save()
         if self.role == UserRole.TRADER:
-            self.trader.balance += amount
+            self.trader.balance += Decimal(amount)
             self.trader.save()
 
 

@@ -1,5 +1,4 @@
-from datetime import date
-
+from datetime import date, timedelta
 from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from rest_framework import serializers
@@ -111,7 +110,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         return data
 
     def to_representation(self, instance):
-        today = date.today()
+        today = date.today() + timedelta(days=1)
 
         summary_start_date = instance.get("start_date", today.replace(day=1))
         summary_end_date = instance.get("end_date", today)

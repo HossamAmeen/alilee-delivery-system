@@ -46,23 +46,33 @@ def delivered_order_withdraw_transaction_from_trader(
 ):
     if not created and instance.status == OrderStatus.DELIVERED:
         if instance.product_payment_status == ProductPaymentStatus.PAID:
-            transaction_type = TransactionType.WITHDRAW
-            amount = instance.trader_merchant_cost
-            notes = f"سحب رسوم شحن {instance.tracking_number}"
+            create_order_transaction(
+                user_id=instance.trader_id,
+                amount=instance.trader_merchant_cost,
+                transaction_type=TransactionType.WITHDRAW,
+                order_id=instance.id,
+                notes=f"سحب رسوم شحن {instance.tracking_number}",
+            )
         elif instance.product_payment_status == ProductPaymentStatus.COD:
-            transaction_type = TransactionType.DEPOSIT
-            amount = instance.product_cost
-            notes = f"إيداع فلوس المنتج الخاص في  {instance.tracking_number}"
+            create_order_transaction(
+                user_id=instance.trader_id,
+                amount=instance.trader_merchant_cost,
+                transaction_type=TransactionType.WITHDRAW,
+                order_id=instance.id,
+                notes=f"سحب رسوم شحن {instance.tracking_number}",
+            )
+
+            create_order_transaction(
+                user_id=instance.trader_id,
+                amount=instance.product_cost,
+                transaction_type=TransactionType.DEPOSIT,
+                order_id=instance.id,
+                notes=f"إيداع فلوس المنتج الخاص في  {instance.tracking_number}",
+            )
         else:
             return
 
-        create_order_transaction(
-            user_id=instance.trader_id,
-            amount=amount,
-            transaction_type=transaction_type,
-            order_id=instance.id,
-            notes=notes,
-        )
+
 
 
 # Driver Transaction
