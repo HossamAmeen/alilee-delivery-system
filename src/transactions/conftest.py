@@ -5,7 +5,8 @@ Add transactions-specific fixtures here as needed. Project-level fixtures in
 """
 
 import pytest
-from transactions.models import UserAccountTransaction, TransactionType
+
+from transactions.models import TransactionType, UserAccountTransaction
 
 __all__ = ["pytest"]
 
@@ -17,5 +18,5 @@ def transaction(db, admin_user):
         user_account=admin_user,
         amount=100.00,
         transaction_type=TransactionType.DEPOSIT,
-        notes="Test transaction"
+        notes="Test transaction",
     )

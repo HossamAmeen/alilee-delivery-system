@@ -1,6 +1,5 @@
-from decimal import Decimal
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
@@ -22,18 +21,34 @@ def check_order_have_trader(sender, instance, created, **kwargs):
         raise CustomValidationError("Order must have a trader")
 
 
+@receiver(pre_save, sender=Order)
+def update_postpone_count(sender, instance, **kwargs):
+    if instance.status == OrderStatus.POSTPONED:
+        instance.postpone_count += 1
+
+
+@receiver(post_save, sender=Order)
+def create_transaction_for_postponed_order(sender, instance, created, **kwargs):
+    if not created and instance.status == OrderStatus.POSTPONED:
+        create_order_transaction(
+            user_id=instance.trader_id,
+            amount=instance.trader_merchant_cost,
+            transaction_type=TransactionType.DEPOSIT,
+            order_id=instance.id,
+            notes=f"تحصيل رسوم شحن {instance.tracking_number}",
+        )
+
+
 # Make trader transaction, order cancelled, office will take trader_merchant_cost from trader
 @receiver(post_save, sender=Order)
 def cancelled_order_withdraw_transaction_from_trader(
     sender, instance, created, **kwargs
 ):
     if not created and instance.trader and instance.status == OrderStatus.CANCELLED:
-        transaction_type = TransactionType.DEPOSIT
-        amount = instance.trader_merchant_cost
         create_order_transaction(
             user_id=instance.trader_id,
-            amount=amount,
-            transaction_type=transaction_type,
+            amount=instance.trader_merchant_cost,
+            transaction_type=TransactionType.DEPOSIT,
             order_id=instance.id,
             notes=f"تحصيل رسوم شحن {instance.tracking_number}",
         )
@@ -71,8 +86,6 @@ def delivered_order_withdraw_transaction_from_trader(
             )
         else:
             return
-
-
 
 
 # Driver Transaction

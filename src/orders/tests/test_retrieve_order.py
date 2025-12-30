@@ -1,10 +1,10 @@
-from orders.models import ProductPaymentStatus
-from django.test import TestCase
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from orders.models import ProductPaymentStatus
 
-class TestRetrieveOrder():
+
+class TestRetrieveOrder:
     def test_retrieve_order_with_product_payment_status_cod_success(
         self, admin_client, driver_client, assigned_order
     ):
@@ -50,5 +50,8 @@ class TestRetrieveOrder():
             response.status_code == status.HTTP_200_OK
         ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
 
-        assert response.data["product_payment_status"] == ProductPaymentStatus.REMAINING_FEES
+        assert (
+            response.data["product_payment_status"]
+            == ProductPaymentStatus.REMAINING_FEES
+        )
         assert response.data["total_cost"] == assigned_order.trader_merchant_cost
