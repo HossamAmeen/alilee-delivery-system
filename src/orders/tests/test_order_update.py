@@ -97,7 +97,9 @@ class TestUpdateOrder:
             == -1 * created_order.product_cost + created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
-    def test_update_order_postponed_success(self, admin_client, driver_client, created_order, driver):
+    def test_update_order_postponed_success(
+        self, admin_client, driver_client, created_order, driver
+    ):
         url = reverse("orders-detail", kwargs={"pk": created_order.id})
 
         update_payload = {"status": OrderStatus.IN_PROGRESS}
@@ -152,11 +154,8 @@ class TestUpdateOrder:
         ), "Transaction should be created"
         trader.refresh_from_db()
         assert (
-            trader.balance
-            == created_order.trader_merchant_cost
+            trader.balance == created_order.trader_merchant_cost
         ), "Trader balance should be updated"
-
-
 
     def test_update_order_with_product_payment_status_paid_success(
         self, admin_client, driver_client, created_order, driver
