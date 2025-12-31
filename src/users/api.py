@@ -103,7 +103,11 @@ class TraderViewSet(BaseViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(
-            instance, context={"date": request.query_params.get("date")}
+            instance,
+            context={
+                "date": request.query_params.get("date"),
+                "request": request,
+            },
         )
         return Response(serializer.data)
 
