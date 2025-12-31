@@ -182,14 +182,14 @@ SIMPLE_JWT = {
 
 # Sentry Configuration
 
-SENTRY_ENABLED = env.bool("SENTRY_ENABLED")
+ENVIRONMENT = env.str("ENVIRONMENT", default="staging")
 SENTRY_DSN = env.str("SENTRY_DSN", default=None)
 
-if SENTRY_ENABLED and SENTRY_DSN:
+if ENVIRONMENT != "local" and SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
-        environment=env.str("DJANGO_ENV", default="development"),
+        environment=ENVIRONMENT,
         send_default_pii=False,
         traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', default=0.0),
         ignore_errors=[
