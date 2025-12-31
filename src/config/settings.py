@@ -191,7 +191,7 @@ if ENVIRONMENT != "local" and SENTRY_DSN:
         integrations=[DjangoIntegration()],
         environment=ENVIRONMENT,
         send_default_pii=False,
-        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', default=0.0),
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
         ignore_errors=[
             "django.http.Http404",
             "django.core.exceptions.PermissionDenied",

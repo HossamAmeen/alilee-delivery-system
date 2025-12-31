@@ -1,9 +1,8 @@
-from transactions.models import Expense
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from notifications.service import send_notification
-from transactions.models import TransactionType, UserAccountTransaction
+from transactions.models import Expense, TransactionType, UserAccountTransaction
 
 
 @receiver(post_save, sender=UserAccountTransaction)
@@ -42,6 +41,3 @@ def send_notification_after_transaction(sender, instance, created, **kwargs):
             description = f"تم إيداع {instance.amount} إلى حسابك"
             title = "إيداع إلى حسابك"
         send_notification(instance.user_account_id, title, description)
-
-
-

@@ -3,13 +3,11 @@ from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer
 from notifications.service import send_notification
-from orders.models import OrderStatus, ProductPaymentStatus
+from orders.models import Customer, Order, OrderStatus
 from users.models import Driver, Trader
 from users.serializers.driver_serializer import SingleDriverSerializer
 from users.serializers.traders_serializers import SingleTraderSerializer
 from utilities.exceptions import CustomValidationError
-
-from orders.models import Customer, Order
 
 
 class CustomerSerializer(serializers.ModelSerializer):

@@ -56,7 +56,9 @@ class Order(AbstractBaseModel):
     product_cost = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )  # total before shipping
-    delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    delivery_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
     extra_delivery_cost = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )
@@ -105,7 +107,7 @@ class Order(AbstractBaseModel):
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = str(uuid.uuid4().int)[:12]
-        self.total_cost = 0 # TODO: calculate total cost
+        self.total_cost = 0  # TODO: calculate total cost
         super().save(*args, **kwargs)
 
     def __str__(self):

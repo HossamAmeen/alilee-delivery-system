@@ -109,9 +109,8 @@ def assigned_order(trader, delivery_zone, driver, db):
     """Create an order via API and return the order instance."""
     # Create customer first
     customer = Customer.objects.create(
-        name="John Doe",
-        address="123 Main Street",
-        phone="+201234567890")
+        name="John Doe", address="123 Main Street", phone="+201234567890"
+    )
 
     return Order.objects.create(
         reference_code="REF12345",
@@ -128,6 +127,7 @@ def assigned_order(trader, delivery_zone, driver, db):
         latitude="30.044400",
         customer=customer,
     )
+
 
 @pytest.fixture
 def driver_client(api_client, driver):

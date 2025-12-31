@@ -93,7 +93,8 @@ class TestUpdateOrder:
         ), "Transaction should be created"
         trader.refresh_from_db()
         assert (
-            trader.balance == -1 * created_order.product_cost + created_order.trader_merchant_cost
+            trader.balance
+            == -1 * created_order.product_cost + created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
     def test_update_order_with_product_payment_status_paid_success(
@@ -354,7 +355,8 @@ class TestUpdateOrder:
         ), "Transaction should be created"
         trader.refresh_from_db()
         assert (
-            trader.balance == -1 * created_order.product_cost + created_order.trader_merchant_cost
+            trader.balance
+            == -1 * created_order.product_cost + created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
         update_payload = {"status": OrderStatus.CREATED}

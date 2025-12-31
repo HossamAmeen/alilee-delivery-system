@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -71,8 +69,6 @@ def delivered_order_withdraw_transaction_from_trader(
             )
         else:
             return
-
-
 
 
 # Driver Transaction
