@@ -24,7 +24,6 @@ def create_expense(sender, instance, created, **kwargs):
                 description=instance.notes,
                 date=instance.created,
                 cost=instance.amount,
-                user_account_id=instance.user_account_id,
             )
 
 

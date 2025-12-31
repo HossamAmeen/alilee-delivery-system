@@ -29,6 +29,16 @@ class UserAccountTransactionSerializer(ModelSerializer):
         ]
         read_only_fields = ("id", "created", "modified")
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get("request")
+        print(instance.file)
+        print(request)
+        if instance.file and request:
+            print(request.build_absolute_uri(instance.file.url))
+            representation["file"] = request.build_absolute_uri(instance.file.url)
+        return representation
+
 
 class ListUserAccountTransactionSerializer(ModelSerializer):
     user_account = SingleUserAccountSerializer()
@@ -111,11 +121,11 @@ class FinancialInsightsSerializer(serializers.Serializer):
         return data
 
     def to_representation(self, instance):
-        today = date.today() + timedelta(days=1)
+        today = date.today()
 
         summary_start_date = instance.get("start_date", today.replace(day=1))
         summary_end_date = instance.get("end_date", today)
-
+        summary_end_date = summary_end_date + timedelta(days=1)
         monthly_start_date = instance.get("monthly_start_date", DEFAULT_START_DATE)
         monthly_end_date = instance.get("monthly_end_date", today)
 

@@ -1,3 +1,4 @@
+from orders.models import Order
 from transactions.models import TransactionType, UserAccountTransaction
 
 
@@ -47,6 +48,14 @@ def create_order_transaction(user_id, amount, transaction_type, order_id, notes=
         is_rolled_back=False,
     ).exists()
     if already_exists:
+        return
+
+    order = Order.objects.filter(id=order_id).first()
+
+    if not order:
+        return
+
+    if order.postpone_count > 1:
         return
 
     create_transaction(
