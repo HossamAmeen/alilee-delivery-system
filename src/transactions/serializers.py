@@ -31,7 +31,9 @@ class UserAccountTransactionSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["file"] = instance.file.url if instance.file else None
+        request = self.context.get("request")
+        if instance.file and request:
+            representation["file"] = request.build_absolute_uri(instance.file.url)
         return representation
 
 
