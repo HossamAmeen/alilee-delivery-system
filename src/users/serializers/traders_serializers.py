@@ -90,8 +90,6 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
         from trader_pricing.serializers import TraderDeliveryZoneNestedSerializer
 
         qs = obj.trader_delivery_zones_trader.order_by("-id")
-        if "date" in self.context and self.context["date"]:
-            qs = qs.filter(created__date=self.context["date"])
         return TraderDeliveryZoneNestedSerializer(qs[:3], many=True).data
 
     def get_transactions(self, obj):
