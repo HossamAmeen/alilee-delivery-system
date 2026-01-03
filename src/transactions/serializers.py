@@ -128,7 +128,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         summary_end_date = summary_end_date + timedelta(days=1)
         monthly_start_date = instance.get("monthly_start_date", DEFAULT_START_DATE)
         monthly_end_date = instance.get("monthly_end_date", today)
-
+        monthly_end_date = monthly_end_date + timedelta(days=1)
         shipment_start_date = instance.get("shipment_start_date", DEFAULT_START_DATE)
         shipment_end_date = instance.get("shipment_end_date", today)
 
