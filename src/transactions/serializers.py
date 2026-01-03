@@ -126,11 +126,14 @@ class FinancialInsightsSerializer(serializers.Serializer):
         summary_start_date = instance.get("start_date", today.replace(day=1))
         summary_end_date = instance.get("end_date", today)
         summary_end_date = summary_end_date + timedelta(days=1)
+
         monthly_start_date = instance.get("monthly_start_date", DEFAULT_START_DATE)
         monthly_end_date = instance.get("monthly_end_date", today)
         monthly_end_date = monthly_end_date + timedelta(days=1)
+
         shipment_start_date = instance.get("shipment_start_date", DEFAULT_START_DATE)
         shipment_end_date = instance.get("shipment_end_date", today)
+        shipment_end_date = shipment_end_date + timedelta(days=1)
 
         accepted_statuses = [OrderStatus.DELIVERED, OrderStatus.CANCELLED]
 
