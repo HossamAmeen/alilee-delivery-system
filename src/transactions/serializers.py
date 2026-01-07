@@ -135,7 +135,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
         shipment_end_date = instance.get("shipment_end_date", today)
         shipment_end_date = shipment_end_date + timedelta(days=1)
 
-        accepted_statuses = [OrderStatus.DELIVERED, OrderStatus.CANCELLED]
+        accepted_statuses = [OrderStatus.DELIVERED]
 
         summary_revenue = Order.objects.filter(
             created__range=(summary_start_date, summary_end_date),
