@@ -94,7 +94,9 @@ class RetrieveTraderSerializer(serializers.ModelSerializer):
 
     def get_transactions(self, obj):
         qs = obj.transactions.order_by("-id")[:3]
-        return UserAccountTransactionSerializer(qs, many=True, context={"request": self.context.get("request")}).data
+        return UserAccountTransactionSerializer(
+            qs, many=True, context={"request": self.context.get("request")}
+        ).data
 
     def get_orders(self, obj):
         from orders.serializers import OrderTraderSerializer

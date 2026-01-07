@@ -1,7 +1,7 @@
-from users.models import UserRole
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import exceptions, serializers
 
-from users.models import UserAccount
+from users.models import UserAccount, UserRole
 from utilities.exceptions import CustomValidationError
 
 
@@ -88,7 +88,8 @@ class TokenRefreshSerializer(serializers.Serializer):
         role = token.get("role", None)
         if role not in [UserRole.OWNER, UserRole.MANAGER]:
             raise exceptions.AuthenticationFailed(
-                "Refresh token does not belong to a owner or manager", code="authorization"
+                "Refresh token does not belong to a owner or manager",
+                code="authorization",
             )
 
         return super().validate(attrs)

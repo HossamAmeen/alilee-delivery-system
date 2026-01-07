@@ -53,7 +53,9 @@ class TraderViewSet(BaseViewSet):
         total_sales=Coalesce(
             Sum(
                 "orders__trader_merchant_cost",
-                filter=Q(orders__status__in=[OrderStatus.DELIVERED, OrderStatus.CANCELLED], ),
+                filter=Q(
+                    orders__status__in=[OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+                ),
             ),
             Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
         ),

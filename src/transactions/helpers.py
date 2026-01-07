@@ -13,7 +13,9 @@ def create_transaction(user_id, amount, transaction_type, order_id, notes=""):
 
 
 def roll_back_order_transactions(ids):
-    transactions = UserAccountTransaction.objects.filter(id__in=ids, is_rolled_back=False)
+    transactions = UserAccountTransaction.objects.filter(
+        id__in=ids, is_rolled_back=False
+    )
     for transaction in transactions:
         transaction.is_rolled_back = True
         transaction.notes = transaction.notes + " (استرجاع)"

@@ -6,12 +6,12 @@ ensuring proper validation, authentication, and business rules are enforced.
 """
 
 from decimal import Decimal
-from transactions.models import TransactionType
+
 from django.urls import reverse
 from rest_framework import status
 
 from orders.models import OrderStatus, ProductPaymentStatus
-from transactions.models import UserAccountTransaction
+from transactions.models import TransactionType, UserAccountTransaction
 
 
 class TestUpdateOrder:
@@ -365,18 +365,16 @@ class TestUpdateOrder:
         UserAccountTransaction.objects.create(
             order_id=assigned_order.id,
             user_account_id=driver.id,
-            amount=assigned_order.product_cost - (
-                assigned_order.delivery_cost + assigned_order.extra_delivery_cost
-            ),
+            amount=assigned_order.product_cost
+            - (assigned_order.delivery_cost + assigned_order.extra_delivery_cost),
             is_rolled_back=False,
             transaction_type=TransactionType.WITHDRAW,
         )
         UserAccountTransaction.objects.create(
             order_id=assigned_order.id,
             user_account_id=assigned_order.trader.id,
-            amount=assigned_order.product_cost - (
-                assigned_order.delivery_cost + assigned_order.extra_delivery_cost
-            ),
+            amount=assigned_order.product_cost
+            - (assigned_order.delivery_cost + assigned_order.extra_delivery_cost),
             is_rolled_back=False,
             transaction_type=TransactionType.DEPOSIT,
         )
@@ -425,23 +423,19 @@ class TestUpdateOrder:
         created_order.refresh_from_db()
         assert created_order.status == OrderStatus.DELIVERED, "Status should be updated"
 
-        assert (
-            UserAccountTransaction.objects.filter(
-                order_id=created_order.id,
-                user_account_id=driver.id,
-                transaction_type=TransactionType.WITHDRAW,
-                amount=created_order.product_cost,
-            ).exists()
-        ), "Transaction with withdraw type with product cost should be created for dirver."
+        assert UserAccountTransaction.objects.filter(
+            order_id=created_order.id,
+            user_account_id=driver.id,
+            transaction_type=TransactionType.WITHDRAW,
+            amount=created_order.product_cost,
+        ).exists(), "Transaction with withdraw type with product cost should be created for dirver."
 
-        assert (
-            UserAccountTransaction.objects.filter(
-                order_id=created_order.id,
-                user_account_id=driver.id,
-                transaction_type=TransactionType.DEPOSIT,
-                amount=created_order.delivery_cost + created_order.extra_delivery_cost,
-            ).exists()
-        ), "Transaction with deposit type with delivery cost should be created for dirver."
+        assert UserAccountTransaction.objects.filter(
+            order_id=created_order.id,
+            user_account_id=driver.id,
+            transaction_type=TransactionType.DEPOSIT,
+            amount=created_order.delivery_cost + created_order.extra_delivery_cost,
+        ).exists(), "Transaction with deposit type with delivery cost should be created for dirver."
         driver.refresh_from_db()
 
         assert driver.balance == created_order.product_cost - (
@@ -474,19 +468,27 @@ class TestUpdateOrder:
         assert created_order.status == OrderStatus.CREATED, "Status should be updated"
 
         trader.refresh_from_db()
-        assert trader.balance == old_trader_balance, "Trader balance should not be updated"
+        assert (
+            trader.balance == old_trader_balance
+        ), "Trader balance should not be updated"
 
         driver.refresh_from_db()
-        assert driver.balance == old_driver_balance, "Driver balance should not be updated"
+        assert (
+            driver.balance == old_driver_balance
+        ), "Driver balance should not be updated"
         assert (
             UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=driver.id, is_rolled_back=True
+                order_id=created_order.id,
+                user_account_id=driver.id,
+                is_rolled_back=True,
             ).count()
             == 2
         ), "Transaction should be rolled back for driver"
         assert (
             UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=trader.id, is_rolled_back=True
+                order_id=created_order.id,
+                user_account_id=trader.id,
+                is_rolled_back=True,
             ).count()
             == 2
         ), "Transaction should be rolled back for trader"
@@ -500,4 +502,6 @@ class TestUpdateOrder:
         assert (
             response.status_code == status.HTTP_400_BAD_REQUEST
         ), f"Expected 400 Bad Request, got {response.status_code}. Response: {response.data}"
-        assert response.data["message"] == "يجب تعين سائق للطلب", "Driver should be updated"
+        assert (
+            response.data["message"] == "يجب تعين سائق للطلب"
+        ), "Driver should be updated"
