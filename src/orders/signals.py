@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
@@ -140,3 +140,8 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
                 order_id=instance.id,
                 notes=f"إيداع رسوم الشحن الخاصه بالمندوب {instance.tracking_number}",
             )
+
+@receiver(pre_delete, sender=Order)
+def prevent_delete_orders_with_status_not_cancelled(sender, instance, **kwargs):
+    if instance.status != OrderStatus.CANCELLED:
+        raise CustomValidationError("لا يمكن حذف الطلب لأنه ليس في حالة الالغاء")
