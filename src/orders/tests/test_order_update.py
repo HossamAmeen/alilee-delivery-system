@@ -444,3 +444,14 @@ class TestUpdateOrder:
             - created_order.product_cost
             + (created_order.delivery_cost + created_order.extra_delivery_cost)
         ), "Driver balance should be updated"
+
+    def test_update_order_to_assigned_without_driver(self, admin_client, created_order):
+        url = reverse("orders-detail", kwargs={"pk": created_order.id})
+        update_payload = {"status": OrderStatus.ASSIGNED}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_400_BAD_REQUEST
+        ), f"Expected 400 Bad Request, got {response.status_code}. Response: {response.data}"
+        assert response.data["message"] == "يجب تعين سائق للطلب", "Driver should be updated"

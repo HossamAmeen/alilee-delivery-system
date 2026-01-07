@@ -176,6 +176,7 @@ SIMPLE_JWT = {
         days=env.int("REFRESH_TOKEN_LIFETIME", default=1)
     ),
     "ROTATE_REFRESH_TOKENS": True,
+    "TOKEN_REFRESH_SERIALIZER": "users.serializers.TokenRefreshSerializer",
 }
 
 # Sentry Configuration

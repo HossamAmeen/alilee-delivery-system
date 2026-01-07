@@ -1,4 +1,5 @@
-from rest_framework import serializers
+from users.models import UserRole
+from rest_framework import exceptions, serializers
 
 from users.models import UserAccount
 from utilities.exceptions import CustomValidationError
@@ -72,3 +73,22 @@ class SingleUserAccountSerializer(serializers.ModelSerializer):
 
 class FirebaseDeviceSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=255)
+
+
+class TokenRefreshSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    def validate(self, attrs):
+        refresh = attrs.get("refresh")
+        try:
+            token = RefreshToken(refresh)
+        except Exception as exc:
+            raise exceptions.AuthenticationFailed("Invalid refresh token") from exc
+
+        role = token.get("role", None)
+        if role not in [UserRole.OWNER, UserRole.MANAGER]:
+            raise exceptions.AuthenticationFailed(
+                "Refresh token does not belong to a owner or manager", code="authorization"
+            )
+
+        return super().validate(attrs)

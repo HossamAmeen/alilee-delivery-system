@@ -15,9 +15,15 @@ def update_order_status_to_assigned_after_created(sender, instance, created, **k
 
 
 @receiver(post_save, sender=Order)
+def update_order_status_to_completed_after_created(sender, instance, created, **kwargs):
+    if not created and instance.status == OrderStatus.ASSIGNED and not instance.driver:
+        raise CustomValidationError("يجب تعين سائق للطلب")
+
+
+@receiver(post_save, sender=Order)
 def check_order_have_trader(sender, instance, created, **kwargs):
     if created and not instance.trader:
-        raise CustomValidationError("Order must have a trader")
+        raise CustomValidationError("يجب تعين مورد للطلب")
 
 
 @receiver(pre_save, sender=Order)
