@@ -113,7 +113,7 @@ def assigned_order(trader, delivery_zone, driver, db):
     )
 
     return Order.objects.create(
-        reference_code="REF12345",
+        reference_code="REF123453",
         product_cost=Decimal("100.00"),
         delivery_cost=Decimal("10.00"),
         extra_delivery_cost=Decimal("5.00"),

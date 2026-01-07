@@ -5,6 +5,8 @@ This module tests the order update functionality through the REST API,
 ensuring proper validation, authentication, and business rules are enforced.
 """
 
+from decimal import Decimal
+from transactions.models import TransactionType
 from django.urls import reverse
 from rest_framework import status
 
@@ -357,8 +359,33 @@ class TestUpdateOrder:
         ), "Transaction should be created"
 
     def test_update_order_rolled_back_success(
-        self, admin_client, driver_client, created_order, driver
+        self, admin_client, driver_client, created_order, assigned_order, driver
     ):
+        # generate transaction to avoid id conflict
+        UserAccountTransaction.objects.create(
+            order_id=assigned_order.id,
+            user_account_id=driver.id,
+            amount=assigned_order.product_cost - (
+                assigned_order.delivery_cost + assigned_order.extra_delivery_cost
+            ),
+            is_rolled_back=False,
+            transaction_type=TransactionType.WITHDRAW,
+        )
+        UserAccountTransaction.objects.create(
+            order_id=assigned_order.id,
+            user_account_id=assigned_order.trader.id,
+            amount=assigned_order.product_cost - (
+                assigned_order.delivery_cost + assigned_order.extra_delivery_cost
+            ),
+            is_rolled_back=False,
+            transaction_type=TransactionType.DEPOSIT,
+        )
+
+        driver.balance = Decimal(0)
+        driver.save()
+        assigned_order.trader.balance = Decimal(0)
+        assigned_order.trader.save()
+
         url = reverse("orders-detail", kwargs={"pk": created_order.id})
         created_order.product_payment_status = ProductPaymentStatus.COD
         created_order.save()
@@ -383,6 +410,10 @@ class TestUpdateOrder:
         assert created_order.status == OrderStatus.ASSIGNED, "Status should be updated"
         assert created_order.driver == driver, "Driver should be updated"
 
+        old_driver_balance = driver.balance
+        assert old_driver_balance == 0
+        old_trader_balance = created_order.trader.balance
+        assert old_trader_balance == 0
         update_payload = {"status": OrderStatus.DELIVERED}
 
         response = driver_client.patch(url, data=update_payload, format="json")
@@ -396,10 +427,21 @@ class TestUpdateOrder:
 
         assert (
             UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=driver.id
-            ).count()
-            == 2
-        ), "Transaction should be created"
+                order_id=created_order.id,
+                user_account_id=driver.id,
+                transaction_type=TransactionType.WITHDRAW,
+                amount=created_order.product_cost,
+            ).exists()
+        ), "Transaction with withdraw type with product cost should be created for dirver."
+
+        assert (
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id,
+                user_account_id=driver.id,
+                transaction_type=TransactionType.DEPOSIT,
+                amount=created_order.delivery_cost + created_order.extra_delivery_cost,
+            ).exists()
+        ), "Transaction with deposit type with delivery cost should be created for dirver."
         driver.refresh_from_db()
 
         assert driver.balance == created_order.product_cost - (
@@ -419,6 +461,7 @@ class TestUpdateOrder:
             == -1 * created_order.product_cost + created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
+        # update order status to created (rolled back)
         update_payload = {"status": OrderStatus.CREATED}
 
         response = admin_client.patch(url, data=update_payload, format="json")
@@ -430,20 +473,23 @@ class TestUpdateOrder:
         created_order.refresh_from_db()
         assert created_order.status == OrderStatus.CREATED, "Status should be updated"
 
-        old_trader_balance = trader.balance
         trader.refresh_from_db()
-        assert (
-            trader.balance == old_trader_balance + created_order.product_cost
-        ), "Trader balance should be updated"
+        assert trader.balance == old_trader_balance, "Trader balance should not be updated"
 
-        old_driver_balance = driver.balance
         driver.refresh_from_db()
+        assert driver.balance == old_driver_balance, "Driver balance should not be updated"
         assert (
-            created_order.driver.balance
-            == old_driver_balance
-            - created_order.product_cost
-            + (created_order.delivery_cost + created_order.extra_delivery_cost)
-        ), "Driver balance should be updated"
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id, user_account_id=driver.id, is_rolled_back=True
+            ).count()
+            == 2
+        ), "Transaction should be rolled back for driver"
+        assert (
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id, user_account_id=trader.id, is_rolled_back=True
+            ).count()
+            == 2
+        ), "Transaction should be rolled back for trader"
 
     def test_update_order_to_assigned_without_driver(self, admin_client, created_order):
         url = reverse("orders-detail", kwargs={"pk": created_order.id})
