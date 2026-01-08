@@ -1,10 +1,13 @@
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
-from users.models import Trader, TraderStatus, UserRole
-from transactions.models import UserAccountTransaction, TransactionType
-from orders.models import Order, OrderStatus
-from decimal import Decimal
+
+from orders.models import Order
+from transactions.models import TransactionType, UserAccountTransaction
+from users.models import Trader, UserRole
+
 
 @pytest.mark.django_db
 class TestTraderViewSet:
@@ -64,19 +67,19 @@ class TestTraderViewSet:
         """Test that total_sales and orders_count are correctly annotated."""
         # Create an order for the trader
         order = Order.objects.create(trader=trader, product_cost=Decimal("100.00"))
-        
+
         # Create a transaction for the trader linked to the order
         UserAccountTransaction.objects.create(
             user_account=trader,
             amount=Decimal("50.00"),
             transaction_type=TransactionType.WITHDRAW,
             order=order,
-            is_rolled_back=False
+            is_rolled_back=False,
         )
-        
+
         url = reverse("traders-detail", kwargs={"pk": trader.pk})
         response = user_client.get(url)
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data["orders_count"] == 1
         assert Decimal(response.data["total_sales"]) == Decimal("50.00")

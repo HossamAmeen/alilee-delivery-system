@@ -1,10 +1,12 @@
-from notifications.models import Notification
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
+
+from notifications.models import Notification
 from orders.models import Order, OrderStatus
-from users.models import Driver
-from decimal import Decimal
+
 
 @pytest.mark.django_db
 class TestOrderDriverAssignAPIView:
@@ -17,23 +19,23 @@ class TestOrderDriverAssignAPIView:
             trader=created_order.trader,
             delivery_zone=created_order.delivery_zone,
             customer=created_order.customer,
-            status=OrderStatus.CREATED
+            status=OrderStatus.CREATED,
         )
-        
+
         url = reverse("order-bulk-assign-driver")
         data = {
             "driver": driver.id,
-            "tracking_numbers": [created_order.tracking_number, order2.tracking_number]
+            "tracking_numbers": [created_order.tracking_number, order2.tracking_number],
         }
-        
+
         response = admin_client.patch(url, data, format="json")
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2
-        
+
         created_order.refresh_from_db()
         order2.refresh_from_db()
-        
+
         assert created_order.driver == driver
         assert created_order.status == OrderStatus.ASSIGNED
         assert order2.driver == driver
@@ -46,29 +48,34 @@ class TestOrderDriverAssignAPIView:
         url = reverse("order-bulk-assign-driver")
         data = {
             "driver": driver.id,
-            "tracking_numbers": [assigned_order.tracking_number]
+            "tracking_numbers": [assigned_order.tracking_number],
         }
-        
+
         response = admin_client.patch(url, data, format="json")
-        
+
         # The view raises CustomValidationError if no orders are available for assignment
         # because the filter excludes orders with driver__isnull=False
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "No orders available for assignment" in response.data["message"]
 
-    def test_assign_orders_partial_success_fails(self, admin_client, driver, created_order, assigned_order):
+    def test_assign_orders_partial_success_fails(
+        self, admin_client, driver, created_order, assigned_order
+    ):
         """Test that if some orders are already assigned, the entire request fails."""
         url = reverse("order-bulk-assign-driver")
         data = {
             "driver": driver.id,
-            "tracking_numbers": [created_order.tracking_number, assigned_order.tracking_number]
+            "tracking_numbers": [
+                created_order.tracking_number,
+                assigned_order.tracking_number,
+            ],
         }
-        
+
         response = admin_client.patch(url, data, format="json")
-        
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "One or more orders cannot be assigned" in response.data["message"]
-        
+
         # Verify created_order was NOT assigned (transactional integrity check)
         created_order.refresh_from_db()
         assert created_order.driver is None
@@ -77,13 +84,10 @@ class TestOrderDriverAssignAPIView:
     def test_assign_orders_non_existent(self, admin_client, driver):
         """Test that assigning non-existent tracking numbers fails."""
         url = reverse("order-bulk-assign-driver")
-        data = {
-            "driver": driver.id,
-            "tracking_numbers": ["NONEXISTENT"]
-        }
-        
+        data = {"driver": driver.id, "tracking_numbers": ["NONEXISTENT"]}
+
         response = admin_client.patch(url, data, format="json")
-        
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "No orders available for assignment" in response.data["message"]
 
@@ -92,8 +96,8 @@ class TestOrderDriverAssignAPIView:
         url = reverse("order-bulk-assign-driver")
         data = {
             "driver": driver.id,
-            "tracking_numbers": [created_order.tracking_number]
+            "tracking_numbers": [created_order.tracking_number],
         }
-        
+
         response = api_client.patch(url, data, format="json")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
