@@ -104,3 +104,10 @@ def user_client(api_client, admin):
 def firebase_device(admin):
     """Create and return a FirebaseDevice instance."""
     return FirebaseDevice.objects.create(user=admin, token="test-firebase-token-123")
+
+
+@pytest.fixture
+def trader_client(api_client, trader):
+    """Create and return an authenticated API client for a trader."""
+    api_client.force_authenticate(user=trader)
+    return api_client

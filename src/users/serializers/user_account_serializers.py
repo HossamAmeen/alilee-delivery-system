@@ -1,5 +1,5 @@
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import exceptions, serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import UserAccount, UserRole
 from utilities.exceptions import CustomValidationError

@@ -170,7 +170,7 @@ class OrderDeliveryAssignAPIView(APIView):
 
         updated_order = DeliveryAssignmentService.assign_driver(order, driver)
         send_notification(
-            user_id=driver.user_account_id,
+            user_id=driver.id,
             title="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
             description="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
         )
@@ -238,17 +238,17 @@ class OrderDriverAssignAPIView(APIView):
         orders.update(driver=driver, status=OrderStatus.ASSIGNED)
 
         data = []
-        for order in orders:
+        for tracking_number in serializer.validated_data["tracking_numbers"]:
             send_notification(
-                user_id=driver.user_account_id,
-                title="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
-                description="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
+                user_id=driver.id,
+                title="تم تعيينك كسائق للطلب رقم " + tracking_number,
+                description="تم تعيينك كسائق للطلب رقم " + tracking_number,
             )
             data.append(
                 {
-                    "tracking_number": order.tracking_number,
+                    "tracking_number": tracking_number,
                     "assigned_driver": driver.full_name,
-                    "status": order.status,
+                    "status": OrderStatus.ASSIGNED,
                 }
             )
 

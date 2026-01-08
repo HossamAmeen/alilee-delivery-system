@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from orders.models import OrderStatus
+from transactions.models import TransactionType
 from users.models import Trader, UserAccount
 from users.serializers.traders_serializers import (
     RetrieveTraderSerializer,
@@ -52,9 +52,11 @@ class TraderViewSet(BaseViewSet):
     queryset = Trader.objects.annotate(
         total_sales=Coalesce(
             Sum(
-                "orders__trader_merchant_cost",
+                "transactions__amount",
                 filter=Q(
-                    orders__status__in=[OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+                    transactions__transaction_type=TransactionType.WITHDRAW,
+                    transactions__is_rolled_back=False,
+                    transactions__order_id__isnull=False,
                 ),
             ),
             Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),

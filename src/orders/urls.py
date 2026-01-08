@@ -18,14 +18,14 @@ urlpatterns = [
         name="order-assign-driver",
     ),
     path(
+        "orders/assign/",
+        OrderDriverAssignAPIView.as_view(),
+        name="order-bulk-assign-driver",
+    ),
+    path(
         "accept-orders/",
         OrderAcceptAPIView.as_view(),
         name="order-accept",
-    ),
-    path(
-        "orders/assign/",
-        OrderDriverAssignAPIView.as_view(),
-        name="order-assign-driver",
     ),
 ]
 urlpatterns += router.urls
