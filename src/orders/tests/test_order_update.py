@@ -221,6 +221,129 @@ class TestUpdateOrder:
             trader.balance == created_order.trader_merchant_cost
         ), "Trader balance should be updated"
 
+    def test_update_order_with_product_payment_status_paid_and_cancelled_success(
+        self, admin_client, driver_client, created_order, driver
+    ):
+        old_driver_balance = driver.balance
+        url = reverse("orders-detail", kwargs={"pk": created_order.id})
+        created_order.product_payment_status = ProductPaymentStatus.PAID
+        created_order.save()
+
+        update_payload = {"status": OrderStatus.IN_PROGRESS}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        update_payload = {"driver": driver.id}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        created_order.refresh_from_db()
+        assert created_order.status == OrderStatus.ASSIGNED, "Status should be updated"
+        assert created_order.driver == driver, "Driver should be updated"
+
+        update_payload = {"status": OrderStatus.CANCELLED}
+
+        response = driver_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        created_order.refresh_from_db()
+        assert created_order.status == OrderStatus.CANCELLED, "Status should be updated"
+
+        assert (
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id, user_account_id=driver.id
+            ).count()
+            == 0
+        ), "Transaction should not be created"
+        driver.refresh_from_db()
+
+        assert driver.balance == old_driver_balance, "Driver balance should be updated"
+
+        trader = created_order.trader
+        assert (
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id, user_account_id=trader.id
+            ).count()
+            == 1
+        ), "Transaction should be created"
+        trader.refresh_from_db()
+        assert (
+            trader.balance == created_order.trader_merchant_cost
+        ), "Trader balance should be updated"
+
+    def test_update_order_with_product_payment_status_COD_and_cancelled_success(
+        self, admin_client, driver_client, created_order, driver
+    ):
+        old_driver_balance = driver.balance
+        old_trader_balance = created_order.trader.balance
+        url = reverse("orders-detail", kwargs={"pk": created_order.id})
+        created_order.product_payment_status = ProductPaymentStatus.COD
+        created_order.save()
+
+        update_payload = {"status": OrderStatus.IN_PROGRESS}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        update_payload = {"driver": driver.id}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        created_order.refresh_from_db()
+        assert created_order.status == OrderStatus.ASSIGNED, "Status should be updated"
+        assert created_order.driver == driver, "Driver should be updated"
+
+        update_payload = {"status": OrderStatus.CANCELLED}
+
+        response = driver_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        created_order.refresh_from_db()
+        assert created_order.status == OrderStatus.CANCELLED, "Status should be updated"
+
+        assert (
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id, user_account_id=driver.id
+            ).count()
+            == 0
+        ), "Transaction should not be created"
+        driver.refresh_from_db()
+
+        assert driver.balance == old_driver_balance, "Driver balance should be updated"
+
+        trader = created_order.trader
+        assert (
+            UserAccountTransaction.objects.filter(
+                order_id=created_order.id, user_account_id=trader.id
+            ).count()
+            == 0
+        ), "Transaction should not be created"
+        trader.refresh_from_db()
+        assert (
+            trader.balance == old_trader_balance
+        ), "Trader balance should be updated"
+
     def test_update_order_with_product_payment_status_remaining_success(
         self, admin_client, driver_client, created_order, driver
     ):

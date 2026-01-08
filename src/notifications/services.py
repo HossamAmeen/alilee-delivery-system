@@ -47,7 +47,10 @@ def send_notification_to_firebase(notification_ids):
                             #  Needs action here in case of field tokens
     else:
         message = messaging.Message(notification=notif, token=tokens[0])
-        response = messaging.send(message)
+        try:
+            response = messaging.send(message)
+        except Exception as e:
+            print(e)
 
     try:
         for res in response.responses:
