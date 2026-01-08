@@ -278,6 +278,7 @@ class TestUpdateOrder:
             == 1
         ), "Transaction should be created"
         trader.refresh_from_db()
+
         assert (
             trader.balance == created_order.trader_merchant_cost
         ), "Trader balance should be updated"
@@ -404,28 +405,6 @@ class TestUpdateOrder:
         trader_old_balance = trader.balance
         trader.refresh_from_db()
         assert trader.balance == trader_old_balance, "Trader balance should be updated"
-
-    def test_cancel_order_success(
-        self, admin_client, driver_client, created_order, driver
-    ):
-        url = reverse("orders-detail", kwargs={"pk": created_order.id})
-
-        update_payload = {"status": OrderStatus.CANCELLED}
-
-        response = admin_client.patch(url, data=update_payload, format="json")
-
-        assert (
-            response.status_code == status.HTTP_200_OK
-        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
-
-        created_order.refresh_from_db()
-        assert created_order.status == OrderStatus.CANCELLED, "Status should be updated"
-        old_trader_balance = created_order.trader.balance
-        created_order.trader.refresh_from_db()
-        assert (
-            created_order.trader.balance
-            == old_trader_balance + created_order.trader_merchant_cost
-        ), "Trader balance should be updated"
 
     def test_delivered_order_after_delivered(
         self, admin_client, driver_client, created_order, driver

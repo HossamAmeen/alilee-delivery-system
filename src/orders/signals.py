@@ -38,9 +38,9 @@ def create_transaction_for_postponed_order(sender, instance, created, **kwargs):
         create_order_transaction(
             user_id=instance.trader_id,
             amount=instance.trader_merchant_cost,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             order_id=instance.id,
-            notes=f"تحصيل رسوم شحن {instance.tracking_number}",
+            notes=f"سحب رسوم شحن {instance.tracking_number}",
         )
 
 
@@ -53,9 +53,9 @@ def cancelled_order_withdraw_transaction_from_trader(
         create_order_transaction(
             user_id=instance.trader_id,
             amount=instance.trader_merchant_cost,
-            transaction_type=TransactionType.DEPOSIT,
+            transaction_type=TransactionType.WITHDRAW,
             order_id=instance.id,
-            notes=f"تحصيل رسوم شحن {instance.tracking_number}",
+            notes=f"سحب رسوم شحن {instance.tracking_number}",
         )
 
 
