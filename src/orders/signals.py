@@ -49,7 +49,12 @@ def create_transaction_for_postponed_order(sender, instance, created, **kwargs):
 def cancelled_order_withdraw_transaction_from_trader(
     sender, instance, created, **kwargs
 ):
-    if not created and instance.trader and instance.status == OrderStatus.CANCELLED and instance.product_payment_status == ProductPaymentStatus.PAID:
+    if (
+        not created
+        and instance.trader
+        and instance.status == OrderStatus.CANCELLED
+        and instance.product_payment_status == ProductPaymentStatus.PAID
+    ):
         create_order_transaction(
             user_id=instance.trader_id,
             amount=instance.trader_merchant_cost,

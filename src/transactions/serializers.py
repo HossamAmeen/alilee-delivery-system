@@ -6,7 +6,8 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from orders.models import Order, OrderStatus
-from transactions.models import Expense, UserAccountTransaction
+from transactions.models import Expense, TransactionType, UserAccountTransaction
+from users.models import UserRole
 from users.serializers.user_account_serializers import SingleUserAccountSerializer
 from utilities.constant import DEFAULT_START_DATE
 from utilities.exceptions import CustomValidationError
@@ -286,14 +287,27 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 orders_statistics[status_map[status]] = count
         orders_statistics["total_count"] = total_count
 
+        total_revenue = (
+            UserAccountTransaction.objects.filter(
+                created__range=(summary_start_date, summary_end_date),
+                transaction_type=TransactionType.WITHDRAW,
+                is_rolled_back=False,
+                user_account__role=UserRole.TRADER,
+                order_id__isnull=False,
+            ).aggregate(total_revenue=Sum("amount"))["total_revenue"]
+            or 0
+        )
+
         return {
-            "start_date": summary_start_date,
-            "end_date": summary_end_date,
-            "monthly_start_date": monthly_start_date,
-            "monthly_end_date": monthly_end_date,
-            "shipment_start_date": shipment_start_date,
-            "shipment_end_date": shipment_end_date,
-            "total_revenue": summary_revenue.get("total_revenue") or 0,
+            "date": {
+                "summary_start_date": summary_start_date,
+                "summary_end_date": summary_end_date,
+                "monthly_start_date": monthly_start_date,
+                "monthly_end_date": monthly_end_date,
+                "shipment_start_date": shipment_start_date,
+                "shipment_end_date": shipment_end_date,
+            },
+            "total_revenue": total_revenue,
             "total_commissions": summary_revenue.get("total_commissions") or 0,
             "total_expenses": summary_expense,
             "net_profit": (

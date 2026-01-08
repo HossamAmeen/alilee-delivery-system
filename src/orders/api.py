@@ -1,4 +1,3 @@
-from notifications.service import send_notification
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
@@ -9,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from notifications.service import send_notification
 from orders.filter import OrderFilter
 from orders.models import Order, OrderStatus
 from orders.permissions import IsDriverPermission
@@ -153,7 +153,7 @@ class OrderViewSet(BaseViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         if old_status != serializer.validated_data.get("status", instance.status):
-            if old_status == OrderStatus.DELIVERED:
+            if old_status in [OrderStatus.DELIVERED, OrderStatus.CANCELLED]:
                 transactions_ids = instance.transactions.values_list("id", flat=True)
                 roll_back_order_transactions(transactions_ids)
         self.perform_update(serializer)

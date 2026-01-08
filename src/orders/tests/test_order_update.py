@@ -341,9 +341,7 @@ class TestUpdateOrder:
             == 0
         ), "Transaction should not be created"
         trader.refresh_from_db()
-        assert (
-            trader.balance == old_trader_balance
-        ), "Trader balance should be updated"
+        assert trader.balance == old_trader_balance, "Trader balance should be updated"
 
     def test_update_order_with_product_payment_status_remaining_success(
         self, admin_client, driver_client, created_order, driver
