@@ -1,3 +1,4 @@
+from notifications.service import send_notification
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
@@ -168,6 +169,11 @@ class OrderDeliveryAssignAPIView(APIView):
         order = Order.objects.get(tracking_number=tracking_number)
 
         updated_order = DeliveryAssignmentService.assign_driver(order, driver)
+        send_notification(
+            user_id=driver.user_account_id,
+            title="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
+            description="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
+        )
 
         return Response(
             {
@@ -241,7 +247,7 @@ class OrderDriverAssignAPIView(APIView):
         }
 
         orders.update(driver=driver, status=OrderStatus.ASSIGNED)
-
+        
         return Response(
             response_data,
             status=status.HTTP_200_OK,

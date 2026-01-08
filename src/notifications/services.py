@@ -50,6 +50,7 @@ def send_notification_to_firebase(notification_ids):
         try:
             response = messaging.send(message)
         except Exception as e:
+            print("error in send notification to firebase")
             print(e)
 
     try:
