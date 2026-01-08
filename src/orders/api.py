@@ -235,21 +235,25 @@ class OrderDriverAssignAPIView(APIView):
             raise CustomValidationError(
                 message="One or more orders cannot be assigned."
             )
-        response_data = {
-            "data": [
+        orders.update(driver=driver, status=OrderStatus.ASSIGNED)
+
+        data = []
+        for order in orders:
+            send_notification(
+                user_id=driver.user_account_id,
+                title="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
+                description="تم تعيينك كسائق للطلب رقم " + order.tracking_number,
+            )
+            data.append(
                 {
                     "tracking_number": order.tracking_number,
                     "assigned_driver": driver.full_name,
                     "status": order.status,
                 }
-                for order in orders
-            ]
-        }
+            )
 
-        orders.update(driver=driver, status=OrderStatus.ASSIGNED)
-        
         return Response(
-            response_data,
+            data,
             status=status.HTTP_200_OK,
         )
 
