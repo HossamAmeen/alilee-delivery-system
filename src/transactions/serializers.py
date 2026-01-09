@@ -298,6 +298,17 @@ class FinancialInsightsSerializer(serializers.Serializer):
             or 0
         )
 
+        total_commissions = (
+            UserAccountTransaction.objects.filter(
+                created__range=(summary_start_date, summary_end_date),
+                transaction_type=TransactionType.DEPOSIT,
+                is_rolled_back=False,
+                user_account__role=UserRole.DRIVER,
+                order_id__isnull=False,
+            ).aggregate(total_commissions=Sum("amount"))["total_commissions"]
+            or 0
+        )
+        
         return {
             "date": {
                 "summary_start_date": summary_start_date,
@@ -308,13 +319,9 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 "shipment_end_date": shipment_end_date,
             },
             "total_revenue": total_revenue,
-            "total_commissions": summary_revenue.get("total_commissions") or 0,
+            "total_commissions": total_commissions,
             "total_expenses": summary_expense,
-            "net_profit": (
-                (summary_revenue.get("total_revenue") or 0)
-                - (summary_expense or 0)
-                - (summary_revenue.get("total_commissions") or 0)
-            ),
+            "net_profit": total_revenue - summary_expense - total_commissions,
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
             "monthly_expenses_data": monthly_expenses_data,
