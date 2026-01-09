@@ -56,7 +56,7 @@ class DriverViewSet(BaseViewSet):
         qs = qs.annotate(
             total_delivery_cost=Coalesce(
                 Sum(
-                    "",
+                    "orders__delivery_cost",
                     filter=delivered_filter,
                 ),
                 Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),

@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from django.db.models import Count, Q, Sum
 from rest_framework import exceptions, serializers
@@ -179,6 +179,10 @@ class DriverInsightsSerializer(serializers.Serializer):
     def to_representation(self, instance):
         start_date = self.context.get("start_date", DEFAULT_START_DATE)
         end_date = self.context.get("end_date", date.today())
+
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
         end_date = end_date + timedelta(days=1)
         aggregates = Order.objects.filter(
             driver=instance, created__range=(start_date, end_date)
