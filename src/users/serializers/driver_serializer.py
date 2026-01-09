@@ -178,8 +178,8 @@ class DriverInsightsSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         start_date = self.context.get("start_date", DEFAULT_START_DATE)
-        end_date = self.context.get("end_date", date.today() + timedelta(days=1))
-
+        end_date = self.context.get("end_date", date.today())
+        end_date = end_date + timedelta(days=1)
         aggregates = Order.objects.filter(
             driver=instance, created__range=(start_date, end_date)
         ).aggregate(
