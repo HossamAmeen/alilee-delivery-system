@@ -58,6 +58,7 @@ class TraderViewSet(BaseViewSet):
                     transactions__is_rolled_back=False,
                     transactions__order_id__isnull=False,
                 ),
+                distinct=True,
             ),
             Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
         ),
