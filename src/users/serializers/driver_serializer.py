@@ -37,9 +37,7 @@ class ListDriverSerializer(serializers.ModelSerializer):
 
     def get_sales(self, obj):
         # Use annotated values when available; fall back to 0
-        total = (getattr(obj, "total_delivery_cost", None) or 0) + (
-            getattr(obj, "total_extra_delivery_cost", None) or 0
-        )
+        total = getattr(obj, "total_delivery_cost", None) or 0
         return total
 
 
@@ -128,9 +126,6 @@ class DriverDetailSerializer(serializers.ModelSerializer):
     orders = serializers.SerializerMethodField()
     transactions = serializers.SerializerMethodField()
     total_delivery_cost = serializers.DecimalField(max_digits=10, decimal_places=2)
-    total_extra_delivery_cost = serializers.DecimalField(
-        max_digits=10, decimal_places=2
-    )
 
     class Meta:
         model = Driver
@@ -147,7 +142,6 @@ class DriverDetailSerializer(serializers.ModelSerializer):
             "sales",
             "order_count",
             "total_delivery_cost",
-            "total_extra_delivery_cost",
             "orders",
             "transactions",
         ]
@@ -165,9 +159,7 @@ class DriverDetailSerializer(serializers.ModelSerializer):
 
     def get_sales(self, obj):
         # Use annotated values when available; fall back to 0
-        total = (getattr(obj, "total_delivery_cost", None) or 0) + (
-            getattr(obj, "total_extra_delivery_cost", None) or 0
-        )
+        total = getattr(obj, "total_delivery_cost", None) or 0
         return total
 
 

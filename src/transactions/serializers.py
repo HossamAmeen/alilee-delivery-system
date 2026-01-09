@@ -138,23 +138,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
         accepted_statuses = [OrderStatus.DELIVERED]
 
-        summary_revenue = Order.objects.filter(
-            created__range=(summary_start_date, summary_end_date),
-            status__in=accepted_statuses,
-        ).aggregate(
-            total_revenue=Sum("trader_merchant_cost"),
-            total_commissions=Sum(
-                Case(
-                    When(
-                        status=OrderStatus.DELIVERED,
-                        then=F("delivery_cost") + F("extra_delivery_cost"),
-                    ),
-                    default=Value(0),
-                    output_field=DecimalField(),
-                )
-            ),
-        )
-
         summary_expense = (
             Expense.objects.filter(
                 date__range=(summary_start_date, summary_end_date)
@@ -308,7 +291,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             ).aggregate(total_commissions=Sum("amount"))["total_commissions"]
             or 0
         )
-        
+
         return {
             "date": {
                 "summary_start_date": summary_start_date,

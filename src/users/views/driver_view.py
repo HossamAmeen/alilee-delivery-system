@@ -11,7 +11,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from notifications.service import send_notification
-from orders.models import OrderStatus
 from orders.permissions import IsDriverPermission
 from transactions.models import TransactionType
 from users.models import Driver
@@ -49,22 +48,16 @@ class DriverViewSet(BaseViewSet):
             pass
 
         # annotate sales from wallet transactions (withdrawals) and order totals
-        delivered_filter = order_filter & Q(
-            orders__status__in=[OrderStatus.DELIVERED, OrderStatus.CANCELLED]
-        )
-
         qs = qs.annotate(
             total_delivery_cost=Coalesce(
                 Sum(
-                    "orders__delivery_cost",
-                    filter=delivered_filter,
-                ),
-                Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
-            ),
-            total_extra_delivery_cost=Coalesce(
-                Sum(
-                    "orders__extra_delivery_cost",
-                    filter=delivered_filter,
+                    "transactions__amount",
+                    filter=Q(
+                        transactions__transaction_type=TransactionType.WITHDRAW,
+                        transactions__is_rolled_back=False,
+                        transactions__order_id__isnull=False,
+                    ),
+                    distinct=True,
                 ),
                 Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
             ),
