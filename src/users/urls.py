@@ -2,13 +2,14 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from users.api import FirebaseDeviceRegisterAPIView, TraderViewSet, UserAccountViewSet
+from users.api import FirebaseDeviceRegisterAPIView, UserAccountViewSet
 from users.views.driver_view import (
     DriverInsightsAPIView,
     DriverTokenObtainPairView,
     DriverTokenRefreshView,
     DriverViewSet,
 )
+from users.views.trader_view import TraderViewSet
 
 urlpatterns = [
     path("users/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
