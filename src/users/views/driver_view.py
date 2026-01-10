@@ -65,6 +65,7 @@ class DriverViewSet(BaseViewSet):
                 Count(
                     "orders",
                     filter=order_filter,
+                    distinct=True
                 ),
                 Value(0, output_field=IntegerField()),
             ),
