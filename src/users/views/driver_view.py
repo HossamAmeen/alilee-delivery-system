@@ -1,4 +1,5 @@
-from django.db.models import Count, DecimalField, IntegerField, Q, Sum, Value
+from django.db.models import Count, IntegerField, Q, Sum, Value
+from django.db.models.expressions import OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
@@ -12,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from notifications.service import send_notification
 from orders.permissions import IsDriverPermission
-from transactions.models import TransactionType
+from transactions.models import TransactionType, UserAccountTransaction
 from users.models import Driver
 from users.serializers.driver_serializer import (
     CreateUpdateDriverSerializer,
@@ -37,37 +38,37 @@ class DriverViewSet(BaseViewSet):
     ordering = ["-id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        # for filter orders by date
+        if getattr(self, "swagger_fake_view", False):
+            return Driver.objects.none()
+        queryset = super().get_queryset()
+
         date = self.request.query_params.get("date")
-        order_filter = Q()
         sales_filter = Q(transactions__transaction_type=TransactionType.WITHDRAW)
         if date:
-            order_filter = Q(orders__created__date=date)
             sales_filter &= Q(transactions__created__date=date)
-            pass
 
-        # annotate sales from wallet transactions (withdrawals) and order totals
-        qs = qs.annotate(
-            total_delivery_cost=Coalesce(
-                Sum(
-                    "transactions__amount",
-                    filter=Q(
-                        transactions__transaction_type=TransactionType.WITHDRAW,
-                        transactions__is_rolled_back=False,
-                        transactions__order_id__isnull=False,
-                    ),
-                    distinct=True,
+        if self.action in ["list", "retrieve"]:
+            total_delivery_cost_subquery = (
+                UserAccountTransaction.objects.filter(
+                    user_account=OuterRef("pk"),
+                    transaction_type=TransactionType.WITHDRAW,
+                    is_rolled_back=False,
+                    order_id__isnull=False,
+                )
+                .values("user_account")
+                .annotate(total=Sum("amount"))
+                .values("total")
+            )
+
+            queryset = queryset.annotate(
+                total_delivery_cost=Subquery(total_delivery_cost_subquery),
+                order_count=Coalesce(
+                    Count("orders", distinct=True),
+                    Value(0, output_field=IntegerField()),
                 ),
-                Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
-            ),
-            order_count=Coalesce(
-                Count("orders", filter=order_filter, distinct=True),
-                Value(0, output_field=IntegerField()),
-            ),
-        )
+            )
 
-        return qs
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "list":
