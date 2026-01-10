@@ -62,11 +62,7 @@ class DriverViewSet(BaseViewSet):
                 Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
             ),
             order_count=Coalesce(
-                Count(
-                    "orders",
-                    filter=order_filter,
-                    distinct=True
-                ),
+                Count("orders", filter=order_filter, distinct=True),
                 Value(0, output_field=IntegerField()),
             ),
         )
