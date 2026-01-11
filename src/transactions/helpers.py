@@ -35,6 +35,7 @@ def roll_back_order_transactions(order_id):
                 user_account_id=transaction.user_account_id,
                 amount=transaction.amount,
                 transaction_type=TransactionType.WITHDRAW,
+                is_rolled_back = True,
                 notes="مبلغ مسترجع الخاص بالطلب رقم "
                 + transaction.order.tracking_number,
                 order_id=transaction.order_id,
