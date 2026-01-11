@@ -40,18 +40,14 @@ class DriverViewSet(BaseViewSet):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Driver.objects.none()
-        queryset = super().get_queryset()
 
-        date = self.request.query_params.get("date")
-        sales_filter = Q(transactions__transaction_type=TransactionType.WITHDRAW)
-        if date:
-            sales_filter &= Q(transactions__created__date=date)
+        queryset = super().get_queryset()
 
         if self.action in ["list", "retrieve"]:
             total_delivery_cost_subquery = (
                 UserAccountTransaction.objects.filter(
                     user_account=OuterRef("pk"),
-                    transaction_type=TransactionType.WITHDRAW,
+                    transaction_type=TransactionType.DEPOSIT,
                     is_rolled_back=False,
                     order_id__isnull=False,
                 )
