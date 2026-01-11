@@ -582,7 +582,7 @@ class TestUpdateOrder:
                 user_account_id=driver.id,
                 is_rolled_back=True,
             ).count()
-            == 2
+            == 3
         ), "Transaction should be rolled back for driver"
         assert (
             UserAccountTransaction.objects.filter(
@@ -590,7 +590,7 @@ class TestUpdateOrder:
                 user_account_id=trader.id,
                 is_rolled_back=True,
             ).count()
-            == 2
+            == 3
         ), "Transaction should be rolled back for trader"
 
     def test_update_order_to_assigned_without_driver(self, admin_client, created_order):

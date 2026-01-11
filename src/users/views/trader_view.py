@@ -63,7 +63,7 @@ class TraderViewSet(BaseViewSet):
                     transaction_type=TransactionType.WITHDRAW,
                     is_rolled_back=False,
                     order_id__isnull=False,
-                ).distinct()
+                )
                 .values("user_account")
                 .annotate(total=Sum("amount"))
                 .values("total")

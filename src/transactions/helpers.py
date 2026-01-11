@@ -12,9 +12,9 @@ def create_transaction(user_id, amount, transaction_type, order_id, notes=""):
     )
 
 
-def roll_back_order_transactions(ids):
+def roll_back_order_transactions(order_id):
     transactions = UserAccountTransaction.objects.filter(
-        id__in=ids, is_rolled_back=False
+        order_id=order_id, is_rolled_back=False
     )
     for transaction in transactions:
         transaction.is_rolled_back = True
@@ -25,6 +25,7 @@ def roll_back_order_transactions(ids):
                 user_account_id=transaction.user_account_id,
                 amount=transaction.amount,
                 transaction_type=TransactionType.DEPOSIT,
+                is_rolled_back = True,
                 notes="مبلغ مسترجع الخاص بالطلب رقم "
                 + transaction.order.tracking_number,
                 order_id=transaction.order_id,
