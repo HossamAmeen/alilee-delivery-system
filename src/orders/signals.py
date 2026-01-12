@@ -34,7 +34,11 @@ def update_postpone_count(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Order)
 def create_transaction_for_postponed_order(sender, instance, created, **kwargs):
-    if not created and instance.status == OrderStatus.POSTPONED:
+    if (
+        not created
+        and instance.product_payment_status == ProductPaymentStatus.PAID
+        and instance.status == OrderStatus.POSTPONED
+    ):
         create_order_transaction(
             user_id=instance.trader_id,
             amount=instance.trader_merchant_cost,

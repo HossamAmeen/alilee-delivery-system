@@ -1,4 +1,4 @@
-from django.db.models import Count, IntegerField, Q, Sum, Value
+from django.db.models import Count, IntegerField, Sum, Value
 from django.db.models.expressions import OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
