@@ -153,7 +153,7 @@ class OrderViewSet(BaseViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         if old_status != serializer.validated_data.get("status", instance.status):
-            if old_status in [OrderStatus.DELIVERED, OrderStatus.CANCELLED]:
+            if old_status in [OrderStatus.DELIVERED, OrderStatus.POSTPONED, OrderStatus.CANCELLED]:
                 roll_back_order_transactions(instance.id)
         self.perform_update(serializer)
 
