@@ -19,6 +19,7 @@ class TraderDeliveryZoneViewSet(BaseViewSet):
     serializer_class = TraderDeliveryZoneSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = TraderDeliveryZoneFilter
+    search_fields = ["delivery_zone__name"]
     ordering = ["-id"]
 
     def get_serializer_class(self):

@@ -155,9 +155,7 @@ class TestUpdateOrder:
             == 0
         ), "no transaction for trader"
         trader.refresh_from_db()
-        assert (
-            trader.balance == 0
-        ), "Trader balance should not be updated"
+        assert trader.balance == 0, "Trader balance should not be updated"
 
     def test_update_order_postponed_with_order_payment_status_paid_success(
         self, admin_client, driver_client, created_order, driver
@@ -213,15 +211,15 @@ class TestUpdateOrder:
         trader = created_order.trader
         assert (
             UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=trader.id,
-                amount=created_order.trader_merchant_cost
+                order_id=created_order.id,
+                user_account_id=trader.id,
+                amount=created_order.trader_merchant_cost,
             ).count()
             == 1
         ), "no transaction for trader"
         trader.refresh_from_db()
         assert (
             trader.balance == created_order.trader_merchant_cost
-                
         ), "Trader balance should not be updated"
 
     def test_update_order_with_product_payment_status_paid_success(
