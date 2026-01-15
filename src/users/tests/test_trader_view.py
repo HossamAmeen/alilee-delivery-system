@@ -11,17 +11,23 @@ from users.models import Trader, UserRole
 
 @pytest.mark.django_db
 class TestTraderViewSet:
+    def setup_method(self):
+        """Setup method to run before each test."""
+        self.list_url = reverse("traders-list")
+        self.detail_url = lambda id: reverse("traders-detail", args=[id])
+
+        pass
+
     def test_list_traders(self, admin_client, trader):
         """Test that an admin can list traders."""
-        url = reverse("traders-list")
-        response = admin_client.get(url)
+        response = admin_client.get(self.list_url)
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data["results"]) >= 1
-        # Check if the trader we created is in the list
-        emails = [t["email"] for t in response.data["results"]]
-        assert trader.email in emails
-        assert "total_sales" in response.data["results"][0]
-        assert "orders_count" in response.data["results"][0]
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["email"] == trader.email
+        assert response.data["results"][0]["full_name"] == trader.full_name
+        assert response.data["results"][0]["phone_number"] == trader.phone_number
+        assert Decimal(response.data["results"][0]["total_sales"]) == 0
+        assert response.data["results"][0]["orders_count"] == 0
 
     def test_retrieve_trader(self, admin_client, trader):
         """Test that an admin can retrieve a specific trader."""
@@ -29,8 +35,8 @@ class TestTraderViewSet:
         response = admin_client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["email"] == trader.email
-        assert "total_sales" in response.data
-        assert "orders_count" in response.data
+        assert Decimal(response.data["total_sales"]) == 0
+        assert response.data["orders_count"] == 0
 
     def test_create_trader(self, admin_client):
         """Test that an admin can create a new trader."""

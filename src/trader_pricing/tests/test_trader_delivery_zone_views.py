@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.urls import reverse
 from rest_framework import status
 
+from trader_pricing.models import TraderDeliveryZone
+
 
 class TestTraderDeliveryZoneViewSet:
     def setup_method(self):
@@ -85,6 +87,23 @@ class TestTraderDeliveryZoneViewSet:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["price"] == data["price"]
 
+    def test_create_trader_delivery_zone_duplicate(
+        self, admin_client, trader, delivery_zone
+    ):
+        """Test creating a trader delivery zone with duplicate trader and delivery zone."""
+        # Create the first one
+        data = {
+            "trader": str(trader.id),
+            "delivery_zone": str(delivery_zone.id),
+            "price": "15.99",
+        }
+        response = admin_client.post(self.list_url, data, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+        response = admin_client.post(self.list_url, data, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["message"] == "هذا التاجر لديه بالفعل تسعيرة لهذه المنطقة"
+
     def test_update_trader_delivery_zone(self, admin_client, trader_delivery_zone):
         """Test updating a trader delivery zone."""
         data = {
@@ -108,6 +127,23 @@ class TestTraderDeliveryZoneViewSet:
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["price"] == "25.50"
+
+    def test_partial_update_trader_delivery_zone_with_duplicate_fail(
+        self, admin_client, trader_delivery_zone, trader, delivery_zone, delivery_zone_2
+    ):
+        """Test partially updating a trader delivery zone with duplicate trader and delivery zone."""
+        # Create another trader delivery zone
+        TraderDeliveryZone.objects.create(
+            trader=trader,
+            delivery_zone=delivery_zone_2,
+            price="10.00",
+        )
+        data = {"trader": str(trader.id), "delivery_zone": str(delivery_zone_2.id)}
+        response = admin_client.patch(
+            self.detail_url(trader_delivery_zone.id), data, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["message"] == "هذا التاجر لديه بالفعل تسعيرة لهذه المنطقة"
 
     def test_delete_trader_delivery_zone(self, admin_client, trader_delivery_zone):
         """Test deleting a trader delivery zone."""

@@ -24,29 +24,48 @@ class CustomValidationError(APIException):
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
-    if isinstance(exc, CustomValidationError):
-        # Already formatted in the exception
+    if response is None:
         return response
 
-    if response is not None and isinstance(exc, ValidationError):
-        # Format other validation errors
+    # Already formatted manually
+    if isinstance(exc, CustomValidationError):
+        return response
+
+    # Handle DRF ValidationError
+    if isinstance(exc, ValidationError):
         formatted_errors = []
+        main_message = "Validation failed"
+
         for field, errors in response.data.items():
+            # Handle nested dict errors
             if isinstance(errors, dict):
                 errors = errors.values()
 
             for error in errors:
-                formatted_errors.append({"field": field, "message": str(error)})
+                error_message = str(error)
+
+                formatted_errors.append(
+                    {
+                        "field": field,
+                        "message": error_message,
+                    }
+                )
+
+                # Take FIRST error as main message
+                if main_message == "Validation failed":
+                    print("ERROR MESSAGE:", error_message)
+                    main_message = error_message
 
         response.data = {
             "code": "validation_error",
-            "message": "Validation failed",
+            "message": main_message,
             "errors": formatted_errors,
         }
-    elif response is not None and isinstance(exc, PermissionDenied):
+
+    elif isinstance(exc, PermissionDenied):
         response.data = {
             "code": "permission_denied",
-            "message": response.data["detail"],
+            "message": response.data.get("detail"),
             "errors": [],
         }
 

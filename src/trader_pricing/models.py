@@ -19,3 +19,13 @@ class TraderDeliveryZone(AbstractBaseModel):
         related_name="trader_delivery_zones_trader",
         null=True,
     )
+
+    class Meta:
+        unique_together = ("delivery_zone", "trader")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["delivery_zone", "trader"],
+                name="unique_trader_delivery_zone",
+                violation_error_message="هذا التاجر لديه بالفعل تسعيرة لهذه المنطقة",
+            )
+        ]

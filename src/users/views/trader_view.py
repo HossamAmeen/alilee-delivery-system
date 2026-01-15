@@ -1,5 +1,6 @@
 from django.db.models import (
     Count,
+    DecimalField,
     IntegerField,
     OuterRef,
     Subquery,
@@ -70,7 +71,10 @@ class TraderViewSet(BaseViewSet):
             )
 
             queryset = Trader.objects.annotate(
-                total_sales=Subquery(total_sales_subquery),
+                total_sales=Coalesce(
+                    Subquery(total_sales_subquery, output_field=DecimalField()),
+                    Value(0, output_field=DecimalField()),
+                ),
                 orders_count=Coalesce(
                     Count("orders", distinct=True),
                     Value(0, output_field=IntegerField()),
