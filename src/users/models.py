@@ -20,7 +20,7 @@ class UserAccount(AbstractUser, AbstractBaseModel):
 
     email = models.EmailField("Email", unique=True)
     full_name = models.CharField("Full Name", max_length=255)
-    phone_number = models.CharField(max_length=11, null=True)
+    phone_number = models.CharField(max_length=15, null=True)
     role = models.CharField(
         max_length=10, choices=UserRole.choices, default=UserRole.ADMIN
     )

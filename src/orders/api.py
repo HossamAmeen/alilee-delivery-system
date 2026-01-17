@@ -178,6 +178,18 @@ class OrderViewSet(BaseViewSet):
                 type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
+                "driver",
+                openapi.IN_QUERY,
+                description="Filter by driver ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "status",
+                openapi.IN_QUERY,
+                description="Comma-separated order statuses example: ?status=ASSIGNED,DELIVERED",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
                 "tracking_numbers",
                 openapi.IN_QUERY,
                 description="Comma-separated tracking numbers example: ?tracking_numbers=TRK1,TRK2,TRK3",
@@ -212,6 +224,8 @@ class OrderViewSet(BaseViewSet):
         trader_id = request.query_params.get("trader")
         tracking_numbers = request.query_params.get("tracking_numbers")
         reference_codes = request.query_params.get("reference_codes")
+        status = request.query_params.get("status")
+        driver_id = request.query_params.get("driver")
         today = date.today()
         date_from = request.query_params.get("date_from")
         if not date_from:
@@ -268,6 +282,13 @@ class OrderViewSet(BaseViewSet):
         if reference_codes:
             reference_codes_list = [rc.strip() for rc in reference_codes.split(",")]
             queryset = queryset.filter(reference_code__in=reference_codes_list)
+
+        if status:
+            status_list = [s.strip() for s in status.split(",")]
+            queryset = queryset.filter(status__in=status_list)
+
+        if driver_id:
+            queryset = queryset.filter(driver_id=driver_id)
 
         if queryset.count() > 5000:
             raise CustomValidationError(
