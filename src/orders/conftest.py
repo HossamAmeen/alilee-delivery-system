@@ -93,7 +93,7 @@ def created_order(admin_client, trader, delivery_zone, trader_delivery_zone, db)
         product_cost=Decimal("100.00"),
         delivery_cost=Decimal("10.00"),
         extra_delivery_cost=Decimal("5.00"),
-        trader_merchant_cost=Decimal("15.00"),
+        trader_cost=Decimal("15.00"),
         delivery_zone=delivery_zone,
         trader=trader,
         status=OrderStatus.CREATED,

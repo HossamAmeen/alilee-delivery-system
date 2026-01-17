@@ -145,10 +145,10 @@ def test_successful_order_creation(
         order.delivery_cost == delivery_zone.cost
     ), "Delivery cost should be set from delivery zone"
 
-    # Assert trader_merchant_cost was set from TraderDeliveryZone
+    # Assert trader_cost was set from TraderDeliveryZone
     assert (
-        order.trader_merchant_cost == trader_delivery_zone.price
-    ), "Trader merchant cost should be set from TraderDeliveryZone"
+        order.trader_cost == trader_delivery_zone.price
+    ), "Trader cost should be set from TraderDeliveryZone"
 
     # Assert response data contains expected fields
     assert "tracking_number" in response.data, "Response should contain tracking_number"

@@ -52,6 +52,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "delivery_zone",
             "cancel_reason",
             "postpone_reason",
+            "trader_cost",
+            "trader_merchant_cost",
             "is_return",
         ]
         read_only_fields = ("id", "tracking_number", "created", "modified")
@@ -79,8 +81,7 @@ class OrderSerializer(serializers.ModelSerializer):
             raise CustomValidationError(
                 "The selected trader does not serve the selected delivery zone."
             )
-
-        validated_data["trader_merchant_cost"] = merchant_cost.price
+        validated_data["trader_cost"] = merchant_cost.price
         return super().create(validated_data)
 
     @atomic
@@ -110,6 +111,9 @@ class OrderSerializer(serializers.ModelSerializer):
                 raise CustomValidationError(
                     "The selected trader does not serve the selected delivery zone."
                 )
+            validated_data["trader_merchant_cost"] = merchant_cost.price
+
+            validated_data["trader_cost"] = merchant_cost.price
         if not instance.driver and validated_data.get("driver"):
             instance.status = OrderStatus.ASSIGNED
             send_notification(
@@ -153,6 +157,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "delivery_cost",
             "extra_delivery_cost",
             "total_cost",
+            "trader_cost",
             "trader_merchant_cost",
             "status",
             "status_ar",
@@ -236,6 +241,8 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "modified",
             "cancel_reason",
             "postpone_reason",
+            "trader_cost",
+            "trader_merchant_cost",
             "is_return",
         ]
 

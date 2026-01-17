@@ -41,14 +41,14 @@ def create_transaction_for_postponed_order(sender, instance, created, **kwargs):
     ):
         create_order_transaction(
             user_id=instance.trader_id,
-            amount=instance.trader_merchant_cost,
+            amount=instance.trader_cost,
             transaction_type=TransactionType.WITHDRAW,
             order_id=instance.id,
             notes=f"سحب رسوم شحن {instance.tracking_number}",
         )
 
 
-# Make trader transaction, order cancelled, office will take trader_merchant_cost from trader
+# Make trader transaction, order cancelled, office will take trader_cost from trader
 @receiver(post_save, sender=Order)
 def cancelled_order_withdraw_transaction_from_trader(
     sender, instance, created, **kwargs
@@ -61,7 +61,7 @@ def cancelled_order_withdraw_transaction_from_trader(
     ):
         create_order_transaction(
             user_id=instance.trader_id,
-            amount=instance.trader_merchant_cost,
+            amount=instance.trader_cost,
             transaction_type=TransactionType.WITHDRAW,
             order_id=instance.id,
             notes=f"سحب رسوم شحن {instance.tracking_number}",
@@ -77,7 +77,7 @@ def delivered_order_withdraw_transaction_from_trader(
         if instance.product_payment_status == ProductPaymentStatus.PAID:
             create_order_transaction(
                 user_id=instance.trader_id,
-                amount=instance.trader_merchant_cost,
+                amount=instance.trader_cost,
                 transaction_type=TransactionType.WITHDRAW,
                 order_id=instance.id,
                 notes=f"سحب رسوم شحن {instance.tracking_number}",
@@ -85,7 +85,7 @@ def delivered_order_withdraw_transaction_from_trader(
         elif instance.product_payment_status == ProductPaymentStatus.COD:
             create_order_transaction(
                 user_id=instance.trader_id,
-                amount=instance.trader_merchant_cost,
+                amount=instance.trader_cost,
                 transaction_type=TransactionType.WITHDRAW,
                 order_id=instance.id,
                 notes=f"سحب رسوم شحن {instance.tracking_number}",
@@ -119,7 +119,7 @@ def delivered_order_remaining_fees_deposit_transaction_to_driver(
 
             create_order_transaction(
                 user_id=instance.driver_id,
-                amount=instance.trader_merchant_cost,
+                amount=instance.trader_cost,
                 transaction_type=TransactionType.WITHDRAW,
                 order_id=instance.id,
                 notes=f"سحب رسوم الشحن الخاصه بالمنطقة {instance.tracking_number}",

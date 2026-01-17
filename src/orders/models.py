@@ -68,6 +68,9 @@ class Order(AbstractBaseModel):
         default=ProductPaymentStatus.COD,
     )
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    trader_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00
+    )
     trader_merchant_cost = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00
     )
@@ -134,7 +137,5 @@ class Order(AbstractBaseModel):
     def total_cost_for_driver(self):
         if self.product_payment_status == ProductPaymentStatus.PAID:
             return 0
-        if self.product_payment_status == ProductPaymentStatus.REMAINING_FEES:
-            return self.trader_merchant_cost
         else:
             return self.product_cost

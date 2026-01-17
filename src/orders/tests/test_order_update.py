@@ -96,7 +96,7 @@ class TestUpdateOrder:
         trader.refresh_from_db()
         assert (
             trader.balance
-            == -1 * created_order.product_cost + created_order.trader_merchant_cost
+            == -1 * created_order.product_cost + created_order.trader_cost
         ), "Trader balance should be updated"
 
     def test_update_order_postponed_with_order_payment_status_cod_success(
@@ -213,13 +213,13 @@ class TestUpdateOrder:
             UserAccountTransaction.objects.filter(
                 order_id=created_order.id,
                 user_account_id=trader.id,
-                amount=created_order.trader_merchant_cost,
+                amount=created_order.trader_cost,
             ).count()
             == 1
         ), "no transaction for trader"
         trader.refresh_from_db()
         assert (
-            trader.balance == created_order.trader_merchant_cost
+            trader.balance == created_order.trader_cost
         ), "Trader balance should not be updated"
 
     def test_update_order_with_product_payment_status_paid_success(
@@ -281,7 +281,7 @@ class TestUpdateOrder:
         ), "Transaction should be created"
         trader.refresh_from_db()
         assert (
-            trader.balance == created_order.trader_merchant_cost
+            trader.balance == created_order.trader_cost
         ), "Trader balance should be updated"
 
     def test_update_order_with_product_payment_status_paid_and_cancelled_success(
@@ -343,7 +343,7 @@ class TestUpdateOrder:
         trader.refresh_from_db()
 
         assert (
-            trader.balance == created_order.trader_merchant_cost
+            trader.balance == created_order.trader_cost
         ), "Trader balance should be updated"
 
     def test_update_order_with_product_payment_status_COD_and_cancelled_success(
@@ -452,7 +452,7 @@ class TestUpdateOrder:
         ), "Transaction should be created"
         driver.refresh_from_db()
 
-        assert driver.balance == created_order.trader_merchant_cost - (
+        assert driver.balance == created_order.trader_cost - (
             created_order.delivery_cost + created_order.extra_delivery_cost
         ), "Driver balance should be updated"
 
@@ -615,7 +615,7 @@ class TestUpdateOrder:
         trader.refresh_from_db()
         assert (
             trader.balance
-            == -1 * created_order.product_cost + created_order.trader_merchant_cost
+            == -1 * created_order.product_cost + created_order.trader_cost
         ), "Trader balance should be updated"
 
         # update order status to created (rolled back)

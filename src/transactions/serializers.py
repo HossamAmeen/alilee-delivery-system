@@ -152,7 +152,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             .annotate(month=TruncMonth("created"))
             .values("month")
             .annotate(
-                total_income=Sum("trader_merchant_cost"),
+                total_income=Sum("trader_cost"),
                 total_commissions=Sum(
                     Case(
                         When(
