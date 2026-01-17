@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from geo.models import DeliveryZone
@@ -6,7 +7,11 @@ from utilities.models.abstract_base_model import AbstractBaseModel
 
 
 class TraderDeliveryZone(AbstractBaseModel):
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(1, message='يجب أن يكون السعر أكبر من أو يساوي 1')]
+    )
     delivery_zone = models.ForeignKey(
         DeliveryZone,
         on_delete=models.SET_NULL,

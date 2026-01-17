@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from django.urls import reverse
 from rest_framework import status
 
@@ -71,3 +72,42 @@ class TestDriverViewSet:
         assert response.status_code == status.HTTP_200_OK
         driver.refresh_from_db()
         assert driver.full_name == "Self Updated Name"
+
+    def test_delete_driver_with_zero_balance(self, admin_client, driver):
+        """Test deleting a driver with zero balance."""
+        driver.balance = Decimal('0.00')
+        driver.save()
+        
+        url = reverse("drivers-detail", args=[driver.id])
+        response = admin_client.delete(url)
+        
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Driver.objects.filter(id=driver.id).exists()
+
+    @pytest.mark.django_db(transaction=True)
+    def test_delete_driver_with_positive_balance(self, admin_client, driver):
+        """Test cannot delete driver with positive balance."""
+        driver.balance = Decimal('100.00')
+        driver.save()
+        
+        url = reverse("drivers-detail", args=[driver.id])
+        response = admin_client.delete(url)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Driver.objects.filter(id=driver.id).exists()
+        assert 'لا يمكن حذف السائق' in str(response.data)
+        assert '100.00' in str(response.data)
+
+    @pytest.mark.django_db(transaction=True)
+    def test_delete_driver_with_negative_balance(self, admin_client, driver):
+        """Test cannot delete driver with negative balance."""
+        driver.balance = Decimal('-50.00')
+        driver.save()
+        
+        url = reverse("drivers-detail", args=[driver.id])
+        response = admin_client.delete(url)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Driver.objects.filter(id=driver.id).exists()
+        assert 'لا يمكن حذف السائق' in str(response.data)
+        assert '-50.00' in str(response.data)

@@ -629,6 +629,7 @@ class TestUpdateOrder:
 
         created_order.refresh_from_db()
         assert created_order.status == OrderStatus.CREATED, "Status should be updated"
+        assert created_order.driver is None, "Driver should be deleted"
 
         trader.refresh_from_db()
         assert (

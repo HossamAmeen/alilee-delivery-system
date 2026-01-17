@@ -52,6 +52,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "delivery_zone",
             "cancel_reason",
             "postpone_reason",
+            "is_return",
         ]
         read_only_fields = ("id", "tracking_number", "created", "modified")
         extra_kwargs = {
@@ -116,6 +117,10 @@ class OrderSerializer(serializers.ModelSerializer):
                 description="تم تعيينك كسائق للطلب رقم " + instance.tracking_number,
                 user_id=validated_data.get("driver").id,
             )
+        
+        if instance.status == OrderStatus.DELIVERED and validated_data.get("status") == OrderStatus.CREATED:
+            instance.driver = None
+        
         return super().update(instance, validated_data)
 
     def validate(self, data):
@@ -163,6 +168,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "modified",
             "cancel_reason",
             "postpone_reason",
+            "is_return",
         ]
 
     def get_total_cost(self, obj):
@@ -230,6 +236,7 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "modified",
             "cancel_reason",
             "postpone_reason",
+            "is_return",
         ]
 
     def get_total_cost(self, obj):
@@ -256,6 +263,7 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "created",
             "longitude",
             "latitude",
+            "is_return",
         ]
 
     def get_total_cost(self, obj):

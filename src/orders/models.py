@@ -77,6 +77,7 @@ class Order(AbstractBaseModel):
     cancel_reason = models.TextField(null=True, blank=True)
     postpone_reason = models.TextField(null=True, blank=True)
     postpone_count = models.IntegerField(default=0)
+    is_return = models.BooleanField(default=False, verbose_name="Is Return Order")
 
     # Relations
     driver = models.ForeignKey(

@@ -104,3 +104,42 @@ class TestTraderViewSet:
         url = reverse("traders-list")
         response = api_client.get(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        
+    def test_delete_trader_with_zero_balance(self, user_client, trader):
+        """Test deleting a trader with zero balance."""
+        trader.balance = Decimal('0.00')
+        trader.save()
+        
+        url = reverse("traders-detail", kwargs={"pk": trader.pk})
+        response = user_client.delete(url)
+        
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Trader.objects.filter(pk=trader.pk).exists()
+
+    @pytest.mark.django_db(transaction=True)
+    def test_delete_trader_with_positive_balance(self, user_client, trader):
+        """Test cannot delete trader with positive balance."""
+        trader.balance = Decimal('200.00')
+        trader.save()
+        
+        url = reverse("traders-detail", kwargs={"pk": trader.pk})
+        response = user_client.delete(url)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Trader.objects.filter(pk=trader.pk).exists()
+        assert 'لا يمكن حذف التاجر' in str(response.data)
+        assert '200.00' in str(response.data)
+
+    @pytest.mark.django_db(transaction=True)
+    def test_delete_trader_with_negative_balance(self, user_client, trader):
+        """Test cannot delete trader with negative balance."""
+        trader.balance = Decimal('-75.50')
+        trader.save()
+        
+        url = reverse("traders-detail", kwargs={"pk": trader.pk})
+        response = user_client.delete(url)
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Trader.objects.filter(pk=trader.pk).exists()
+        assert 'لا يمكن حذف التاجر' in str(response.data)
+        assert '-75.50' in str(response.data)

@@ -104,6 +104,17 @@ class TestTraderDeliveryZoneViewSet:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["message"] == "هذا التاجر لديه بالفعل تسعيرة لهذه المنطقة"
 
+    def test_create_trader_delivery_zone_with_zero_price(self, admin_client, trader, delivery_zone):
+        """Test creating a trader delivery zone with invalid data."""
+        data = {
+            "trader": str(trader.id),
+            "delivery_zone": str(delivery_zone.id),
+            "price": "0",
+        }
+        response = admin_client.post(self.list_url, data, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
     def test_update_trader_delivery_zone(self, admin_client, trader_delivery_zone):
         """Test updating a trader delivery zone."""
         data = {
