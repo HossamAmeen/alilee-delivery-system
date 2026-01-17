@@ -68,9 +68,7 @@ class Order(AbstractBaseModel):
         default=ProductPaymentStatus.COD,
     )
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    trader_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0.00
-    )
+    trader_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     trader_merchant_cost = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00
     )

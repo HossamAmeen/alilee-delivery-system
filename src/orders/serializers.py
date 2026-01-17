@@ -87,10 +87,10 @@ class OrderSerializer(serializers.ModelSerializer):
     @atomic
     def update(self, instance, validated_data):
         if instance.status in [
-                OrderStatus.DELIVERED,
-                OrderStatus.POSTPONED,
-                OrderStatus.CANCELLED,
-            ]:
+            OrderStatus.DELIVERED,
+            OrderStatus.POSTPONED,
+            OrderStatus.CANCELLED,
+        ]:
             if instance.status == validated_data.get("status", instance.status):
                 raise CustomValidationError("Status cannot be changed for this order.")
         if validated_data.get("customer"):
@@ -128,10 +128,10 @@ class OrderSerializer(serializers.ModelSerializer):
                 description="تم تعيينك كسائق للطلب رقم " + instance.tracking_number,
                 user_id=validated_data.get("driver").id,
             )
-        
-        if instance.status == OrderStatus.DELIVERED and validated_data.get("status") == OrderStatus.CREATED:
+
+        if validated_data.get("status") == OrderStatus.CREATED:
             instance.driver = None
-        
+
         return super().update(instance, validated_data)
 
     def validate(self, data):

@@ -1,6 +1,6 @@
-from datetime import timedelta
 import csv
-from datetime import datetime, date
+from datetime import date, datetime, timedelta
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpResponse
@@ -8,9 +8,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -234,7 +234,9 @@ class OrderViewSet(BaseViewSet):
             try:
                 date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
             except ValueError:
-                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
+                raise CustomValidationError(
+                    message="Invalid date format. Use YYYY-MM-DD."
+                )
         date_to = request.query_params.get("date_to")
         if not date_to:
             date_to = today
@@ -242,13 +244,17 @@ class OrderViewSet(BaseViewSet):
             try:
                 date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
             except ValueError:
-                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
+                raise CustomValidationError(
+                    message="Invalid date format. Use YYYY-MM-DD."
+                )
 
         if date_from:
             try:
                 queryset = queryset.filter(created__date__gte=date_from)
             except (ValueError, ValidationError):
-                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
+                raise CustomValidationError(
+                    message="Invalid date format. Use YYYY-MM-DD."
+                )
 
         if date_to:
             if date_from:
@@ -270,7 +276,9 @@ class OrderViewSet(BaseViewSet):
             try:
                 queryset = queryset.filter(created__date__lte=date_to)
             except (ValueError, ValidationError):
-                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
+                raise CustomValidationError(
+                    message="Invalid date format. Use YYYY-MM-DD."
+                )
 
         if trader_id:
             queryset = queryset.filter(trader_id=trader_id)
@@ -323,7 +331,11 @@ class OrderViewSet(BaseViewSet):
                     order.customer.name if order.customer else "",
                     order.customer.phone if order.customer else "",
                     order.customer.address if order.customer else "",
-                    order.trader_cost if order.trader_cost else order.trader_merchant_cost,
+                    (
+                        order.trader_cost
+                        if order.trader_cost
+                        else order.trader_merchant_cost
+                    ),
                     order.created.strftime("%Y-%m-%d %H:%M:%S"),
                 ]
             )

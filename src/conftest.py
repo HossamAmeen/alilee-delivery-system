@@ -2,7 +2,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from geo.models import City
-from users.models import Trader, UserAccount, UserRole
+from users.models import Driver, Trader, UserAccount, UserRole
 
 
 @pytest.fixture
@@ -54,12 +54,11 @@ def trader_2(db):
 @pytest.fixture
 def driver(db):
     """Create and return an active driver for testing."""
-    return UserAccount.objects.create_user(
+    return Driver.objects.create_user(
         email="driver@example.com",
         password="testpass123",
         full_name="Test Driver",
         role=UserRole.DRIVER,
-        status="active",
         is_active=True,
     )
 

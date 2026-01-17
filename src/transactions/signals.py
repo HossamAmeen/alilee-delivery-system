@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from notifications.service import send_notification
@@ -24,6 +24,7 @@ def create_expense(sender, instance, created, **kwargs):
                 description=instance.notes,
                 date=instance.created,
                 cost=instance.amount,
+                transaction=instance,
             )
 
 
@@ -40,3 +41,21 @@ def send_notification_after_transaction(sender, instance, created, **kwargs):
             description = f"تم إيداع {instance.amount} إلى حسابك"
             title = "إيداع إلى حسابك"
         send_notification(instance.user_account_id, title, description)
+
+
+@receiver(post_delete, sender=Expense)
+def roll_back_expense(sender, instance, **kwargs):
+    transactions = UserAccountTransaction.objects.filter(
+        id=instance.transaction_id, is_rolled_back=False
+    )
+    for transaction in transactions:
+        transaction.is_rolled_back = True
+        transaction.notes = transaction.notes + " (استرجاع)"
+        transaction.save()
+        UserAccountTransaction.objects.create(
+            user_account_id=transaction.user_account_id,
+            amount=transaction.amount,
+            transaction_type=TransactionType.WITHDRAW,
+            is_rolled_back=True,
+            notes="مبلغ مسترجع الخاص المصارف",
+        )

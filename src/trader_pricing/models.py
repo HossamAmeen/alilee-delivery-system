@@ -10,7 +10,9 @@ class TraderDeliveryZone(AbstractBaseModel):
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(1, message='يجب أن يكون السعر أكبر من أو يساوي 1')]
+        validators=[
+            MinValueValidator(1, message="يجب أن يكون السعر أكبر من أو يساوي 1")
+        ],
     )
     delivery_zone = models.ForeignKey(
         DeliveryZone,

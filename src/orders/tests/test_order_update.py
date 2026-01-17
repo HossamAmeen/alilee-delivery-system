@@ -670,7 +670,9 @@ class TestUpdateOrder:
             response.data["message"] == "يجب تعين سائق للطلب"
         ), "Driver should be updated"
 
-    def test_update_product_price_with_delivered_order_failed(self, admin_client, created_order):
+    def test_update_product_price_with_delivered_order_failed(
+        self, admin_client, created_order
+    ):
         created_order.status = OrderStatus.DELIVERED
         extra_delivery_cost = created_order.extra_delivery_cost
         created_order.save()
@@ -685,4 +687,6 @@ class TestUpdateOrder:
         ), f"Expected 400 Bad Request, got {response.status_code}. Response: {response.data}"
 
         created_order.refresh_from_db()
-        assert created_order.extra_delivery_cost == extra_delivery_cost, "Extra delivery cost should not be updated"
+        assert (
+            created_order.extra_delivery_cost == extra_delivery_cost
+        ), "Extra delivery cost should not be updated"
