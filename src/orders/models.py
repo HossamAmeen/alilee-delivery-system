@@ -79,6 +79,7 @@ class Order(AbstractBaseModel):
     postpone_reason = models.TextField(null=True, blank=True)
     postpone_count = models.IntegerField(default=0)
     is_return = models.BooleanField(default=False, verbose_name="Is Return Order")
+    image = models.ImageField(upload_to="orders/images", null=True, blank=True)
 
     # Relations
     driver = models.ForeignKey(

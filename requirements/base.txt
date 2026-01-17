@@ -28,3 +28,4 @@ firebase_admin==7.1.0
 sentry-sdk==2.48.0
 
 gunicorn==23.0.0
+Pillow==12.1.0

@@ -55,6 +55,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "trader_cost",
             "trader_merchant_cost",
             "is_return",
+            "image",
         ]
         read_only_fields = ("id", "tracking_number", "created", "modified")
         extra_kwargs = {
@@ -181,6 +182,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "cancel_reason",
             "postpone_reason",
             "is_return",
+            "image",
         ]
 
     def get_total_cost(self, obj):
@@ -211,6 +213,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             "created",
             "longitude",
             "latitude",
+            "image",
         ]
 
     def get_total_cost(self, obj):
@@ -251,6 +254,7 @@ class SingleOrderSerializer(serializers.ModelSerializer):
             "trader_cost",
             "trader_merchant_cost",
             "is_return",
+            "image",
         ]
 
     def get_total_cost(self, obj):
@@ -278,6 +282,7 @@ class OrderTraderSerializer(serializers.ModelSerializer):
             "longitude",
             "latitude",
             "is_return",
+            "image",
         ]
 
     def get_total_cost(self, obj):

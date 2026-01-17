@@ -7,6 +7,7 @@ ensuring proper validation, authentication, and business rules are enforced.
 
 from decimal import Decimal
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 
@@ -690,3 +691,27 @@ class TestUpdateOrder:
         assert (
             created_order.extra_delivery_cost == extra_delivery_cost
         ), "Extra delivery cost should not be updated"
+
+    def test_update_order_image_success(self, admin_client, created_order):
+        url = reverse("orders-detail", kwargs={"pk": created_order.id})
+
+        # Create a small dummy image
+        image_content = b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b"
+        image = SimpleUploadedFile(
+            "test_image.gif", image_content, content_type="image/gif"
+        )
+
+        update_payload = {"image": image}
+
+        # Note: When sending files, we should not use format="json"
+        response = admin_client.patch(url, data=update_payload, format="multipart")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
+        created_order.refresh_from_db()
+        assert created_order.image is not None, "Image should be uploaded"
+        assert created_order.image.name.endswith(
+            ".gif"
+        ), "Image file name should end with .gif"
