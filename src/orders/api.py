@@ -1,10 +1,15 @@
+import csv
+from datetime import datetime
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -162,6 +167,131 @@ class OrderViewSet(BaseViewSet):
         self.perform_update(serializer)
 
         return Response(serializer.data)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "trader",
+                openapi.IN_QUERY,
+                description="Filter by trader ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "tracking_numbers",
+                openapi.IN_QUERY,
+                description="Comma-separated tracking numbers example: ?tracking_numbers=TRK1,TRK2,TRK3",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "reference_codes",
+                openapi.IN_QUERY,
+                description="Comma-separated reference codes example: ?reference_codes=REF1,REF2,REF3",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "date_from",
+                openapi.IN_QUERY,
+                description="Filter by start date format YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "date_to",
+                openapi.IN_QUERY,
+                description="Filter by end date format YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+        ]
+    )
+    @action(detail=False, methods=["get"], url_path="export-csv")
+    def export_csv(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        trader_id = request.query_params.get("trader")
+        tracking_numbers = request.query_params.get("tracking_numbers")
+        reference_codes = request.query_params.get("reference_codes")
+        date_from = request.query_params.get("date_from")
+        date_to = request.query_params.get("date_to")
+
+        if date_from:
+            try:
+                queryset = queryset.filter(created__date__gte=date_from)
+            except (ValueError, ValidationError):
+                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
+
+        if date_to:
+            if date_from:
+                if date_from > date_to:
+                    raise CustomValidationError(
+                        message="Date from cannot be greater than date to."
+                    )
+
+                try:
+                    start_dt = datetime.strptime(date_from, "%Y-%m-%d")
+                    end_dt = datetime.strptime(date_to, "%Y-%m-%d")
+                    if (end_dt - start_dt).days > 7:
+                        raise CustomValidationError(
+                            message="Date range cannot exceed 7 days."
+                        )
+                except ValueError:
+                    raise CustomValidationError(
+                        message="Invalid date format. Use YYYY-MM-DD."
+                    )
+
+            try:
+                queryset = queryset.filter(created__date__lte=date_to)
+            except (ValueError, ValidationError):
+                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
+
+        if trader_id:
+            queryset = queryset.filter(trader_id=trader_id)
+
+        if tracking_numbers:
+            tracking_numbers_list = [tn.strip() for tn in tracking_numbers.split(",")]
+            queryset = queryset.filter(tracking_number__in=tracking_numbers_list)
+
+        if reference_codes:
+            reference_codes_list = [rc.strip() for rc in reference_codes.split(",")]
+            queryset = queryset.filter(reference_code__in=reference_codes_list)
+
+        if queryset.count() > 5000:
+            raise CustomValidationError(
+                message="Cannot export more than 5000 orders at once."
+            )
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="orders_export.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                "رقم التتبع",
+                "رمز المرجع",
+                "الحالة",
+                "البائع",
+                "اسم العميل",
+                "رقم هاتف العميل",
+                "عنوان العميل",
+                "السعر",
+                "تاريخ الاضافة",
+            ]
+        )
+
+        for order in queryset:
+            writer.writerow(
+                [
+                    order.tracking_number,
+                    order.reference_code,
+                    order.status_ar,
+                    order.trader.full_name if order.trader else "",
+                    order.customer.name if order.customer else "",
+                    order.customer.phone if order.customer else "",
+                    order.customer.address if order.customer else "",
+                    order.trader_cost if order.trader_cost else order.trader_merchant_cost,
+                    order.created.strftime("%Y-%m-%d %H:%M:%S"),
+                ]
+            )
+
+        return response
 
 
 class OrderDeliveryAssignAPIView(APIView):
