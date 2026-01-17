@@ -512,8 +512,8 @@ class TestUpdateOrder:
         # update order status to delivered again
         response = admin_client.patch(url, data=update_payload, format="json")
         assert (
-            response.status_code == status.HTTP_200_OK
-        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+            response.status_code == status.HTTP_400_BAD_REQUEST
+        ), f"Expected 400 Bad Request, got {response.status_code}. Response: {response.data}"
         assert (
             UserAccountTransaction.objects.filter(
                 order_id=created_order.id, user_account_id=driver.id
@@ -669,3 +669,20 @@ class TestUpdateOrder:
         assert (
             response.data["message"] == "يجب تعين سائق للطلب"
         ), "Driver should be updated"
+
+    def test_update_product_price_with_delivered_order_failed(self, admin_client, created_order):
+        created_order.status = OrderStatus.DELIVERED
+        extra_delivery_cost = created_order.extra_delivery_cost
+        created_order.save()
+
+        url = reverse("orders-detail", kwargs={"pk": created_order.id})
+        update_payload = {"extra_delivery_cost": 100}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_400_BAD_REQUEST
+        ), f"Expected 400 Bad Request, got {response.status_code}. Response: {response.data}"
+
+        created_order.refresh_from_db()
+        assert created_order.extra_delivery_cost == extra_delivery_cost, "Extra delivery cost should not be updated"

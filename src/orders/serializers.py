@@ -86,6 +86,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
     @atomic
     def update(self, instance, validated_data):
+        if instance.status in [
+                OrderStatus.DELIVERED,
+                OrderStatus.POSTPONED,
+                OrderStatus.CANCELLED,
+            ]:
+            if instance.status == validated_data.get("status", instance.status):
+                raise CustomValidationError("Status cannot be changed for this order.")
         if validated_data.get("customer"):
             if not validated_data["customer"].get("id"):
                 raise CustomValidationError("Customer ID is required")
