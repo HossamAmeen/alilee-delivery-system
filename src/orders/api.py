@@ -1,5 +1,6 @@
+from datetime import timedelta
 import csv
-from datetime import datetime
+from datetime import datetime, date
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpResponse
@@ -204,13 +205,30 @@ class OrderViewSet(BaseViewSet):
     )
     @action(detail=False, methods=["get"], url_path="export-csv")
     def export_csv(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = Order.objects.select_related(
+            "driver", "trader", "customer", "delivery_zone"
+        ).order_by("-id")
 
         trader_id = request.query_params.get("trader")
         tracking_numbers = request.query_params.get("tracking_numbers")
         reference_codes = request.query_params.get("reference_codes")
+        today = date.today()
         date_from = request.query_params.get("date_from")
+        if not date_from:
+            date_from = today - timedelta(days=7)
+        else:
+            try:
+                date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
+            except ValueError:
+                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
         date_to = request.query_params.get("date_to")
+        if not date_to:
+            date_to = today
+        else:
+            try:
+                date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
+            except ValueError:
+                raise CustomValidationError(message="Invalid date format. Use YYYY-MM-DD.")
 
         if date_from:
             try:
@@ -226,9 +244,7 @@ class OrderViewSet(BaseViewSet):
                     )
 
                 try:
-                    start_dt = datetime.strptime(date_from, "%Y-%m-%d")
-                    end_dt = datetime.strptime(date_to, "%Y-%m-%d")
-                    if (end_dt - start_dt).days > 7:
+                    if (date_to - date_from).days > 7:
                         raise CustomValidationError(
                             message="Date range cannot exceed 7 days."
                         )
