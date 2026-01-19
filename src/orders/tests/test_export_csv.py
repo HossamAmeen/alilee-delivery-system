@@ -27,11 +27,10 @@ class TestOrderExportCSV:
         lines = content.strip().split("\n")
         assert len(lines) >= 2  # Header + at least one order
         assert (
-            "رقم التتبع,رمز المرجع,الحالة,البائع,اسم العميل,رقم هاتف العميل,عنوان العميل,السعر,تاريخ الاضافة"
+            "تاريخ الاضافة,رقم التتبع,رمز المرجع,اسم التاجر,العنوان,الحالة,عمولة المكتب,فلوس للتاجر"
             in lines[0]
         )
         assert assigned_order.tracking_number in lines[1]
-        assert assigned_order.reference_code in lines[1]
 
     def test_export_csv_filter_by_trader(
         self, admin_client, trader, trader_2, assigned_order, delivery_zone

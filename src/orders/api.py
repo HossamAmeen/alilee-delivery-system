@@ -316,7 +316,7 @@ class OrderViewSet(BaseViewSet):
                 "اسم التاجر",
                 "العنوان",
                 "الحالة",
-                "عمولة المكتب"
+                "عمولة المكتب",
                 "فلوس للتاجر",
             ]
         )
@@ -344,7 +344,6 @@ class OrderViewSet(BaseViewSet):
                         if order.trader_cost
                         else order.trader_merchant_cost
                     ),
-                    order.trader_merchant_cost,
                     trader_commission,
                 ]
             )
