@@ -1,3 +1,4 @@
+from orders.models import ProductPaymentStatus
 import csv
 from datetime import date, datetime, timedelta
 
@@ -309,34 +310,42 @@ class OrderViewSet(BaseViewSet):
         writer = csv.writer(response)
         writer.writerow(
             [
+                "تاريخ الاضافة",
                 "رقم التتبع",
                 "رمز المرجع",
+                "اسم التاجر",
+                "العنوان",
                 "الحالة",
-                "البائع",
-                "اسم العميل",
-                "رقم هاتف العميل",
-                "عنوان العميل",
-                "السعر",
-                "تاريخ الاضافة",
+                "عمولة المكتب"
+                "فلوس للتاجر",
             ]
         )
 
         for order in queryset:
+            trader_commission = 0
+            trader_cost = order.trader_cost if order.trader_cost else order.trader_merchant_cost
+            if order.product_payment_status == ProductPaymentStatus.PAID:
+                trader_commission = trader_cost
+
+            if order.product_payment_status == ProductPaymentStatus.COD:
+                if order.status == OrderStatus.DELIVERED:
+                    trader_commission = abs(trader_cost - order.product_cost)
+
             writer.writerow(
                 [
+                    order.created.strftime("%Y-%m-%d %H:%M:%S"),
                     order.tracking_number,
                     order.reference_code,
-                    order.status_ar,
                     order.trader.full_name if order.trader else "",
-                    order.customer.name if order.customer else "",
-                    order.customer.phone if order.customer else "",
-                    order.customer.address if order.customer else "",
+                    order.delivery_zone.name if order.delivery_zone else "",
+                    order.status_ar,
                     (
                         order.trader_cost
                         if order.trader_cost
                         else order.trader_merchant_cost
                     ),
-                    order.created.strftime("%Y-%m-%d %H:%M:%S"),
+                    order.trader_merchant_cost,
+                    trader_commission,
                 ]
             )
 
