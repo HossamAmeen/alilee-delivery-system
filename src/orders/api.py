@@ -324,8 +324,6 @@ class OrderViewSet(BaseViewSet):
         for order in queryset:
             trader_commission = 0
             trader_cost = order.trader_cost if order.trader_cost else order.trader_merchant_cost
-            if order.product_payment_status == ProductPaymentStatus.PAID:
-                trader_commission = trader_cost
 
             if order.product_payment_status == ProductPaymentStatus.COD:
                 if order.status == OrderStatus.DELIVERED:
