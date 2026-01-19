@@ -33,10 +33,7 @@ class UserAccountTransactionSerializer(ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context.get("request")
-        print(instance.file)
-        print(request)
         if instance.file and request:
-            print(request.build_absolute_uri(instance.file.url))
             representation["file"] = request.build_absolute_uri(instance.file.url)
         return representation
 
@@ -60,6 +57,22 @@ class ListUserAccountTransactionSerializer(ModelSerializer):
         ]
 
 
+class SingleUserAccountTransactionSerializer(ModelSerializer):
+    user_account = SingleUserAccountSerializer()
+    class Meta:
+        model = UserAccountTransaction
+        fields = [
+            "id",
+            "user_account",
+            "amount",
+            "transaction_type",
+            "is_rolled_back",
+            "notes",
+            "created",
+            "modified",
+        ]
+
+
 class ExpenseSerializer(ModelSerializer):
     class Meta:
         model = Expense
@@ -73,6 +86,20 @@ class ExpenseSerializer(ModelSerializer):
         ]
         read_only_fields = ("id", "created", "modified")
 
+
+class ListExpenseSerializer(ModelSerializer):
+    transaction = SingleUserAccountTransactionSerializer()
+    class Meta:
+        model = Expense
+        fields = [
+            "id",
+            "date",
+            "cost",
+            "description",
+            "transaction",
+            "created",
+            "modified",
+        ]
 
 class FinancialInsightsSerializer(serializers.Serializer):
     # Represent 'summary_start_date'

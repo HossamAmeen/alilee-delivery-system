@@ -25,7 +25,7 @@ class TestExpenseFunctionality:
         expense = Expense.objects.filter(transaction=transaction).first()
         assert expense is not None
         assert expense.cost == Decimal("150.00")
-        assert expense.description == "Office supplies"
+        assert expense.description == f"{transaction.notes} (محصلة من عمليه مالية)"
 
         # Verify balance was updated (decreased)
         driver.refresh_from_db()
@@ -113,13 +113,41 @@ class TestExpenseAPI:
         assert expense.description == "New Desk"
         assert expense.cost == Decimal("75.00")
 
-    def test_list_expenses_with_filters(self, admin_client):
-        Expense.objects.create(description="Jan Expense", cost=10, date="2026-01-01")
-        Expense.objects.create(description="Feb Expense", cost=20, date="2026-02-01")
+    def test_list_expenses_with_filters(self, admin_client, driver):
+        
+        Expense.objects.create(description="Jan Expense", cost=10, date="2025-01-01")
+        Expense.objects.create(description="Feb Expense", cost=20, date="2025-02-01")
+        transaction = UserAccountTransaction.objects.create(
+            user_account_id=driver.id,
+            amount=Decimal("200.00"),
+            transaction_type=TransactionType.EXPENSE,
+            notes="Travel expense",
+        ) # this create expense with transaction
+
+        response = admin_client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 3
+        
+        expenses = response.data["results"]["expenses"]
+        assert expenses[0]["description"] == f"{transaction.notes} (محصلة من عمليه مالية)"
+        assert expenses[1]["description"] == "Feb Expense"
+        assert expenses[2]["description"] == "Jan Expense"
+        assert expenses[0]["cost"] == "200.00"
+        assert expenses[1]["cost"] == "20.00"
+        assert expenses[2]["cost"] == "10.00"
+        assert expenses[0]["date"] == transaction.created.strftime("%Y-%m-%d")
+        assert expenses[1]["date"] == "2025-02-01"
+        assert expenses[2]["date"] == "2025-01-01"
+        assert expenses[0]["transaction"]["id"] == transaction.id
+        assert expenses[0]["transaction"]["notes"] == transaction.notes
+        assert expenses[0]["transaction"]["user_account"]["id"] == driver.id
+        assert expenses[0]["transaction"]["user_account"]["role"] == driver.role
+        assert expenses[1]["transaction"] == None
+        assert expenses[2]["transaction"] == None
 
         # Filter for January
         response = admin_client.get(
-            self.url, {"start_date": "2026-01-01", "end_date": "2026-01-31"}
+            self.url, {"start_date": "2025-01-01", "end_date": "2025-01-31"}
         )
         assert response.status_code == status.HTTP_200_OK
         # Results are in results['expenses'] because of custom list implementation
@@ -128,14 +156,15 @@ class TestExpenseAPI:
         assert expenses[0]["description"] == "Jan Expense"
 
         # Filter for February
-        response = admin_client.get(self.url, {"start_date": "2026-02-01"})
+        response = admin_client.get(self.url, {"start_date": "2025-02-01"})
         expenses = response.data["results"]["expenses"]
-        assert len(expenses) == 1
-        assert expenses[0]["description"] == "Feb Expense"
+        assert len(expenses) == 2
+        assert expenses[0]["description"] == f"{transaction.notes} (محصلة من عمليه مالية)"
+        assert expenses[1]["description"] == "Feb Expense"
 
     def test_delete_expense_standalone(self, admin_client):
         expense = Expense.objects.create(
-            description="To be deleted", cost=10, date="2026-01-17"
+            description="To be deleted", cost=10, date="2025-01-17"
         )
         url = reverse("expenses-detail", kwargs={"pk": expense.id})
         response = admin_client.delete(url)

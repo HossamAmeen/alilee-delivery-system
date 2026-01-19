@@ -21,7 +21,7 @@ def create_expense(sender, instance, created, **kwargs):
     if created:
         if instance.transaction_type == TransactionType.EXPENSE:
             Expense.objects.create(
-                description=instance.notes,
+                description=instance.notes + " (محصلة من عمليه مالية)",
                 date=instance.created,
                 cost=instance.amount,
                 transaction=instance,

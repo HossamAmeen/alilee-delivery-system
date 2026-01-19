@@ -1,3 +1,4 @@
+from transactions.serializers import ListExpenseSerializer
 from datetime import date
 
 from django.db.models import Sum
@@ -43,11 +44,16 @@ class UserAccountTransactionViewSet(BaseViewSet):
 
 class ExpenseViewSet(BaseViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = Expense.objects.order_by("-id")
+    queryset = Expense.objects.order_by("-id").select_related("transaction__user_account").distinct()
     serializer_class = ExpenseSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ExpenseFilter
     search_fields = ["description"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ListExpenseSerializer
+        return super().get_serializer_class()
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
