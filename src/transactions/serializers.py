@@ -226,10 +226,10 @@ class FinancialInsightsSerializer(serializers.Serializer):
             Order.objects.filter(
                 created__range=(shipment_start_date, shipment_end_date),
                 status__in=accepted_statuses,
-            ).distinct()
+            )
             .annotate(month=TruncMonth("created"))
             .values("month")
-            .annotate(IDs_count=Count("id"))
+            .annotate(count=Count("id", distinct=True))
             .order_by("month")
         )
 
