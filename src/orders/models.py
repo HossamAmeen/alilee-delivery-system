@@ -127,10 +127,23 @@ class Order(AbstractBaseModel):
         "postponed": "مؤجل",
     }
 
+    PRODUCT_PAYMENT_STATUS_AR = {
+        "paid": "مدفوعه",
+        "unpaid": "غير مدفوع",
+        "remaining_fees": "رسوم الشحن",
+        "cod": "دفع عند الاستلام",
+    }
+
     @property
     def status_ar(self):
         """Return the Arabic label for the current order status."""
         return self.STATUS_AR.get(self.status, self.status)
+
+    @property
+    def product_payment_status_ar(self):
+        """Return the Arabic label for the current order product payment status."""
+        return self.PRODUCT_PAYMENT_STATUS_AR.get(self.product_payment_status, self.product_payment_status)
+
 
     @property
     def total_cost_for_driver(self):

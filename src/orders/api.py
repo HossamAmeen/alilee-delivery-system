@@ -316,35 +316,66 @@ class OrderViewSet(BaseViewSet):
                 "اسم التاجر",
                 "العنوان",
                 "الحالة",
-                "عمولة المكتب",
-                "فلوس للتاجر",
+                "حالة الدفع",
+                "رسوم الشحن",
+                "فلوس المكتب",
+                "فلوس التاجر",
+                "فرق الفلوس"
             ]
         )
 
+        total_trader_commission = 0
+        total_office = 0
         for order in queryset:
+            trader_cost = (
+                order.trader_cost if order.trader_cost else order.trader_merchant_cost
+            )
             trader_commission = 0
-            trader_cost = order.trader_cost if order.trader_cost else order.trader_merchant_cost
+            office = 0
 
             if order.product_payment_status == ProductPaymentStatus.COD:
                 if order.status == OrderStatus.DELIVERED:
                     trader_commission = abs(trader_cost - order.product_cost)
+            if order.product_payment_status == ProductPaymentStatus.PAID:
+                office = order.product_cost
 
+            if order.status == OrderStatus.CREATED:
+                trader_commission = 0
+                office = 0
+
+            total_trader_commission += trader_commission
+            total_office += office
             writer.writerow(
                 [
-                    order.created.strftime("%Y-%m-%d %H:%M:%S"),
+                    order.created.strftime("%Y-%m-%d"),
                     order.tracking_number,
                     order.reference_code,
                     order.trader.full_name if order.trader else "",
                     order.delivery_zone.name if order.delivery_zone else "",
                     order.status_ar,
-                    (
-                        order.trader_cost
-                        if order.trader_cost
-                        else order.trader_merchant_cost
-                    ),
+                    order.product_payment_status_ar,
+                    trader_cost,
+                    office,
                     trader_commission,
+                    office - trader_commission,
                 ]
             )
+
+        writer.writerow(
+            [
+                "اجمالي",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                total_office,
+                total_trader_commission,
+                total_office - total_trader_commission,
+            ]
+        )
 
         return response
 

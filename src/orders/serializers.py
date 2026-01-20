@@ -87,6 +87,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     @atomic
     def update(self, instance, validated_data):
+        is_new_changes = False
         if instance.status in [
             OrderStatus.DELIVERED,
             OrderStatus.POSTPONED,
@@ -132,6 +133,37 @@ class OrderSerializer(serializers.ModelSerializer):
 
         if validated_data.get("status") == OrderStatus.CREATED:
             instance.driver = None
+
+        # if the order is updated
+        if (
+            validated_data.get("status") != instance.status
+            or validated_data.get("driver") != instance.driver
+            or validated_data.get("trader") != instance.trader
+            or validated_data.get("delivery_zone") != instance.delivery_zone
+            or validated_data.get("product_cost") != instance.product_cost
+            or validated_data.get("extra_delivery_cost") != instance.extra_delivery_cost
+            or validated_data.get("note") != instance.note
+            or validated_data.get("is_return") != instance.is_return
+        ):
+            is_new_changes = True
+
+        if validated_data.get("customer"):
+            if (
+                validated_data.get("customer").get("phone") != instance.customer.phone
+                or validated_data.get("customer").get("name") != instance.customer.name
+                or validated_data.get("customer").get("address")
+                != instance.customer.address
+            ):
+                is_new_changes = True
+
+        if is_new_changes and instance.driver:
+            send_notification(
+                title="تم تعديل بيانات الشحنه الرجاء التحقق من الشحنه رقم "
+                + instance.tracking_number,
+                description="تم تعديل بيانات الشحنه الرجاء التحقق من الشحنه رقم "
+                + instance.tracking_number,
+                user_id=instance.driver.id,
+            )
 
         return super().update(instance, validated_data)
 

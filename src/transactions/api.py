@@ -44,7 +44,11 @@ class UserAccountTransactionViewSet(BaseViewSet):
 
 class ExpenseViewSet(BaseViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = Expense.objects.order_by("-id").select_related("transaction__user_account").distinct()
+    queryset = (
+        Expense.objects.order_by("-id")
+        .select_related("transaction__user_account")
+        .distinct()
+    )
     serializer_class = ExpenseSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ExpenseFilter
