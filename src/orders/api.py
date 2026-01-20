@@ -351,7 +351,7 @@ class OrderViewSet(BaseViewSet):
             total_office += office
             writer.writerow(
                 [
-                    "\t" + order.created.strftime("%Y-%m-%d"),
+                    f"{order.created.astimezone().strftime('%Y-%m-%d %H:%M:%S')}",
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
@@ -368,6 +368,7 @@ class OrderViewSet(BaseViewSet):
 
         writer.writerow(
             [
+                "",
                 "",
                 "",
                 "",
