@@ -233,13 +233,16 @@ class FinancialInsightsSerializer(serializers.Serializer):
             .order_by("month")
         )
 
+        months = []
         for item in shipment_count_chart:
             month_number = item["month"].month
-
+            if month_number in months:
+                continue
             # extract the value of month from the date field
             month_statistices["month"] = converted_monthly[month_number]
             month_statistices["shipment_count"] = item["IDs_count"]
             shipments_per_month.append(month_statistices)
+            months.append(month_number)
 
         for item in monthly_revenue:
             total_commissions += item["total_commissions"] or 0
