@@ -229,7 +229,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
             )
             .annotate(month=TruncMonth("created"))
             .values("month")
-            .annotate(count=Count("id", distinct=True))
+            .annotate(IDs_count=Count("id", distinct=True))
             .order_by("month")
         )
 
