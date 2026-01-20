@@ -165,11 +165,7 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
         accepted_statuses = [OrderStatus.DELIVERED]
 
-        summary_expense = (
-            Expense.objects.filter(
-                date__range=(summary_start_date, summary_end_date)
-            ).aggregate(total_expense=Sum("cost"))
-        )["total_expense"] or 0
+        
 
         monthly_revenue = (
             Order.objects.filter(
@@ -222,23 +218,20 @@ class FinancialInsightsSerializer(serializers.Serializer):
         }
 
         monthly_expenses_data = []
-        shipments_per_month = []
         month_statistices = {}
 
+        # for shipments chart
+        shipments_per_month = []
         shipment_count_chart = (
             Order.objects.filter(
                 created__range=(shipment_start_date, shipment_end_date),
                 status__in=accepted_statuses,
-            )
+            ).distinct()
             .annotate(month=TruncMonth("created"))
             .values("month")
             .annotate(IDs_count=Count("id"))
             .order_by("month")
         )
-
-        for item in monthly_revenue:
-            total_commissions += item["total_commissions"] or 0
-            total_income += item["total_income"] or 0
 
         for item in shipment_count_chart:
             month_number = item["month"].month
@@ -249,7 +242,10 @@ class FinancialInsightsSerializer(serializers.Serializer):
             shipments_per_month.append(month_statistices)
 
         for item in monthly_revenue:
+            total_commissions += item["total_commissions"] or 0
+            total_income += item["total_income"] or 0
 
+        for item in monthly_revenue:
             month_number = item["month"].month
             month_expenses = expenses_by_month.get(month_number, 0)
             monthly_expenses_data.append(
@@ -267,6 +263,35 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 }
             )
 
+        # first line
+        total_revenue = (
+            UserAccountTransaction.objects.filter(
+                created__range=(summary_start_date, summary_end_date),
+                transaction_type=TransactionType.WITHDRAW,
+                is_rolled_back=False,
+                user_account__role=UserRole.TRADER,
+                order_id__isnull=False,
+            ).aggregate(total_revenue=Sum("amount"))["total_revenue"]
+            or 0
+        )
+
+        total_commissions = (
+            UserAccountTransaction.objects.filter(
+                created__range=(summary_start_date, summary_end_date),
+                transaction_type=TransactionType.DEPOSIT,
+                is_rolled_back=False,
+                user_account__role=UserRole.DRIVER,
+                order_id__isnull=False,
+            ).aggregate(total_commissions=Sum("amount"))["total_commissions"]
+            or 0
+        )
+        summary_expense = (
+            Expense.objects.filter(
+                date__range=(summary_start_date, summary_end_date)
+            ).aggregate(total_expense=Sum("cost"))
+        )["total_expense"] or 0
+
+        # second line
         orders_statistics_qs = Order.objects.values("status").annotate(
             count=Count("id")
         )
@@ -297,28 +322,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 orders_statistics[status_map[status]] = count
         orders_statistics["total_count"] = total_count
 
-        total_revenue = (
-            UserAccountTransaction.objects.filter(
-                created__range=(summary_start_date, summary_end_date),
-                transaction_type=TransactionType.WITHDRAW,
-                is_rolled_back=False,
-                user_account__role=UserRole.TRADER,
-                order_id__isnull=False,
-            ).aggregate(total_revenue=Sum("amount"))["total_revenue"]
-            or 0
-        )
-
-        total_commissions = (
-            UserAccountTransaction.objects.filter(
-                created__range=(summary_start_date, summary_end_date),
-                transaction_type=TransactionType.DEPOSIT,
-                is_rolled_back=False,
-                user_account__role=UserRole.DRIVER,
-                order_id__isnull=False,
-            ).aggregate(total_commissions=Sum("amount"))["total_commissions"]
-            or 0
-        )
-
         return {
             "date": {
                 "summary_start_date": summary_start_date,
@@ -332,12 +335,10 @@ class FinancialInsightsSerializer(serializers.Serializer):
             "total_commissions": total_commissions,
             "total_expenses": summary_expense,
             "net_profit": total_revenue - summary_expense - total_commissions,
+
+            "orders": orders_statistics,
+
             "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
             "monthly_expenses_data": monthly_expenses_data,
-            "orders": orders_statistics,
-            "pending_earnings": 0,
-            "unpaid_obligations": 0,
-            "unpaid_obligations_drivers": 0,
-            "unpaid_obligations_traders": 0,
         }
