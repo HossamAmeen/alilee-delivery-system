@@ -316,6 +316,7 @@ class OrderViewSet(BaseViewSet):
                 "اسم التاجر",
                 "العنوان",
                 "الحالة",
+                "سعر الشحنه",
                 "حالة الدفع",
                 "رسوم الشحن",
                 "فلوس المكتب",
@@ -335,7 +336,10 @@ class OrderViewSet(BaseViewSet):
 
             if order.product_payment_status == ProductPaymentStatus.COD:
                 if order.status == OrderStatus.DELIVERED:
-                    trader_commission = abs(trader_cost - order.product_cost)
+                    if order.product_cost > trader_cost:
+                        trader_commission = order.product_cost - trader_cost
+                    else:
+                        office = trader_cost - order.product_cost
             if order.product_payment_status == ProductPaymentStatus.PAID:
                 office = order.product_cost
 
@@ -347,12 +351,13 @@ class OrderViewSet(BaseViewSet):
             total_office += office
             writer.writerow(
                 [
-                    str(order.created.strftime("%Y-%m-%d")),
+                    "\t" + order.created.strftime("%Y-%m-%d"),
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
                     str(order.delivery_zone.name if order.delivery_zone else ""),
                     str(order.status_ar),
+                    str(order.product_cost),
                     str(order.product_payment_status_ar),
                     str(trader_cost),
                     str(office),
