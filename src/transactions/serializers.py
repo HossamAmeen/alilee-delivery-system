@@ -1,3 +1,4 @@
+from datetime import datetime
 from datetime import date, timedelta
 
 from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
@@ -148,6 +149,100 @@ class FinancialInsightsSerializer(serializers.Serializer):
             raise CustomValidationError("start_date cannot be after end_date.")
         return data
 
+    def _get_multiline_chart_data(self, converted_monthly):
+        # for multiline chart
+        chart_start_date = datetime.now().date().replace(month=1, day=1)
+        monthly_expenses_data = []
+        revenues = (
+            UserAccountTransaction.objects.filter(
+                transaction_type=TransactionType.WITHDRAW,
+                is_rolled_back=False,
+                user_account__role=UserRole.TRADER,
+                order_id__isnull=False,
+                created__date__gte=chart_start_date,
+            ).annotate(month=TruncMonth("created"))
+            .values("month")
+            .annotate(IDs_count=Sum("amount"))
+            .order_by("month")
+        )
+        
+        for item in revenues:
+            monthly_expenses_data.append({
+                "name": converted_monthly[item["month"].month],
+                "total_income": item["IDs_count"],
+            })
+
+        commissions = (
+            UserAccountTransaction.objects.filter(
+                transaction_type=TransactionType.DEPOSIT,
+                is_rolled_back=False,
+                user_account__role=UserRole.DRIVER,
+                order_id__isnull=False,
+                created__date__gte=chart_start_date,
+            ).annotate(month=TruncMonth("created"))
+            .values("month")
+            .annotate(total_commissions=Sum("amount"))
+            .order_by("month")
+        )
+
+        for item in commissions:
+            monthly_expenses_data.append({
+                "name": converted_monthly[item["month"].month],
+                "total_commissions": item["total_commissions"],
+            })
+        
+        expenses = (
+            Expense.objects.filter(
+                date__gte=chart_start_date,
+            ).annotate(month=TruncMonth("date"))
+            .values("month")
+            .annotate(total_expense=Sum("cost"))
+            .order_by("month")
+        )
+
+        for item in expenses:
+            monthly_expenses_data.append({
+                "name": converted_monthly[item["month"].month],
+                "total_delivery_expense": item["total_expense"],
+            })
+
+
+        merged = {}
+
+        for item in monthly_expenses_data:
+            month = item["name"]
+
+            if month not in merged:
+                merged[month] = {
+                    "name": month,
+                    "total_income": 0.0,
+                    "total_commissions": 0.0,
+                    "total_delivery_expense": 0.0,
+                }
+
+            if "total_income" in item:
+                merged[month]["total_income"] += float(item["total_income"])
+
+            if "total_commissions" in item:
+                merged[month]["total_commissions"] += float(item["total_commissions"])
+
+            if "total_delivery_expense" in item:
+                merged[month]["total_delivery_expense"] += float(item["total_delivery_expense"])
+
+
+        result = []
+
+        for month_data in merged.values():
+            month_data["net_profit"] = (
+                month_data["total_income"]
+                - month_data["total_commissions"]
+                - month_data["total_delivery_expense"]
+            )
+            result.append(month_data)
+        
+        return result
+
+
     def to_representation(self, instance):
         today = date.today()
 
@@ -163,46 +258,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
         shipment_end_date = instance.get("shipment_end_date", today)
         shipment_end_date = shipment_end_date + timedelta(days=1)
 
-        accepted_statuses = [OrderStatus.DELIVERED]
-
-        
-
-        monthly_revenue = (
-            Order.objects.filter(
-                created__range=(monthly_start_date, monthly_end_date),
-                status__in=accepted_statuses,
-            )
-            .annotate(month=TruncMonth("created"))
-            .values("month")
-            .annotate(
-                total_income=Sum("trader_cost"),
-                total_commissions=Sum(
-                    Case(
-                        When(
-                            status=OrderStatus.DELIVERED,
-                            then=F("delivery_cost") + F("extra_delivery_cost"),
-                        ),
-                        default=Value(0),
-                        output_field=DecimalField(),
-                    )
-                ),
-            )
-            .order_by("month")
-        )
-
-        monthly_expenses = (
-            Expense.objects.filter(date__range=(monthly_start_date, monthly_end_date))
-            .annotate(month=TruncMonth("date"))
-            .values("month")
-            .annotate(monthly_expense=Sum("cost"))
-        )
-
-        expenses_by_month = {
-            item["month"].month: item["monthly_expense"] or 0
-            for item in monthly_expenses
-        }
-
-        total_income = total_commissions = 0
         converted_monthly = {
             1: "يناير",
             2: "فبراير",
@@ -211,21 +266,18 @@ class FinancialInsightsSerializer(serializers.Serializer):
             5: "مايو",
             6: "يونيو",
             7: "يوليو",
+            8: "أغسطس",
             9: "سبتمبر",
             10: "أكتوبر",
             11: "نوفمبر",
             12: "ديسمبر",
         }
 
-        monthly_expenses_data = []
-        month_statistices = {}
-
         # for shipments chart
-        shipments_per_month = []
         shipment_count_chart = (
             Order.objects.filter(
                 created__range=(shipment_start_date, shipment_end_date),
-                status__in=accepted_statuses,
+                status__in=[OrderStatus.DELIVERED],
             )
             .annotate(month=TruncMonth("created"))
             .values("month")
@@ -233,38 +285,12 @@ class FinancialInsightsSerializer(serializers.Serializer):
             .order_by("month")
         )
 
-        months = []
+        shipments_per_month = []
         for item in shipment_count_chart:
-            month_number = item["month"].month
-            if month_number in months:
-                continue
-            # extract the value of month from the date field
-            month_statistices["month"] = converted_monthly[month_number]
-            month_statistices["shipment_count"] = item["IDs_count"]
-            shipments_per_month.append(month_statistices)
-            months.append(month_number)
-
-        for item in monthly_revenue:
-            total_commissions += item["total_commissions"] or 0
-            total_income += item["total_income"] or 0
-
-        for item in monthly_revenue:
-            month_number = item["month"].month
-            month_expenses = expenses_by_month.get(month_number, 0)
-            monthly_expenses_data.append(
-                {
-                    "name": converted_monthly[month_number],
-                    "total_income": float(item["total_income"] or 0),
-                    "total_commissions": float(item["total_commissions"] or 0),
-                    # It must be 'total_expenses' not 'total_delivery_expense'
-                    "total_delivery_expense": float(month_expenses),
-                    "net_profit": float(
-                        (item["total_income"] or 0)
-                        - (item["total_commissions"] or 0)
-                        - month_expenses
-                    ),
-                }
-            )
+            shipments_per_month.append({
+                "month": converted_monthly[item["month"].month],
+                "shipment_count": item["IDs_count"],
+            })
 
         # first line
         total_revenue = (
@@ -325,6 +351,8 @@ class FinancialInsightsSerializer(serializers.Serializer):
                 orders_statistics[status_map[status]] = count
         orders_statistics["total_count"] = total_count
 
+        monthly_expenses_data = self._get_multiline_chart_data(converted_monthly)
+
         return {
             "date": {
                 "summary_start_date": summary_start_date,
@@ -341,7 +369,6 @@ class FinancialInsightsSerializer(serializers.Serializer):
 
             "orders": orders_statistics,
 
-            "shipments_completed": monthly_revenue.count(),
             "shipments_per_month": shipments_per_month,
             "monthly_expenses_data": monthly_expenses_data,
         }
