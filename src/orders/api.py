@@ -347,23 +347,23 @@ class OrderViewSet(BaseViewSet):
             total_office += office
             writer.writerow(
                 [
-                    order.created.strftime("%Y-%m-%d"),
-                    order.tracking_number,
-                    order.reference_code,
-                    order.trader.full_name if order.trader else "",
-                    order.delivery_zone.name if order.delivery_zone else "",
-                    order.status_ar,
-                    order.product_payment_status_ar,
-                    trader_cost,
-                    office,
-                    trader_commission,
-                    office - trader_commission,
+                    str(order.created.strftime("%Y-%m-%d")),
+                    str(order.tracking_number),
+                    str(order.reference_code),
+                    str(order.trader.full_name if order.trader else ""),
+                    str(order.delivery_zone.name if order.delivery_zone else ""),
+                    str(order.status_ar),
+                    str(order.product_payment_status_ar),
+                    str(trader_cost),
+                    str(office),
+                    str(trader_commission),
+                    str(office - trader_commission),
                 ]
             )
 
         writer.writerow(
             [
-                "اجمالي",
+                "",
                 "",
                 "",
                 "",
@@ -374,6 +374,7 @@ class OrderViewSet(BaseViewSet):
                 total_office,
                 total_trader_commission,
                 total_office - total_trader_commission,
+                "اجمالي",
             ]
         )
 
