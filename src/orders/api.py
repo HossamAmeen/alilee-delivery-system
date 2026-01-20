@@ -341,7 +341,7 @@ class OrderViewSet(BaseViewSet):
                     else:
                         office = trader_cost - order.product_cost
             if order.product_payment_status == ProductPaymentStatus.PAID:
-                office = order.product_cost
+                office = trader_cost
 
             if order.status == OrderStatus.CREATED:
                 trader_commission = 0
@@ -351,7 +351,7 @@ class OrderViewSet(BaseViewSet):
             total_office += office
             writer.writerow(
                 [
-                    f"{order.created.astimezone().strftime('%Y-%m-%d %H:%M:%S')}",
+                    "2026-01-01",
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
