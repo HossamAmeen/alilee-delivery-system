@@ -359,7 +359,7 @@ class OrderViewSet(BaseViewSet):
             total_office += office
             writer.writerow(
                 [
-                    "2026",
+                    order.created.strftime("%Y-%m-%d"),
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
