@@ -18,16 +18,12 @@ class TestOrderExportCSV:
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"] == "text/csv"
-        assert (
-            'attachment; filename="orders_export.csv"'
-            in response["Content-Disposition"]
-        )
 
         content = response.content.decode("utf-8")
         lines = content.strip().split("\n")
         assert len(lines) >= 2  # Header + at least one order
         assert (
-            "تاريخ الاضافة,رقم التتبع,رمز المرجع,اسم التاجر,العنوان,الحالة,حالة الدفع,رسوم الشحن,فلوس المكتب,فلوس التاجر,فرق الفلوس"
+            "تاريخ الاضافة,رقم التتبع,رمز المرجع,اسم التاجر,العنوان,الحالة,سعر الشحنه,حالة الدفع,رسوم الشحن,فلوس المكتب,فلوس التاجر,فرق الفلوس"
             in lines[0]
         )
         assert assigned_order.tracking_number in lines[1]

@@ -1,3 +1,4 @@
+from users.models import Trader
 from orders.models import ProductPaymentStatus
 import csv
 from datetime import date, datetime, timedelta
@@ -229,8 +230,10 @@ class OrderViewSet(BaseViewSet):
         driver_id = request.query_params.get("driver")
         today = date.today()
         date_from = request.query_params.get("date_from")
+        file_name = "orders_"
         if not date_from:
             date_from = today - timedelta(days=7)
+            file_name += f"{date_from.strftime('%Y-%m-%d')}"
         else:
             try:
                 date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
@@ -241,9 +244,11 @@ class OrderViewSet(BaseViewSet):
         date_to = request.query_params.get("date_to")
         if not date_to:
             date_to = today
+            file_name += f"_{date_to.strftime('%Y-%m-%d')}"
         else:
             try:
                 date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
+                file_name += f"_{date_to.strftime('%Y-%m-%d')}"
             except ValueError:
                 raise CustomValidationError(
                     message="Invalid date format. Use YYYY-MM-DD."
@@ -283,6 +288,8 @@ class OrderViewSet(BaseViewSet):
 
         if trader_id:
             queryset = queryset.filter(trader_id=trader_id)
+            trader = Trader.objects.get(id=trader_id)
+            file_name += f"_{trader.full_name}"
 
         if tracking_numbers:
             tracking_numbers_list = [tn.strip() for tn in tracking_numbers.split(",")]
@@ -295,6 +302,7 @@ class OrderViewSet(BaseViewSet):
         if status:
             status_list = [s.strip() for s in status.split(",")]
             queryset = queryset.filter(status__in=status_list)
+            file_name += f"_status_{status}"
 
         if driver_id:
             queryset = queryset.filter(driver_id=driver_id)
@@ -305,7 +313,7 @@ class OrderViewSet(BaseViewSet):
             )
 
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="orders_export.csv"'
+        response["Content-Disposition"] = f'attachment; filename="{file_name}.csv"'
 
         writer = csv.writer(response)
         writer.writerow(
@@ -343,7 +351,7 @@ class OrderViewSet(BaseViewSet):
             if order.product_payment_status == ProductPaymentStatus.PAID:
                 office = trader_cost
 
-            if order.status == OrderStatus.CREATED:
+            if order.status == OrderStatus.CREATED or order.status == OrderStatus.ASSIGNED:
                 trader_commission = 0
                 office = 0
 
@@ -351,7 +359,7 @@ class OrderViewSet(BaseViewSet):
             total_office += office
             writer.writerow(
                 [
-                    "2026-01-01",
+                    "2026",
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
