@@ -1,5 +1,3 @@
-from users.models import Trader
-from orders.models import ProductPaymentStatus
 import csv
 from datetime import date, datetime, timedelta
 
@@ -18,7 +16,7 @@ from rest_framework.views import APIView
 
 from notifications.service import send_notification
 from orders.filter import OrderFilter
-from orders.models import Order, OrderStatus
+from orders.models import Order, OrderStatus, ProductPaymentStatus
 from orders.permissions import IsDriverPermission
 from orders.serializers import (
     OrderListSerializer,
@@ -29,7 +27,7 @@ from orders.serializers import (
 )
 from orders.services import DeliveryAssignmentService
 from transactions.helpers import roll_back_order_transactions
-from users.models import Driver, UserRole
+from users.models import Driver, Trader, UserRole
 from utilities.api import BaseViewSet
 from utilities.exceptions import CustomValidationError
 
@@ -329,7 +327,7 @@ class OrderViewSet(BaseViewSet):
                 "رسوم الشحن",
                 "فلوس المكتب",
                 "فلوس التاجر",
-                "فرق الفلوس"
+                "فرق الفلوس",
             ]
         )
 
@@ -351,7 +349,10 @@ class OrderViewSet(BaseViewSet):
             if order.product_payment_status == ProductPaymentStatus.PAID:
                 office = trader_cost
 
-            if order.status == OrderStatus.CREATED or order.status == OrderStatus.ASSIGNED:
+            if (
+                order.status == OrderStatus.CREATED
+                or order.status == OrderStatus.ASSIGNED
+            ):
                 trader_commission = 0
                 office = 0
 

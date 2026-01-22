@@ -142,8 +142,9 @@ class Order(AbstractBaseModel):
     @property
     def product_payment_status_ar(self):
         """Return the Arabic label for the current order product payment status."""
-        return self.PRODUCT_PAYMENT_STATUS_AR.get(self.product_payment_status, self.product_payment_status)
-
+        return self.PRODUCT_PAYMENT_STATUS_AR.get(
+            self.product_payment_status, self.product_payment_status
+        )
 
     @property
     def total_cost_for_driver(self):

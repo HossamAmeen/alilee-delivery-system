@@ -1,4 +1,3 @@
-from transactions.serializers import ListExpenseSerializer
 from datetime import date
 
 from django.db.models import Sum
@@ -18,6 +17,7 @@ from transactions.models import Expense, UserAccountTransaction
 from transactions.serializers import (
     ExpenseSerializer,
     FinancialInsightsSerializer,
+    ListExpenseSerializer,
     ListUserAccountTransactionSerializer,
     UserAccountTransactionSerializer,
 )
