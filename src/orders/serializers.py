@@ -147,12 +147,12 @@ class OrderSerializer(serializers.ModelSerializer):
         ):
             is_new_changes = True
 
-        if validated_data.get("customer"):
+        customer_data = validated_data.get("customer")
+        if customer_data:
             if (
-                validated_data.get("customer").get("phone") != instance.customer.phone
-                or validated_data.get("customer").get("name") != instance.customer.name
-                or validated_data.get("customer").get("address")
-                != instance.customer.address
+                customer_data.phone != instance.customer.phone
+                or customer_data.name != instance.customer.name
+                or customer_data.address != instance.customer.address
             ):
                 is_new_changes = True
 

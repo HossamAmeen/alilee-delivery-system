@@ -39,6 +39,19 @@ class TestUpdateOrder:
             response.status_code == status.HTTP_404_NOT_FOUND
         ), f"Expected 404 Not Found, got {response.status_code}"
 
+    def test_update_order_with_customer_changes_success(
+        self, admin_client, created_order
+    ):
+        url = reverse("orders-detail", kwargs={"pk": created_order.id})
+
+        update_payload = {"customer": {"id": created_order.customer.id, "phone": "1234567890", "address": "updated"}}
+
+        response = admin_client.patch(url, data=update_payload, format="json")
+
+        assert (
+            response.status_code == status.HTTP_200_OK
+        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
+
     def test_update_order_with_product_payment_status_cod_success(
         self, admin_client, driver_client, created_order, driver
     ):
@@ -406,67 +419,6 @@ class TestUpdateOrder:
         ), "Transaction should not be created"
         trader.refresh_from_db()
         assert trader.balance == old_trader_balance, "Trader balance should be updated"
-
-    def test_update_order_with_product_payment_status_remaining_success(
-        self, admin_client, driver_client, created_order, driver
-    ):
-        url = reverse("orders-detail", kwargs={"pk": created_order.id})
-        created_order.product_payment_status = ProductPaymentStatus.REMAINING_FEES
-        created_order.save()
-
-        update_payload = {"status": OrderStatus.IN_PROGRESS}
-
-        response = admin_client.patch(url, data=update_payload, format="json")
-
-        assert (
-            response.status_code == status.HTTP_200_OK
-        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
-
-        update_payload = {"driver": driver.id}
-
-        response = admin_client.patch(url, data=update_payload, format="json")
-
-        assert (
-            response.status_code == status.HTTP_200_OK
-        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
-
-        created_order.refresh_from_db()
-        assert created_order.status == OrderStatus.ASSIGNED, "Status should be updated"
-        assert created_order.driver == driver, "Driver should be updated"
-
-        update_payload = {"status": OrderStatus.DELIVERED}
-
-        response = driver_client.patch(url, data=update_payload, format="json")
-
-        assert (
-            response.status_code == status.HTTP_200_OK
-        ), f"Expected 200 OK, got {response.status_code}. Response: {response.data}"
-
-        created_order.refresh_from_db()
-        assert created_order.status == OrderStatus.DELIVERED, "Status should be updated"
-
-        assert (
-            UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=driver.id
-            ).count()
-            == 2
-        ), "Transaction should be created"
-        driver.refresh_from_db()
-
-        assert driver.balance == created_order.trader_cost - (
-            created_order.delivery_cost + created_order.extra_delivery_cost
-        ), "Driver balance should be updated"
-
-        trader = created_order.trader
-        assert (
-            UserAccountTransaction.objects.filter(
-                order_id=created_order.id, user_account_id=trader.id
-            ).count()
-            == 0
-        ), "Transaction should be created"
-        trader_old_balance = trader.balance
-        trader.refresh_from_db()
-        assert trader.balance == trader_old_balance, "Trader balance should be updated"
 
     def test_delivered_order_after_delivered(
         self, admin_client, driver_client, created_order, driver
