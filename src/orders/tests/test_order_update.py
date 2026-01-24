@@ -44,7 +44,13 @@ class TestUpdateOrder:
     ):
         url = reverse("orders-detail", kwargs={"pk": created_order.id})
 
-        update_payload = {"customer": {"id": created_order.customer.id, "phone": "1234567890", "address": "updated"}}
+        update_payload = {
+            "customer": {
+                "id": created_order.customer.id,
+                "phone": "1234567890",
+                "address": "updated",
+            }
+        }
 
         response = admin_client.patch(url, data=update_payload, format="json")
 

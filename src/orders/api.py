@@ -1,7 +1,5 @@
 import csv
-from datetime import date, datetime, timedelta
 
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,7 +14,7 @@ from rest_framework.views import APIView
 
 from notifications.service import send_notification
 from orders.filter import OrderFilter
-from orders.models import Order, OrderStatus, ProductPaymentStatus
+from orders.models import Order, OrderStatus
 from orders.permissions import IsDriverPermission
 from orders.serializers import (
     OrderListSerializer,
@@ -25,9 +23,9 @@ from orders.serializers import (
     OrderTrackingNumberSerializer,
     ReferenceCodeSerializer,
 )
-from orders.services import DeliveryAssignmentService
+from orders.services import DeliveryAssignmentService, OrderExportService
 from transactions.helpers import roll_back_order_transactions
-from users.models import Driver, Trader, UserRole
+from users.models import Driver, UserRole
 from utilities.api import BaseViewSet
 from utilities.exceptions import CustomValidationError
 
@@ -217,181 +215,77 @@ class OrderViewSet(BaseViewSet):
     )
     @action(detail=False, methods=["get"], url_path="export-csv")
     def export_csv(self, request, *args, **kwargs):
-        queryset = Order.objects.select_related(
-            "driver", "trader", "customer", "delivery_zone"
-        ).order_by("-id")
-
-        trader_id = request.query_params.get("trader")
-        tracking_numbers = request.query_params.get("tracking_numbers")
-        reference_codes = request.query_params.get("reference_codes")
-        status = request.query_params.get("status")
-        driver_id = request.query_params.get("driver")
-        today = date.today()
-        date_from = request.query_params.get("date_from")
-        file_name = "orders_"
-        if not date_from:
-            date_from = today - timedelta(days=7)
-            file_name += f"{date_from.strftime('%Y-%m-%d')}"
-        else:
-            try:
-                date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
-            except ValueError:
-                raise CustomValidationError(
-                    message="Invalid date format. Use YYYY-MM-DD."
-                )
-        date_to = request.query_params.get("date_to")
-        if not date_to:
-            date_to = today
-            file_name += f"_{date_to.strftime('%Y-%m-%d')}"
-        else:
-            try:
-                date_to = datetime.strptime(date_to, "%Y-%m-%d").date()
-                file_name += f"_{date_to.strftime('%Y-%m-%d')}"
-            except ValueError:
-                raise CustomValidationError(
-                    message="Invalid date format. Use YYYY-MM-DD."
-                )
-
-        if date_from:
-            try:
-                queryset = queryset.filter(created__date__gte=date_from)
-            except (ValueError, ValidationError):
-                raise CustomValidationError(
-                    message="Invalid date format. Use YYYY-MM-DD."
-                )
-
-        if date_to:
-            if date_from:
-                if date_from > date_to:
-                    raise CustomValidationError(
-                        message="Date from cannot be greater than date to."
-                    )
-
-                try:
-                    if (date_to - date_from).days > 7:
-                        raise CustomValidationError(
-                            message="Date range cannot exceed 7 days."
-                        )
-                except ValueError:
-                    raise CustomValidationError(
-                        message="Invalid date format. Use YYYY-MM-DD."
-                    )
-
-            try:
-                queryset = queryset.filter(created__date__lte=date_to)
-            except (ValueError, ValidationError):
-                raise CustomValidationError(
-                    message="Invalid date format. Use YYYY-MM-DD."
-                )
-
-        if trader_id:
-            queryset = queryset.filter(trader_id=trader_id)
-            trader = Trader.objects.get(id=trader_id)
-            file_name += f"_{trader.full_name}"
-
-        if tracking_numbers:
-            tracking_numbers_list = [tn.strip() for tn in tracking_numbers.split(",")]
-            queryset = queryset.filter(tracking_number__in=tracking_numbers_list)
-
-        if reference_codes:
-            reference_codes_list = [rc.strip() for rc in reference_codes.split(",")]
-            queryset = queryset.filter(reference_code__in=reference_codes_list)
-
-        if status:
-            status_list = [s.strip() for s in status.split(",")]
-            queryset = queryset.filter(status__in=status_list)
-            file_name += f"_status_{status}"
-
-        if driver_id:
-            queryset = queryset.filter(driver_id=driver_id)
-
-        if queryset.count() > 5000:
-            raise CustomValidationError(
-                message="Cannot export more than 5000 orders at once."
-            )
+        queryset, file_name = OrderExportService.get_export_queryset(
+            request.query_params
+        )
 
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = f'attachment; filename="{file_name}.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(
-            [
-                "تاريخ الاضافة",
-                "رقم التتبع",
-                "رمز المرجع",
-                "اسم التاجر",
-                "العنوان",
-                "الحالة",
-                "سعر الشحنه",
-                "حالة الدفع",
-                "رسوم الشحن",
-                "فلوس المكتب",
-                "فلوس التاجر",
-                "فرق الفلوس",
-            ]
+        OrderExportService.generate_csv(queryset, writer)
+
+        return response
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "trader",
+                openapi.IN_QUERY,
+                description="Filter by trader ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "driver",
+                openapi.IN_QUERY,
+                description="Filter by driver ID",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "status",
+                openapi.IN_QUERY,
+                description="Comma-separated order statuses example: ?status=ASSIGNED,DELIVERED",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "tracking_numbers",
+                openapi.IN_QUERY,
+                description="Comma-separated tracking numbers example: ?tracking_numbers=TRK1,TRK2,TRK3",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "reference_codes",
+                openapi.IN_QUERY,
+                description="Comma-separated reference codes example: ?reference_codes=REF1,REF2,REF3",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "date_from",
+                openapi.IN_QUERY,
+                description="Filter by start date format YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "date_to",
+                openapi.IN_QUERY,
+                description="Filter by end date format YYYY-MM-DD",
+                type=openapi.TYPE_STRING,
+            ),
+        ]
+    )
+    @action(detail=False, methods=["get"], url_path="export-excel")
+    def export_excel(self, request, *args, **kwargs):
+        queryset, file_name = OrderExportService.get_export_queryset(
+            request.query_params
         )
 
-        total_trader_commission = 0
-        total_office = 0
-        for order in queryset:
-            trader_cost = (
-                order.trader_cost if order.trader_cost else order.trader_merchant_cost
-            )
-            trader_commission = 0
-            office = 0
+        buffer = OrderExportService.generate_excel(queryset)
 
-            if order.product_payment_status == ProductPaymentStatus.COD:
-                if order.status == OrderStatus.DELIVERED:
-                    if order.product_cost > trader_cost:
-                        trader_commission = order.product_cost - trader_cost
-                    else:
-                        office = trader_cost - order.product_cost
-            if order.product_payment_status == ProductPaymentStatus.PAID:
-                office = trader_cost
-
-            if (
-                order.status == OrderStatus.CREATED
-                or order.status == OrderStatus.ASSIGNED
-            ):
-                trader_commission = 0
-                office = 0
-
-            total_trader_commission += trader_commission
-            total_office += office
-            writer.writerow(
-                [
-                    order.created.strftime("%Y-%m-%d"),
-                    str(order.tracking_number),
-                    str(order.reference_code),
-                    str(order.trader.full_name if order.trader else ""),
-                    str(order.delivery_zone.name if order.delivery_zone else ""),
-                    str(order.status_ar),
-                    str(order.product_cost),
-                    str(order.product_payment_status_ar),
-                    str(trader_cost),
-                    str(office),
-                    str(trader_commission),
-                    str(office - trader_commission),
-                ]
-            )
-
-        writer.writerow(
-            [
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                total_office,
-                total_trader_commission,
-                total_office - total_trader_commission,
-                "اجمالي",
-            ]
+        response = HttpResponse(
+            buffer,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
+        response["Content-Disposition"] = f'attachment; filename="{file_name}.xlsx"'
 
         return response
 

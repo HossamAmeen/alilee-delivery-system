@@ -144,8 +144,8 @@ class TestExpenseAPI:
         assert expenses[0]["transaction"]["notes"] == transaction.notes
         assert expenses[0]["transaction"]["user_account"]["id"] == driver.id
         assert expenses[0]["transaction"]["user_account"]["role"] == driver.role
-        assert expenses[1]["transaction"] == None
-        assert expenses[2]["transaction"] == None
+        assert expenses[1]["transaction"] is None
+        assert expenses[2]["transaction"] is None
 
         # Filter for January
         response = admin_client.get(

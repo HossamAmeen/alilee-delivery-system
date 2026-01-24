@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 
-from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
+from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
@@ -9,7 +9,6 @@ from orders.models import Order, OrderStatus
 from transactions.models import Expense, TransactionType, UserAccountTransaction
 from users.models import UserRole
 from users.serializers.user_account_serializers import SingleUserAccountSerializer
-from utilities.constant import DEFAULT_START_DATE
 from utilities.exceptions import CustomValidationError
 
 
