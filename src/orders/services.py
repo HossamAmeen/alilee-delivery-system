@@ -3,6 +3,8 @@ from io import BytesIO
 
 from django.core.exceptions import ValidationError
 from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 from openpyxl.utils import get_column_letter
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
@@ -71,7 +73,7 @@ class OrderExportService:
 
         if date_from:
             try:
-                queryset = queryset.filter(created__date__gte=date_from)
+                queryset = queryset.filter(status_changed_at__date__gte=date_from)
             except (ValueError, ValidationError):
                 raise CustomValidationError(
                     message="Invalid date format. Use YYYY-MM-DD."
@@ -93,7 +95,7 @@ class OrderExportService:
                     )
 
             try:
-                queryset = queryset.filter(created__date__lte=date_to)
+                queryset = queryset.filter(status_changed_at__date__lte=date_to)
             except (ValueError, ValidationError):
                 raise CustomValidationError(
                     message="Invalid date format. Use YYYY-MM-DD."
@@ -159,6 +161,8 @@ class OrderExportService:
                 "رمز المرجع",
                 "اسم التاجر",
                 "العنوان",
+                "اسم المستلم",
+                "رقم هاتف المستلم"
                 "الحالة",
                 "سعر الشحنه",
                 "حالة الدفع",
@@ -185,6 +189,8 @@ class OrderExportService:
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
                     str(order.delivery_zone.name if order.delivery_zone else ""),
+                    str(order.customer.name if order.customer else ""),
+                    str(order.customer.phone if order.customer else ""),
                     str(order.status_ar),
                     str(order.product_cost),
                     str(order.product_payment_status_ar),
@@ -197,6 +203,8 @@ class OrderExportService:
 
         writer.writerow(
             [
+                "",
+                "",
                 "",
                 "",
                 "",
@@ -222,10 +230,13 @@ class OrderExportService:
         ws.append(
             [
                 "تاريخ الاضافة",
+                "تاريخ التغيير",
                 "رقم التتبع",
                 "رمز المرجع",
                 "اسم التاجر",
                 "العنوان",
+                "اسم المستلم",
+                "رقم هاتف المستلم",
                 "الحالة",
                 "سعر الشحنه",
                 "حالة الدفع",
@@ -239,20 +250,29 @@ class OrderExportService:
         total_trader_commission = 0
         total_office = 0
 
-        for order in queryset:
+        # Create a mapping of status to color (column F is the status column)
+        for row_idx, order in enumerate(queryset, start=2):  # Start from row 2 (1-based) to skip header
             trader_cost, trader_commission, office = cls._calculate_order_financials(
                 order
             )
 
             total_trader_commission += trader_commission
             total_office += office
+            customer_name = ""
+            customer_phone = ""
+            if order.customer:
+                customer_name = order.customer.name
+                customer_phone = order.customer.phone                
             ws.append(
                 [
                     order.created.strftime("%Y-%m-%d"),
+                    order.status_changed_at.strftime("%Y-%m-%d") if order.status_changed_at else "",
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
                     str(order.delivery_zone.name if order.delivery_zone else ""),
+                    str(customer_name),
+                    str(customer_phone),
                     str(order.status_ar),
                     str(order.product_cost),
                     str(order.product_payment_status_ar),
@@ -262,9 +282,17 @@ class OrderExportService:
                     str(office - trader_commission),
                 ]
             )
+            
+            # Get the status cell (column H)
+            status_cell = ws[f'H{row_idx}']
+            # Apply the color based on status
+            status_cell.font = Font(color=order.status_color.lstrip('#'))  # Remove '#' if present
 
         ws.append(
             [
+                "",
+                "",
+                "",
                 "",
                 "",
                 "",

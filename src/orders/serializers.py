@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db.transaction import atomic
 from rest_framework import serializers
 
@@ -83,6 +84,7 @@ class OrderSerializer(serializers.ModelSerializer):
                 "The selected trader does not serve the selected delivery zone."
             )
         validated_data["trader_cost"] = merchant_cost.price
+        validated_data["status_changed_at"] = timezone.now()
         return super().create(validated_data)
 
     @atomic
@@ -165,6 +167,9 @@ class OrderSerializer(serializers.ModelSerializer):
                 user_id=instance.driver.id,
             )
 
+        if validated_data.get("status") != instance.status:
+            instance.status_changed_at = timezone.now()
+
         return super().update(instance, validated_data)
 
     def validate(self, data):
@@ -210,6 +215,7 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
             "customer",
             "note",
             "created",
+            "status_changed_at",
             "modified",
             "cancel_reason",
             "postpone_reason",
@@ -243,6 +249,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             "customer",
             "delivery_zone",
             "created",
+            "status_changed_at",
             "longitude",
             "latitude",
             "image",

@@ -73,6 +73,7 @@ class Order(AbstractBaseModel):
         max_digits=10, decimal_places=2, default=0.00
     )
     note = models.TextField(null=True, blank=True)
+    status_changed_at = models.DateTimeField(auto_now=True, null=True)
     longitude = models.DecimalField(max_digits=15, decimal_places=10, null=True)
     latitude = models.DecimalField(max_digits=15, decimal_places=10, null=True)
     cancel_reason = models.TextField(null=True, blank=True)
@@ -134,6 +135,15 @@ class Order(AbstractBaseModel):
         "cod": "دفع عند الاستلام",
     }
 
+    STATUS_COLOR = {
+        "created": "#2196F3",  # Blue for new orders
+        "assigned_to_driver": "#FFC107",  # Amber for assigned orders
+        "in_progress": "#3F51B5",  # Indigo for in-progress orders
+        "delivered": "#4CAF50",  # Green for delivered orders
+        "cancelled": "#F44336",  # Red for cancelled orders
+        "postponed": "#9C27B0",  # Purple for postponed orders
+    }
+
     @property
     def status_ar(self):
         """Return the Arabic label for the current order status."""
@@ -152,3 +162,7 @@ class Order(AbstractBaseModel):
             return 0
         else:
             return self.product_cost
+
+    @property
+    def status_color(self):
+        return self.STATUS_COLOR.get(self.status, self.status)
