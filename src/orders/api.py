@@ -275,11 +275,20 @@ class OrderViewSet(BaseViewSet):
     )
     @action(detail=False, methods=["get"], url_path="export-excel")
     def export_excel(self, request, *args, **kwargs):
-        queryset, file_name = OrderExportService.get_export_queryset(
-            request.query_params
+        financial_orders, file_name = (
+            OrderExportService.get_export_queryset_with_financials(request.query_params)
         )
 
-        buffer = OrderExportService.generate_excel(queryset)
+        un_financial_orders = Order.objects.filter(
+            status__in=[
+                OrderStatus.CREATED,
+                OrderStatus.ASSIGNED,
+                OrderStatus.IN_PROGRESS,
+            ]
+        )
+        buffer = OrderExportService.generate_excel(
+            financial_orders, un_financial_orders
+        )
 
         response = HttpResponse(
             buffer,

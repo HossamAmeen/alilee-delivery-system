@@ -1,5 +1,5 @@
-from django.utils import timezone
 from django.db.transaction import atomic
+from django.utils import timezone
 from rest_framework import serializers
 
 from geo.serializers import SingleDeliveryZoneSerializer

@@ -2,13 +2,13 @@ from datetime import date, datetime, timedelta
 from io import BytesIO
 
 from django.core.exceptions import ValidationError
+from django.db.models import F
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
-from openpyxl.utils import get_column_letter
 
 from orders.models import Order, OrderStatus, ProductPaymentStatus
-from users.models import Trader
+from users.models import Trader, UserRole
 from utilities.exceptions import CustomValidationError
 
 
@@ -33,10 +33,20 @@ class DeliveryAssignmentService:
 
 class OrderExportService:
     @staticmethod
-    def get_export_queryset(params):
-        queryset = Order.objects.select_related(
-            "driver", "trader", "customer", "delivery_zone"
-        ).order_by("-id")
+    def get_export_queryset_with_financials(params):
+        queryset = (
+            Order.objects.filter(
+                transactions__isnull=False,
+                transactions__is_rolled_back=False,
+                transactions__user_account__role=UserRole.TRADER,
+            )
+            .select_related("driver", "trader", "customer", "delivery_zone")
+            .annotate(
+                billing_date=F("transactions__created"),
+            )
+            .distinct()
+            .order_by("-id")
+        )
 
         trader_id = params.get("trader")
         tracking_numbers = params.get("tracking_numbers")
@@ -130,10 +140,7 @@ class OrderExportService:
         return queryset, f"orders_{file_name_suffix}"
 
     @staticmethod
-    def _calculate_order_financials(order):
-        trader_cost = (
-            order.trader_cost if order.trader_cost else order.trader_merchant_cost
-        )
+    def _calculate_order_financials(order, trader_cost):
         trader_commission = 0
         office = 0
 
@@ -150,7 +157,7 @@ class OrderExportService:
             trader_commission = 0
             office = 0
 
-        return trader_cost, trader_commission, office
+        return trader_commission, office
 
     @classmethod
     def generate_csv(cls, queryset, writer):
@@ -162,8 +169,7 @@ class OrderExportService:
                 "اسم التاجر",
                 "العنوان",
                 "اسم المستلم",
-                "رقم هاتف المستلم"
-                "الحالة",
+                "رقم هاتف المستلم" "الحالة",
                 "سعر الشحنه",
                 "حالة الدفع",
                 "رسوم الشحن",
@@ -222,51 +228,36 @@ class OrderExportService:
         )
 
     @classmethod
-    def generate_excel(cls, queryset):
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Orders"
-
-        ws.append(
-            [
-                "تاريخ الاضافة",
-                "تاريخ التغيير",
-                "رقم التتبع",
-                "رمز المرجع",
-                "اسم التاجر",
-                "العنوان",
-                "اسم المستلم",
-                "رقم هاتف المستلم",
-                "الحالة",
-                "سعر الشحنه",
-                "حالة الدفع",
-                "رسوم الشحن",
-                "فلوس المكتب",
-                "فلوس التاجر",
-                "فرق الفلوس",
-            ]
-        )
+    def _populate_financial_orders_sheet(cls, ws, queryset, headers):
+        ws.append(headers)
 
         total_trader_commission = 0
         total_office = 0
 
-        # Create a mapping of status to color (column F is the status column)
-        for row_idx, order in enumerate(queryset, start=2):  # Start from row 2 (1-based) to skip header
-            trader_cost, trader_commission, office = cls._calculate_order_financials(
-                order
+        for row_idx, order in enumerate(queryset, start=2):
+            trader_cost = (
+                order.trader_cost if order.trader_cost else order.trader_merchant_cost
             )
-
+            trader_commission, office = cls._calculate_order_financials(
+                order, trader_cost
+            )
             total_trader_commission += trader_commission
             total_office += office
-            customer_name = ""
-            customer_phone = ""
-            if order.customer:
-                customer_name = order.customer.name
-                customer_phone = order.customer.phone                
+
+            customer_name = order.customer.name if order.customer else ""
+            customer_phone = order.customer.phone if order.customer else ""
+            billing_date = ""
+            if getattr(order, "billing_date", None):
+                billing_date = order.billing_date.strftime("%Y-%m-%d")
             ws.append(
                 [
                     order.created.strftime("%Y-%m-%d"),
-                    order.status_changed_at.strftime("%Y-%m-%d") if order.status_changed_at else "",
+                    (
+                        order.status_changed_at.strftime("%Y-%m-%d")
+                        if order.status_changed_at
+                        else ""
+                    ),
+                    billing_date,
                     str(order.tracking_number),
                     str(order.reference_code),
                     str(order.trader.full_name if order.trader else ""),
@@ -282,14 +273,13 @@ class OrderExportService:
                     str(office - trader_commission),
                 ]
             )
-            
-            # Get the status cell (column H)
-            status_cell = ws[f'H{row_idx}']
-            # Apply the color based on status
-            status_cell.font = Font(color=order.status_color.lstrip('#'))  # Remove '#' if present
+
+            status_cell = ws[f"J{row_idx}"]
+            status_cell.font = Font(color=order.status_color.lstrip("#"))
 
         ws.append(
             [
+                "",
                 "",
                 "",
                 "",
@@ -312,12 +302,104 @@ class OrderExportService:
         for column_cells in ws.columns:
             max_length = 0
             column_letter = get_column_letter(column_cells[0].column)
-
             for cell in column_cells:
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
-
             ws.column_dimensions[column_letter].width = max_length + 2
+
+    @classmethod
+    def _populate_un_financial_orders_sheet(cls, ws, queryset, headers):
+        ws.append(headers)
+
+        for row_idx, order in enumerate(queryset, start=2):
+            trader_cost = (
+                order.trader_cost if order.trader_cost else order.trader_merchant_cost
+            )
+            customer_name = ""
+            customer_phone = ""
+            if order.customer:
+                customer_name = order.customer.name
+                customer_phone = order.customer.phone
+
+            ws.append(
+                [
+                    order.created.strftime("%Y-%m-%d"),
+                    (
+                        order.status_changed_at.strftime("%Y-%m-%d")
+                        if order.status_changed_at
+                        else ""
+                    ),
+                    str(order.tracking_number),
+                    str(order.reference_code),
+                    str(order.trader.full_name if order.trader else ""),
+                    str(order.delivery_zone.name if order.delivery_zone else ""),
+                    str(customer_name),
+                    str(customer_phone),
+                    str(order.status_ar),
+                    str(order.product_cost),
+                    str(order.product_payment_status_ar),
+                    str(trader_cost),
+                ]
+            )
+
+            status_cell = ws[f"I{row_idx}"]
+            status_cell.font = Font(color=order.status_color.lstrip("#"))
+
+        ws.append(["", "", "", "", "", "", "", "", "", "", "", ""])
+
+        for column_cells in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column_cells[0].column)
+            for cell in column_cells:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            ws.column_dimensions[column_letter].width = max_length + 2
+
+    @classmethod
+    def generate_excel(cls, financial_orders, un_financial_orders):
+        wb = Workbook()
+        # Financial Orders Sheet
+        ws1 = wb.active
+        ws1.title = "Financial Orders"
+        headers = [
+            "تاريخ الاضافة",
+            "تاريخ تغير الحالة",
+            "تاريخ الفاتوره",
+            "رقم التتبع",
+            "رمز المرجع",
+            "اسم التاجر",
+            "العنوان",
+            "اسم المستلم",
+            "رقم هاتف المستلم",
+            "الحالة",
+            "سعر الشحنه",
+            "حالة الدفع",
+            "رسوم الشحن",
+            "فلوس المكتب",
+            "فلوس التاجر",
+            "فرق الفلوس",
+        ]
+        cls._populate_financial_orders_sheet(ws1, financial_orders, headers=headers)
+
+        # Un-financial Orders Sheet
+        ws2 = wb.create_sheet(title="Un-financial Orders")
+        headers = [
+            "تاريخ الاضافة",
+            "تاريخ تغير الحالة",
+            "رقم التتبع",
+            "رمز المرجع",
+            "اسم التاجر",
+            "العنوان",
+            "اسم المستلم",
+            "رقم هاتف المستلم",
+            "الحالة",
+            "سعر الشحنه",
+            "حالة الدفع",
+            "رسوم الشحن",
+        ]
+        cls._populate_un_financial_orders_sheet(
+            ws2, un_financial_orders, headers=headers
+        )
 
         buffer = BytesIO()
         wb.save(buffer)
