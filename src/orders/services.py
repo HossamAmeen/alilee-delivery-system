@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from io import BytesIO
 
 from django.core.exceptions import ValidationError
-from django.db.models import F
+from django.db.models import Max, Q
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
@@ -37,15 +37,20 @@ class OrderExportService:
         queryset = (
             Order.objects.filter(
                 transactions__isnull=False,
-                transactions__is_rolled_back=False,
-                transactions__user_account__role=UserRole.TRADER,
             )
             .select_related("driver", "trader", "customer", "delivery_zone")
+            .prefetch_related("transactions")
             .annotate(
-                billing_date=F("transactions__created"),
+                billing_date=Max(
+                    "transactions__created",
+                    filter=Q(
+                        transactions__is_rolled_back=False,
+                        transactions__user_account__role=UserRole.TRADER,
+                    ),
+                )
             )
-            .distinct()
             .order_by("-id")
+            .distinct()
         )
 
         trader_id = params.get("trader")
